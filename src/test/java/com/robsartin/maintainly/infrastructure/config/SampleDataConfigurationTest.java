@@ -15,6 +15,7 @@ import com.robsartin.maintainly.domain.port.out.OrganizationRepository;
 import com.robsartin.maintainly.domain.port.out.ServiceScheduleRepository;
 import com.robsartin.maintainly.domain.port.out.ServiceTypeRepository;
 import com.robsartin.maintainly.domain.port.out.VendorRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -41,23 +42,8 @@ class SampleDataConfigurationTest {
     private final ServiceScheduleRepository scheduleRepo =
             mock(ServiceScheduleRepository.class);
 
-    @Test
-    @DisplayName("should load sample data when empty")
-    void shouldLoadWhenEmpty() throws Exception {
-        Organization org = new Organization();
-        org.setId(SampleDataConfiguration.SAMPLE_ORG_ID);
-        org.setName("Test Org");
-        when(orgRepo.findById(
-                SampleDataConfiguration.SAMPLE_ORG_ID))
-                .thenReturn(Optional.empty());
-        when(orgRepo.save(any(Organization.class)))
-                .thenReturn(org);
-        AppUser dev = new AppUser(
-                UuidV7.generate(), "dev");
-        when(userRepo.findByUsername("dev"))
-                .thenReturn(Optional.of(dev));
-        when(userRepo.save(any(AppUser.class)))
-                .thenReturn(dev);
+    @BeforeEach
+    void stubSavePassthrough() {
         when(typeRepo.save(any(ServiceType.class)))
                 .thenAnswer(i -> i.getArgument(0));
         when(vendorRepo.save(any(Vendor.class)))
@@ -67,11 +53,14 @@ class SampleDataConfigurationTest {
         when(scheduleRepo.save(
                 any(ServiceSchedule.class)))
                 .thenAnswer(i -> i.getArgument(0));
-        new SampleDataConfiguration()
-                .loadSampleData(orgRepo, userRepo,
-                        itemRepo, typeRepo, vendorRepo,
-                        scheduleRepo)
-                .run();
+    }
+
+    @Test
+    @DisplayName("should load sample data when empty")
+    void shouldLoadWhenEmpty() throws Exception {
+        stubOrgNotFound();
+        stubDevUserExists();
+        runLoader();
         verify(orgRepo).save(any(Organization.class));
         verify(itemRepo, atLeastOnce())
                 .save(any(Item.class));
@@ -88,45 +77,50 @@ class SampleDataConfigurationTest {
         when(orgRepo.findById(
                 SampleDataConfiguration.SAMPLE_ORG_ID))
                 .thenReturn(Optional.of(existing));
-        new SampleDataConfiguration()
-                .loadSampleData(orgRepo, userRepo,
-                        itemRepo, typeRepo, vendorRepo,
-                        scheduleRepo)
-                .run();
+        runLoader();
         verify(itemRepo, never()).save(any());
     }
 
     @Test
     @DisplayName("should create dev user when not found")
     void shouldCreateDevUser() throws Exception {
-        Organization org = new Organization();
-        org.setId(SampleDataConfiguration.SAMPLE_ORG_ID);
-        when(orgRepo.findById(
-                SampleDataConfiguration.SAMPLE_ORG_ID))
-                .thenReturn(Optional.empty());
-        when(orgRepo.save(any(Organization.class)))
-                .thenReturn(org);
+        stubOrgNotFound();
         AppUser dev = new AppUser(
                 UuidV7.generate(), "dev");
         when(userRepo.findByUsername("dev"))
                 .thenReturn(Optional.empty());
         when(userRepo.save(any(AppUser.class)))
                 .thenReturn(dev);
-        when(typeRepo.save(any(ServiceType.class)))
-                .thenAnswer(i -> i.getArgument(0));
-        when(vendorRepo.save(any(Vendor.class)))
-                .thenAnswer(i -> i.getArgument(0));
-        when(itemRepo.save(any(Item.class)))
-                .thenAnswer(i -> i.getArgument(0));
-        when(scheduleRepo.save(
-                any(ServiceSchedule.class)))
-                .thenAnswer(i -> i.getArgument(0));
+        runLoader();
+        verify(userRepo, atLeastOnce())
+                .save(any(AppUser.class));
+    }
+
+    private void stubOrgNotFound() {
+        Organization org = new Organization();
+        org.setId(SampleDataConfiguration.SAMPLE_ORG_ID);
+        org.setName("Test Org");
+        when(orgRepo.findById(
+                SampleDataConfiguration.SAMPLE_ORG_ID))
+                .thenReturn(Optional.empty());
+        when(orgRepo.save(any(Organization.class)))
+                .thenReturn(org);
+    }
+
+    private void stubDevUserExists() {
+        AppUser dev = new AppUser(
+                UuidV7.generate(), "dev");
+        when(userRepo.findByUsername("dev"))
+                .thenReturn(Optional.of(dev));
+        when(userRepo.save(any(AppUser.class)))
+                .thenReturn(dev);
+    }
+
+    private void runLoader() throws Exception {
         new SampleDataConfiguration()
                 .loadSampleData(orgRepo, userRepo,
                         itemRepo, typeRepo, vendorRepo,
                         scheduleRepo)
                 .run();
-        verify(userRepo, atLeastOnce())
-                .save(any(AppUser.class));
     }
 }

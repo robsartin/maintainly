@@ -27,6 +27,26 @@ class SecurityConfigurationTest {
     }
 
     @Test
+    @DisplayName("should not block unauthenticated prometheus")
+    void shouldNotBlockPrometheus() throws Exception {
+        assertNotRedirectedToLogin(
+                "/actuator/prometheus");
+    }
+
+    @Test
+    @DisplayName("should not block unauthenticated api-docs")
+    void shouldNotBlockApiDocs() throws Exception {
+        assertNotRedirectedToLogin("/api-docs");
+    }
+
+    @Test
+    @DisplayName("should not block unauthenticated swagger-ui")
+    void shouldNotBlockSwaggerUi() throws Exception {
+        assertNotRedirectedToLogin(
+                "/swagger-ui/index.html");
+    }
+
+    @Test
     @DisplayName("should redirect unauthenticated to login")
     void shouldRedirectUnauthenticated() throws Exception {
         mockMvc.perform(get("/"))
@@ -39,5 +59,17 @@ class SecurityConfigurationTest {
         mockMvc.perform(get("/")
                         .with(user("dev").roles("USER")))
                 .andExpect(status().isOk());
+    }
+
+    private void assertNotRedirectedToLogin(String path)
+            throws Exception {
+        int status = mockMvc.perform(get(path))
+                .andReturn().getResponse().getStatus();
+        if (status == 302) {
+            throw new AssertionError(
+                    "Expected " + path
+                    + " not to redirect to login"
+                    + " but got 302");
+        }
     }
 }

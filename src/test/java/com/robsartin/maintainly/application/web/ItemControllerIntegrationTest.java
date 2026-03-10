@@ -1,6 +1,7 @@
 package com.robsartin.maintainly.application.web;
 
 import java.util.List;
+import java.util.UUID;
 
 import com.robsartin.maintainly.domain.model.Item;
 import org.junit.jupiter.api.DisplayName;
@@ -34,7 +35,9 @@ class ItemControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("items"))
                 .andExpect(model().attributeExists(
-                        "schedules"));
+                        "schedules"))
+                .andExpect(model().attributeExists(
+                        "username"));
     }
 
     @Test
@@ -44,7 +47,20 @@ class ItemControllerIntegrationTest {
                         .param("q", "Furnace")
                         .with(user("dev").roles("USER")))
                 .andExpect(status().isOk())
-                .andExpect(model().attributeExists("items"));
+                .andExpect(model().attributeExists("items"))
+                .andExpect(model().attribute("q", "Furnace"));
+    }
+
+    @Test
+    @DisplayName("should return all items with blank search")
+    void shouldReturnAllWithBlankSearch() throws Exception {
+        mockMvc.perform(get("/")
+                        .param("q", "  ")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("items"))
+                .andExpect(
+                        model().attributeDoesNotExist("q"));
     }
 
     @Test
@@ -57,7 +73,8 @@ class ItemControllerIntegrationTest {
                         .param("serviceDate", "2026-04-15")
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("items"));
     }
 
     @Test
@@ -68,6 +85,20 @@ class ItemControllerIntegrationTest {
                         .param("itemId", itemId)
                         .param("summary", "Test")
                         .param("serviceDate", "not-a-date")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("error"));
+    }
+
+    @Test
+    @DisplayName("should handle invalid item ID")
+    void shouldHandleInvalidItemId() throws Exception {
+        UUID fakeId = UUID.randomUUID();
+        mockMvc.perform(post("/service/record")
+                        .param("itemId", fakeId.toString())
+                        .param("summary", "Test")
+                        .param("serviceDate", "2026-04-15")
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
                 .andExpect(status().isOk())

@@ -46,12 +46,35 @@ class AppUserTest {
     }
 
     @Test
-    @DisplayName("should report whether user has organization")
-    void shouldReportHasOrganization() {
+    @DisplayName("should report no org when organization is null")
+    void shouldReportNoOrgWhenNull() {
         AppUser user = new AppUser(UUID.randomUUID(), "carol");
         assertFalse(user.hasOrganization());
+    }
+
+    @Test
+    @DisplayName("should report no org when org has null ID")
+    void shouldReportNoOrgWhenOrgIdNull() {
+        AppUser user = new AppUser(UUID.randomUUID(), "carol");
         user.setOrganization(new Organization());
-        user.getOrganization().setId(UuidV7.generate());
+        assertFalse(user.hasOrganization());
+    }
+
+    @Test
+    @DisplayName("should report has org when org has ID")
+    void shouldReportHasOrgWhenOrgHasId() {
+        AppUser user = new AppUser(UUID.randomUUID(), "carol");
+        Organization org = new Organization();
+        org.setId(UuidV7.generate());
+        user.setOrganization(org);
         assertTrue(user.hasOrganization());
+    }
+
+    @Test
+    @DisplayName("should set and get username")
+    void shouldSetUsername() {
+        AppUser user = new AppUser();
+        user.setUsername("alice");
+        assertEquals("alice", user.getUsername());
     }
 }
