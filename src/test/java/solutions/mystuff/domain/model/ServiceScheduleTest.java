@@ -36,11 +36,10 @@ class ServiceScheduleTest {
         ServiceSchedule s = new ServiceSchedule();
         var orgId = UuidV7.generate();
         Item item = new Item();
-        ServiceType type = new ServiceType();
         Vendor vendor = new Vendor();
         s.setOrganizationId(orgId);
         s.setItem(item);
-        s.setServiceType(type);
+        s.setServiceType("HVAC Inspection");
         s.setPreferredVendor(vendor);
         s.setFrequencyUnit(FrequencyUnit.months);
         s.setFrequencyInterval(6);
@@ -52,7 +51,8 @@ class ServiceScheduleTest {
         s.setNotes("Semi-annual");
         assertEquals(orgId, s.getOrganizationId());
         assertEquals(item, s.getItem());
-        assertEquals(type, s.getServiceType());
+        assertEquals("HVAC Inspection",
+                s.getServiceType());
         assertEquals(vendor, s.getPreferredVendor());
         assertEquals(FrequencyUnit.months,
                 s.getFrequencyUnit());

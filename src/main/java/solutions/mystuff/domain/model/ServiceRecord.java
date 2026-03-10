@@ -20,9 +20,8 @@ public class ServiceRecord extends OrgOwnedEntity {
     @JoinColumn(name = "item_id", nullable = false)
     private Item item;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "service_type_id")
-    private ServiceType serviceType;
+    @Column(name = "service_type", length = 150)
+    private String serviceType;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "service_schedule_id")
@@ -65,11 +64,11 @@ public class ServiceRecord extends OrgOwnedEntity {
         this.item = item;
     }
 
-    public ServiceType getServiceType() {
+    public String getServiceType() {
         return serviceType;
     }
 
-    public void setServiceType(ServiceType serviceType) {
+    public void setServiceType(String serviceType) {
         this.serviceType = serviceType;
     }
 

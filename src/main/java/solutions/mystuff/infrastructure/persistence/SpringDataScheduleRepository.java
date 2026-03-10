@@ -16,7 +16,7 @@ interface SpringDataScheduleRepository
 
     @Query("SELECT s FROM ServiceSchedule s "
             + "JOIN FETCH s.item "
-            + "JOIN FETCH s.serviceType "
+
             + "LEFT JOIN FETCH s.preferredVendor "
             + "WHERE s.organizationId = :orgId "
             + "ORDER BY s.nextDueDate ASC NULLS LAST")
@@ -26,7 +26,7 @@ interface SpringDataScheduleRepository
 
     @Query("SELECT s FROM ServiceSchedule s "
             + "JOIN FETCH s.item "
-            + "JOIN FETCH s.serviceType "
+
             + "LEFT JOIN FETCH s.preferredVendor "
             + "WHERE s.organizationId = :orgId "
             + "AND s.active = true "
@@ -36,7 +36,7 @@ interface SpringDataScheduleRepository
 
     @Query(value = "SELECT s FROM ServiceSchedule s "
             + "JOIN FETCH s.item "
-            + "JOIN FETCH s.serviceType "
+
             + "LEFT JOIN FETCH s.preferredVendor "
             + "WHERE s.organizationId = :orgId "
             + "AND s.active = true "
@@ -53,7 +53,7 @@ interface SpringDataScheduleRepository
             UUID id, UUID organizationId);
 
     @Query("SELECT s FROM ServiceSchedule s "
-            + "JOIN FETCH s.serviceType "
+
             + "LEFT JOIN FETCH s.preferredVendor "
             + "WHERE s.item.id = :itemId "
             + "AND s.organizationId = :orgId "

@@ -8,14 +8,12 @@ import solutions.mystuff.domain.model.FrequencyUnit;
 import solutions.mystuff.domain.model.Item;
 import solutions.mystuff.domain.model.Organization;
 import solutions.mystuff.domain.model.ServiceSchedule;
-import solutions.mystuff.domain.model.ServiceType;
 import solutions.mystuff.domain.model.UuidV7;
 import solutions.mystuff.domain.model.Vendor;
 import solutions.mystuff.domain.port.out.AppUserRepository;
 import solutions.mystuff.domain.port.out.ItemRepository;
 import solutions.mystuff.domain.port.out.OrganizationRepository;
 import solutions.mystuff.domain.port.out.ServiceScheduleRepository;
-import solutions.mystuff.domain.port.out.ServiceTypeRepository;
 import solutions.mystuff.domain.port.out.VendorRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +35,6 @@ public class SampleDataConfiguration {
             OrganizationRepository orgRepo,
             AppUserRepository userRepo,
             ItemRepository itemRepo,
-            ServiceTypeRepository typeRepo,
             VendorRepository vendorRepo,
             ServiceScheduleRepository scheduleRepo) {
         return args -> {
@@ -49,7 +46,7 @@ public class SampleDataConfiguration {
             log.info("Loading sample data");
             Organization org = createOrg(orgRepo);
             assignDevUser(userRepo, org);
-            createSampleEntities(itemRepo, typeRepo,
+            createSampleEntities(itemRepo,
                     vendorRepo, scheduleRepo,
                     org.getId());
             log.info("Created sample org {}",
@@ -81,20 +78,14 @@ public class SampleDataConfiguration {
 
     private void createSampleEntities(
             ItemRepository itemRepo,
-            ServiceTypeRepository typeRepo,
             VendorRepository vendorRepo,
             ServiceScheduleRepository scheduleRepo,
             UUID orgId) {
-        ServiceType hvac = createServiceType(typeRepo,
-                orgId, "HVAC_INSPECT", "HVAC Inspection");
-        ServiceType plumb = createServiceType(typeRepo,
-                orgId, "PLUMB_CHECK", "Plumbing Check");
-        ServiceType elec = createServiceType(typeRepo,
-                orgId, "ELEC_INSPECT", "Electrical Inspection");
-        ServiceType filter = createServiceType(typeRepo,
-                orgId, "FILTER_REPL", "Filter Replacement");
-        ServiceType gen = createServiceType(typeRepo,
-                orgId, "GEN_MAINT", "General Maintenance");
+        String hvac = "HVAC Inspection";
+        String plumb = "Plumbing Check";
+        String elec = "Electrical Inspection";
+        String filter = "Filter Replacement";
+        String gen = "General Maintenance";
         Vendor abc = createVendor(vendorRepo, orgId,
                 "ABC Maintenance", "555-0100");
         Vendor quick = createVendor(vendorRepo, orgId,
@@ -109,8 +100,8 @@ public class SampleDataConfiguration {
     private void createOriginalItems(
             ItemRepository itemRepo,
             ServiceScheduleRepository scheduleRepo,
-            UUID orgId, ServiceType hvac,
-            ServiceType plumb, Vendor abc) {
+            UUID orgId, String hvac,
+            String plumb, Vendor abc) {
         Item furnace = createItem(itemRepo, orgId,
                 "Main Furnace", "Basement",
                 "Carrier", "58STA", 2020,
@@ -128,9 +119,9 @@ public class SampleDataConfiguration {
     private void createAdditionalItems(
             ItemRepository itemRepo,
             ServiceScheduleRepository scheduleRepo,
-            UUID orgId, ServiceType hvac,
-            ServiceType plumb, ServiceType elec,
-            ServiceType filter, ServiceType gen,
+            UUID orgId, String hvac,
+            String plumb, String elec,
+            String filter, String gen,
             Vendor abc, Vendor quick) {
         createMechanicalItems(itemRepo, scheduleRepo,
                 orgId, hvac, plumb, elec, filter, gen,
@@ -143,9 +134,9 @@ public class SampleDataConfiguration {
     private void createMechanicalItems(
             ItemRepository ir,
             ServiceScheduleRepository sr,
-            UUID o, ServiceType hvac,
-            ServiceType plumb, ServiceType elec,
-            ServiceType filter, ServiceType gen,
+            UUID o, String hvac,
+            String plumb, String elec,
+            String filter, String gen,
             Vendor abc, Vendor quick) {
         Item ac = createItem(ir, o, "Central AC",
                 "Roof", "Trane", "XR15", 2019,
@@ -173,9 +164,9 @@ public class SampleDataConfiguration {
     private void createBuildingItems(
             ItemRepository ir,
             ServiceScheduleRepository sr,
-            UUID o, ServiceType hvac,
-            ServiceType plumb, ServiceType elec,
-            ServiceType filter, ServiceType gen,
+            UUID o, String hvac,
+            String plumb, String elec,
+            String filter, String gen,
             Vendor abc, Vendor quick) {
         Item pump = createItem(ir, o, "Sump Pump",
                 "Basement", "Zoeller", "M53", 2023,
@@ -204,9 +195,9 @@ public class SampleDataConfiguration {
     private void createFacilityItems(
             ItemRepository ir,
             ServiceScheduleRepository sr,
-            UUID o, ServiceType hvac,
-            ServiceType plumb, ServiceType elec,
-            ServiceType filter, ServiceType gen,
+            UUID o, String hvac,
+            String plumb, String elec,
+            String filter, String gen,
             Vendor abc, Vendor quick) {
         Item panel = createItem(ir, o,
                 "Main Electrical Panel", "Utility Room",
@@ -238,7 +229,7 @@ public class SampleDataConfiguration {
 
     private void sched(
             ServiceScheduleRepository repo, UUID orgId,
-            Item item, ServiceType type, Vendor vendor,
+            Item item, String type, Vendor vendor,
             FrequencyUnit unit, int interval,
             int daysFromNow) {
         createSchedule(repo, orgId, item, type, vendor,
@@ -255,17 +246,6 @@ public class SampleDataConfiguration {
         vendor.setName(name);
         vendor.setPhone(phone);
         return vendorRepo.save(vendor);
-    }
-
-    private ServiceType createServiceType(
-            ServiceTypeRepository repo, UUID orgId,
-            String code, String name) {
-        ServiceType st = new ServiceType();
-        st.setId(UuidV7.generate());
-        st.setOrganizationId(orgId);
-        st.setCode(code);
-        st.setName(name);
-        return repo.save(st);
     }
 
     private Item createItem(
@@ -287,7 +267,7 @@ public class SampleDataConfiguration {
 
     private void createSchedule(
             ServiceScheduleRepository repo, UUID orgId,
-            Item item, ServiceType type,
+            Item item, String type,
             Vendor vendor, FrequencyUnit unit,
             int interval, LocalDate nextDue) {
         ServiceSchedule s = new ServiceSchedule();

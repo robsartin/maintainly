@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.ServiceSchedule;
-import solutions.mystuff.domain.model.ServiceType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -156,8 +155,6 @@ class ScheduleControllerIntegrationTest {
                         .with(user("dev").roles("USER")))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists(
-                        "serviceTypes"))
-                .andExpect(model().attributeExists(
                         "frequencyUnits"));
     }
 
@@ -166,10 +163,10 @@ class ScheduleControllerIntegrationTest {
     void shouldCreateScheduleFromSchedules()
             throws Exception {
         String itemId = getFirstItemId();
-        String svcTypeId = getFirstServiceTypeId();
         mockMvc.perform(post("/schedules/create")
                         .param("itemId", itemId)
-                        .param("serviceTypeId", svcTypeId)
+                        .param("serviceType",
+                                "HVAC Inspection")
                         .param("nextDueDate", "2026-12-01")
                         .param("frequencyInterval", "6")
                         .param("frequencyUnit", "months")
@@ -202,14 +199,6 @@ class ScheduleControllerIntegrationTest {
                 getScheduleList();
         return schedules.get(0).getItem().getId()
                 .toString();
-    }
-
-    @SuppressWarnings("unchecked")
-    private String getFirstServiceTypeId()
-            throws Exception {
-        return ((List<ServiceType>)
-                getScheduleModel("serviceTypes"))
-                .get(0).getId().toString();
     }
 
     @SuppressWarnings("unchecked")

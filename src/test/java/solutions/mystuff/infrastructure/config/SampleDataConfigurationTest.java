@@ -6,14 +6,12 @@ import solutions.mystuff.domain.model.AppUser;
 import solutions.mystuff.domain.model.Item;
 import solutions.mystuff.domain.model.Organization;
 import solutions.mystuff.domain.model.ServiceSchedule;
-import solutions.mystuff.domain.model.ServiceType;
 import solutions.mystuff.domain.model.UuidV7;
 import solutions.mystuff.domain.model.Vendor;
 import solutions.mystuff.domain.port.out.AppUserRepository;
 import solutions.mystuff.domain.port.out.ItemRepository;
 import solutions.mystuff.domain.port.out.OrganizationRepository;
 import solutions.mystuff.domain.port.out.ServiceScheduleRepository;
-import solutions.mystuff.domain.port.out.ServiceTypeRepository;
 import solutions.mystuff.domain.port.out.VendorRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -35,8 +33,6 @@ class SampleDataConfigurationTest {
             mock(AppUserRepository.class);
     private final ItemRepository itemRepo =
             mock(ItemRepository.class);
-    private final ServiceTypeRepository typeRepo =
-            mock(ServiceTypeRepository.class);
     private final VendorRepository vendorRepo =
             mock(VendorRepository.class);
     private final ServiceScheduleRepository scheduleRepo =
@@ -44,8 +40,6 @@ class SampleDataConfigurationTest {
 
     @BeforeEach
     void stubSavePassthrough() {
-        when(typeRepo.save(any(ServiceType.class)))
-                .thenAnswer(i -> i.getArgument(0));
         when(vendorRepo.save(any(Vendor.class)))
                 .thenAnswer(i -> i.getArgument(0));
         when(itemRepo.save(any(Item.class)))
@@ -119,7 +113,7 @@ class SampleDataConfigurationTest {
     private void runLoader() throws Exception {
         new SampleDataConfiguration()
                 .loadSampleData(orgRepo, userRepo,
-                        itemRepo, typeRepo, vendorRepo,
+                        itemRepo, vendorRepo,
                         scheduleRepo)
                 .run();
     }

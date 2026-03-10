@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.Item;
-import solutions.mystuff.domain.model.ServiceType;
 import solutions.mystuff.domain.model.Vendor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -206,10 +205,10 @@ class ItemControllerIntegrationTest {
     @DisplayName("should schedule service from item")
     void shouldScheduleFromItem() throws Exception {
         String itemId = getFirstItemId();
-        String svcTypeId = getFirstServiceTypeId();
         mockMvc.perform(post("/items/schedule")
                         .param("itemId", itemId)
-                        .param("serviceTypeId", svcTypeId)
+                        .param("serviceType",
+                                "HVAC Inspection")
                         .param("nextDueDate", "2026-09-15")
                         .param("frequencyInterval", "6")
                         .param("frequencyUnit", "months")
@@ -224,11 +223,11 @@ class ItemControllerIntegrationTest {
     void shouldHandleInvalidItemSchedule()
             throws Exception {
         UUID fakeId = UUID.randomUUID();
-        String svcTypeId = getFirstServiceTypeId();
         mockMvc.perform(post("/items/schedule")
                         .param("itemId",
                                 fakeId.toString())
-                        .param("serviceTypeId", svcTypeId)
+                        .param("serviceType",
+                                "HVAC Inspection")
                         .param("nextDueDate", "2026-09-15")
                         .param("frequencyInterval", "6")
                         .param("frequencyUnit", "months")
@@ -245,8 +244,6 @@ class ItemControllerIntegrationTest {
                         .with(user("dev").roles("USER")))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists(
-                        "serviceTypes"))
-                .andExpect(model().attributeExists(
                         "vendors"))
                 .andExpect(model().attributeExists(
                         "frequencyUnits"));
@@ -257,11 +254,11 @@ class ItemControllerIntegrationTest {
     void shouldScheduleWithExistingVendor()
             throws Exception {
         String itemId = getFirstItemId();
-        String svcTypeId = getFirstServiceTypeId();
         String vendorId = getFirstVendorId();
         mockMvc.perform(post("/items/schedule")
                         .param("itemId", itemId)
-                        .param("serviceTypeId", svcTypeId)
+                        .param("serviceType",
+                                "Plumbing Check")
                         .param("nextDueDate", "2026-10-01")
                         .param("frequencyInterval", "3")
                         .param("frequencyUnit", "months")
@@ -277,10 +274,10 @@ class ItemControllerIntegrationTest {
     void shouldScheduleWithNewVendor()
             throws Exception {
         String itemId = getFirstItemId();
-        String svcTypeId = getFirstServiceTypeId();
         mockMvc.perform(post("/items/schedule")
                         .param("itemId", itemId)
-                        .param("serviceTypeId", svcTypeId)
+                        .param("serviceType",
+                                "Filter Replacement")
                         .param("nextDueDate", "2026-11-01")
                         .param("frequencyInterval", "1")
                         .param("frequencyUnit", "years")
@@ -300,10 +297,10 @@ class ItemControllerIntegrationTest {
     void shouldRejectNewVendorNoName()
             throws Exception {
         String itemId = getFirstItemId();
-        String svcTypeId = getFirstServiceTypeId();
         mockMvc.perform(post("/items/schedule")
                         .param("itemId", itemId)
-                        .param("serviceTypeId", svcTypeId)
+                        .param("serviceType",
+                                "General Maintenance")
                         .param("nextDueDate", "2026-11-01")
                         .param("frequencyInterval", "1")
                         .param("frequencyUnit", "years")
@@ -371,14 +368,6 @@ class ItemControllerIntegrationTest {
     @SuppressWarnings("unchecked")
     private String getFirstItemId() throws Exception {
         return ((List<Item>) getModel("items"))
-                .get(0).getId().toString();
-    }
-
-    @SuppressWarnings("unchecked")
-    private String getFirstServiceTypeId()
-            throws Exception {
-        return ((List<ServiceType>)
-                getModel("serviceTypes"))
                 .get(0).getId().toString();
     }
 

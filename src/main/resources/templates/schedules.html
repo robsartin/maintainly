@@ -43,7 +43,7 @@
                         <span th:if="${s.item.modelYear}" th:text="' (' + ${s.item.modelYear} + ')'"></span>
                         <span th:if="${s.item.serialNumber}" class="serial-number"
                               th:text="' S/N: ' + ${s.item.serialNumber}"></span></td>
-                    <td th:text="${s.serviceType.name}"></td>
+                    <td th:text="${s.serviceType}"></td>
                     <td th:text="${s.preferredVendor != null ? s.preferredVendor.name : ''}"></td>
                     <td th:text="${s.nextDueDate}"></td>
                     <td th:text="'Every ' + ${s.frequencyInterval} + ' ' + ${s.frequencyUnit}"></td>
@@ -130,12 +130,9 @@
                         <form method="post" th:action="@{/schedules/create}" class="inline-form">
                             <input type="hidden" name="itemId" th:value="${s.item.id}"/>
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                            <label>Type
-                                <select name="serviceTypeId" required>
-                                    <option value="">Select...</option>
-                                    <option th:each="st : ${serviceTypes}"
-                                            th:value="${st.id}" th:text="${st.name}"></option>
-                                </select>
+                            <label>Type <input type="text"
+                                    name="serviceType" required
+                                    placeholder="e.g. HVAC Inspection"/>
                             </label>
                             <label>Vendor
                                 <select name="vendorId" onchange="onVendorChange(this)">

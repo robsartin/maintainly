@@ -36,13 +36,12 @@ class ServiceRecordTest {
         ServiceRecord r = new ServiceRecord();
         var orgId = UuidV7.generate();
         Item item = new Item();
-        ServiceType type = new ServiceType();
         ServiceSchedule schedule = new ServiceSchedule();
         Vendor vendor = new Vendor();
         Instant now = Instant.now();
         r.setOrganizationId(orgId);
         r.setItem(item);
-        r.setServiceType(type);
+        r.setServiceType("Plumbing Check");
         r.setServiceSchedule(schedule);
         r.setVendor(vendor);
         r.setDataEntryTimestamp(now);
@@ -52,7 +51,8 @@ class ServiceRecordTest {
         r.setCost(new BigDecimal("150.00"));
         assertEquals(orgId, r.getOrganizationId());
         assertEquals(item, r.getItem());
-        assertEquals(type, r.getServiceType());
+        assertEquals("Plumbing Check",
+                r.getServiceType());
         assertEquals(schedule, r.getServiceSchedule());
         assertEquals(vendor, r.getVendor());
         assertEquals(now, r.getDataEntryTimestamp());

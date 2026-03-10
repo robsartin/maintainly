@@ -8,15 +8,12 @@ import solutions.mystuff.domain.model.AppUser;
 import solutions.mystuff.domain.model.FrequencyUnit;
 import solutions.mystuff.domain.model.Item;
 import solutions.mystuff.domain.model.PageResult;
-import solutions.mystuff.domain.model.ServiceType;
 import solutions.mystuff.domain.model.Vendor;
 import solutions.mystuff.domain.port.out.ItemRepository;
 import solutions.mystuff.domain.port.out
         .ServiceRecordRepository;
 import solutions.mystuff.domain.port.out
         .ServiceScheduleRepository;
-import solutions.mystuff.domain.port.out
-        .ServiceTypeRepository;
 import solutions.mystuff.domain.port.out
         .VendorRepository;
 import jakarta.servlet.http.HttpServletResponse;
@@ -37,7 +34,6 @@ public class ItemController {
     private final ItemRepository itemRepository;
     private final ServiceScheduleRepository scheduleRepo;
     private final ServiceRecordRepository recordRepo;
-    private final ServiceTypeRepository typeRepo;
     private final VendorRepository vendorRepository;
     private final ControllerHelper helper;
 
@@ -45,13 +41,11 @@ public class ItemController {
             ItemRepository itemRepository,
             ServiceScheduleRepository scheduleRepo,
             ServiceRecordRepository recordRepo,
-            ServiceTypeRepository typeRepo,
             VendorRepository vendorRepository,
             ControllerHelper helper) {
         this.itemRepository = itemRepository;
         this.scheduleRepo = scheduleRepo;
         this.recordRepo = recordRepo;
-        this.typeRepo = typeRepo;
         this.vendorRepository = vendorRepository;
         this.helper = helper;
     }
@@ -191,7 +185,7 @@ public class ItemController {
     @PostMapping("/items/schedule")
     public String scheduleItemService(
             @RequestParam UUID itemId,
-            @RequestParam UUID serviceTypeId,
+            @RequestParam String serviceType,
             @RequestParam String nextDueDate,
             @RequestParam int frequencyInterval,
             @RequestParam FrequencyUnit frequencyUnit,
@@ -207,15 +201,13 @@ public class ItemController {
         try {
             UUID orgId = user.getOrganization().getId();
             Item item = findItem(itemId, orgId);
-            ServiceType svcType =
-                    helper.findServiceType(
-                            serviceTypeId, orgId);
             Vendor vendor = helper.resolveVendor(orgId,
                     vendorId, newVendorName,
                     newVendorPhone);
-            helper.createSchedule(orgId, item, svcType,
-                    vendor, nextDueDate,
-                    frequencyInterval, frequencyUnit);
+            helper.createSchedule(orgId, item,
+                    serviceType.trim(), vendor,
+                    nextDueDate, frequencyInterval,
+                    frequencyUnit);
             return "redirect:/items";
         } finally {
             helper.clearOrgMdc();
@@ -254,8 +246,6 @@ public class ItemController {
         model.addAttribute("itemPage", result);
         LinkHeaderBuilder.addLinkHeader(
                 response, "/items", result, q);
-        model.addAttribute("serviceTypes",
-                typeRepo.findByOrganizationId(orgId));
         model.addAttribute("vendors",
                 vendorRepository
                         .findByOrganizationId(orgId));

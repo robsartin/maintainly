@@ -19,10 +19,9 @@ public class ServiceSchedule extends OrgOwnedEntity {
     @JoinColumn(name = "item_id", nullable = false)
     private Item item;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "service_type_id",
-            nullable = false)
-    private ServiceType serviceType;
+    @Column(name = "service_type", nullable = false,
+            length = 150)
+    private String serviceType;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "preferred_vendor_id")
@@ -59,11 +58,11 @@ public class ServiceSchedule extends OrgOwnedEntity {
         this.item = item;
     }
 
-    public ServiceType getServiceType() {
+    public String getServiceType() {
         return serviceType;
     }
 
-    public void setServiceType(ServiceType serviceType) {
+    public void setServiceType(String serviceType) {
         this.serviceType = serviceType;
     }
 
