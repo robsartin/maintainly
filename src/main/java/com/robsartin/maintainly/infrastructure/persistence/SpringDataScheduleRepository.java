@@ -5,18 +5,15 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.robsartin.maintainly.domain.model.ServiceSchedule;
-import com.robsartin.maintainly.domain.port.out.ServiceScheduleRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 
-@Repository
-public interface JpaServiceScheduleRepository
-        extends JpaRepository<ServiceSchedule, UUID>,
-        ServiceScheduleRepository {
+interface SpringDataScheduleRepository
+        extends JpaRepository<ServiceSchedule, UUID> {
 
-    @Override
     @Query("SELECT s FROM ServiceSchedule s "
             + "JOIN FETCH s.item "
             + "JOIN FETCH s.serviceType "
@@ -24,10 +21,9 @@ public interface JpaServiceScheduleRepository
             + "WHERE s.organizationId = :orgId "
             + "ORDER BY s.nextDueDate ASC NULLS LAST")
     List<ServiceSchedule>
-            findByOrganizationIdOrderByNextDueDate(
+            findByOrgIdOrderByNextDueDate(
                     @Param("orgId") UUID organizationId);
 
-    @Override
     @Query("SELECT s FROM ServiceSchedule s "
             + "JOIN FETCH s.item "
             + "JOIN FETCH s.serviceType "
@@ -35,14 +31,27 @@ public interface JpaServiceScheduleRepository
             + "WHERE s.organizationId = :orgId "
             + "AND s.active = true "
             + "ORDER BY s.nextDueDate ASC NULLS LAST")
-    List<ServiceSchedule> findActiveByOrganizationId(
+    List<ServiceSchedule> findActiveByOrgId(
             @Param("orgId") UUID organizationId);
 
-    @Override
+    @Query(value = "SELECT s FROM ServiceSchedule s "
+            + "JOIN FETCH s.item "
+            + "JOIN FETCH s.serviceType "
+            + "LEFT JOIN FETCH s.preferredVendor "
+            + "WHERE s.organizationId = :orgId "
+            + "AND s.active = true "
+            + "ORDER BY s.nextDueDate ASC NULLS LAST",
+            countQuery = "SELECT count(s) "
+            + "FROM ServiceSchedule s "
+            + "WHERE s.organizationId = :orgId "
+            + "AND s.active = true")
+    Page<ServiceSchedule> findActiveByOrgId(
+            @Param("orgId") UUID organizationId,
+            Pageable pageable);
+
     Optional<ServiceSchedule> findByIdAndOrganizationId(
             UUID id, UUID organizationId);
 
-    @Override
     @Query("SELECT s FROM ServiceSchedule s "
             + "JOIN FETCH s.serviceType "
             + "LEFT JOIN FETCH s.preferredVendor "
@@ -50,7 +59,7 @@ public interface JpaServiceScheduleRepository
             + "AND s.organizationId = :orgId "
             + "ORDER BY s.nextDueDate ASC NULLS LAST")
     List<ServiceSchedule>
-            findByItemIdAndOrganizationId(
+            findByItemIdAndOrgId(
                     @Param("itemId") UUID itemId,
                     @Param("orgId") UUID organizationId);
 }

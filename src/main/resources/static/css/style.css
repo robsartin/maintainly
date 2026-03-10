@@ -225,3 +225,32 @@ tr.detail-row td {
     color: #888;
     margin: 0.25rem 0;
 }
+
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 0.75rem 0;
+    font-size: 0.9rem;
+}
+
+.pagination a {
+    color: #1565c0;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.pagination a:hover {
+    text-decoration: underline;
+}
+
+.page-size-label {
+    font-size: 0.85rem;
+    color: #555;
+}
+
+.page-size-label select {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.85rem;
+}

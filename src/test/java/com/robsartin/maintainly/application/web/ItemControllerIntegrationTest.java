@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.robsartin.maintainly.domain.model.Item;
+import com.robsartin.maintainly.domain.model.PageResult;
 import com.robsartin.maintainly.domain.model.ServiceSchedule;
 import com.robsartin.maintainly.domain.model.ServiceType;
 import com.robsartin.maintainly.domain.model.Vendor;
@@ -15,10 +16,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -31,14 +36,16 @@ class ItemControllerIntegrationTest {
     private MockMvc mockMvc;
 
     @Test
-    @DisplayName("should render item list for authenticated user")
+    @DisplayName("should render paginated item list")
     void shouldRenderItemList() throws Exception {
         mockMvc.perform(get("/")
                         .with(user("dev").roles("USER")))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("items"))
                 .andExpect(model().attributeExists(
-                        "schedules"))
+                        "itemPage"))
+                .andExpect(model().attributeExists(
+                        "schedPage"))
                 .andExpect(model().attributeExists(
                         "username"))
                 .andExpect(model().attributeExists(
@@ -46,19 +53,70 @@ class ItemControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("should search items")
+    @DisplayName("should limit items to page size")
+    void shouldLimitItemsToPageSize() throws Exception {
+        mockMvc.perform(get("/")
+                        .param("itemSize", "5")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("items",
+                        hasSize(lessThanOrEqualTo(5))));
+    }
+
+    @Test
+    @DisplayName("should clamp page size to max 50")
+    void shouldClampPageSizeToMax() throws Exception {
+        mockMvc.perform(get("/")
+                        .param("itemSize", "100")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("items",
+                        hasSize(lessThanOrEqualTo(50))));
+    }
+
+    @Test
+    @DisplayName("should include Link header for items")
+    void shouldIncludeLinkHeader() throws Exception {
+        mockMvc.perform(get("/")
+                        .param("itemSize", "2")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Link",
+                        containsString("rel=\"first\"")))
+                .andExpect(header().string("Link",
+                        containsString("rel=\"last\"")))
+                .andExpect(header().string("Link",
+                        containsString("rel=\"next\"")));
+    }
+
+    @Test
+    @DisplayName("should navigate to second item page")
+    void shouldNavigateToSecondPage() throws Exception {
+        mockMvc.perform(get("/")
+                        .param("itemPage", "1")
+                        .param("itemSize", "2")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists(
+                        "items"));
+    }
+
+    @Test
+    @DisplayName("should search items with pagination")
     void shouldSearchItems() throws Exception {
         mockMvc.perform(get("/")
                         .param("q", "Furnace")
                         .with(user("dev").roles("USER")))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("items"))
-                .andExpect(model().attribute("q", "Furnace"));
+                .andExpect(model().attribute("q",
+                        "Furnace"));
     }
 
     @Test
     @DisplayName("should return all items with blank search")
-    void shouldReturnAllWithBlankSearch() throws Exception {
+    void shouldReturnAllWithBlankSearch()
+            throws Exception {
         mockMvc.perform(get("/")
                         .param("q", "  ")
                         .with(user("dev").roles("USER")))
@@ -84,7 +142,7 @@ class ItemControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("should log item service without tech name")
+    @DisplayName("should log item service without tech")
     void shouldLogItemServiceNoTech() throws Exception {
         String itemId = getFirstItemId();
         mockMvc.perform(post("/item/log")
@@ -126,8 +184,9 @@ class ItemControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("should handle invalid schedule ID on log")
-    void shouldHandleInvalidScheduleId() throws Exception {
+    @DisplayName("should handle invalid schedule on log")
+    void shouldHandleInvalidScheduleId()
+            throws Exception {
         UUID fakeId = UUID.randomUUID();
         mockMvc.perform(post("/schedule/log")
                         .param("scheduleId",
@@ -180,7 +239,7 @@ class ItemControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("should handle invalid schedule on delete")
+    @DisplayName("should handle invalid schedule delete")
     void shouldHandleInvalidScheduleDelete()
             throws Exception {
         UUID fakeId = UUID.randomUUID();
@@ -230,7 +289,7 @@ class ItemControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("should provide service types, vendors, and units")
+    @DisplayName("should provide form data attributes")
     void shouldProvideFormData() throws Exception {
         mockMvc.perform(get("/")
                         .with(user("dev").roles("USER")))

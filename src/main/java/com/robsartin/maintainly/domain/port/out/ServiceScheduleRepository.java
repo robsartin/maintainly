@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.robsartin.maintainly.domain.model.PageResult;
 import com.robsartin.maintainly.domain.model.ServiceSchedule;
 
 public interface ServiceScheduleRepository {
@@ -14,6 +15,11 @@ public interface ServiceScheduleRepository {
 
     List<ServiceSchedule> findActiveByOrganizationId(
             UUID organizationId);
+
+    PageResult<ServiceSchedule>
+            findActiveByOrganizationId(
+                    UUID organizationId,
+                    int page, int size);
 
     Optional<ServiceSchedule> findByIdAndOrganizationId(
             UUID id, UUID organizationId);

@@ -4,12 +4,12 @@ import java.security.Principal;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.Collections;
-import java.util.List;
 import java.util.UUID;
 
 import com.robsartin.maintainly.domain.model.AppUser;
 import com.robsartin.maintainly.domain.model.FrequencyUnit;
 import com.robsartin.maintainly.domain.model.Item;
+import com.robsartin.maintainly.domain.model.PageResult;
 import com.robsartin.maintainly.domain.model.ServiceRecord;
 import com.robsartin.maintainly.domain.model.ServiceSchedule;
 import com.robsartin.maintainly.domain.model.ServiceType;
@@ -20,6 +20,7 @@ import com.robsartin.maintainly.domain.port.out.ServiceRecordRepository;
 import com.robsartin.maintainly.domain.port.out.ServiceScheduleRepository;
 import com.robsartin.maintainly.domain.port.out.ServiceTypeRepository;
 import com.robsartin.maintainly.domain.port.out.VendorRepository;
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -37,6 +38,8 @@ public class ItemController {
             LoggerFactory.getLogger(ItemController.class);
     private static final String MDC_ORG_ID =
             "organizationId";
+    private static final int DEFAULT_PAGE_SIZE = 10;
+    private static final int MAX_PAGE_SIZE = 50;
 
     private final ItemRepository itemRepository;
     private final ServiceScheduleRepository scheduleRepository;
@@ -63,7 +66,16 @@ public class ItemController {
     @GetMapping("/")
     public String index(
             @RequestParam(required = false) String q,
-            Principal principal, Model model) {
+            @RequestParam(defaultValue = "0")
+                    int itemPage,
+            @RequestParam(defaultValue = "0")
+                    int schedPage,
+            @RequestParam(defaultValue = "10")
+                    int itemSize,
+            @RequestParam(defaultValue = "10")
+                    int schedSize,
+            Principal principal, Model model,
+            HttpServletResponse response) {
         AppUser user = userResolver.resolveOrCreate(
                 principal.getName());
         if (!user.hasOrganization()) {
@@ -72,12 +84,11 @@ public class ItemController {
         UUID orgId = user.getOrganization().getId();
         MDC.put(MDC_ORG_ID, orgId.toString());
         try {
-            loadItems(q, orgId, model);
-            loadSchedules(orgId, model);
-            model.addAttribute("username",
-                    user.getUsername());
-            model.addAttribute("organization",
-                    user.getOrganization());
+            loadItems(q, orgId, itemPage, itemSize,
+                    model, response);
+            loadSchedules(orgId, schedPage, schedSize,
+                    model, response);
+            addUserAttrs(user, model);
             return "home";
         } finally {
             MDC.remove(MDC_ORG_ID);
@@ -87,7 +98,16 @@ public class ItemController {
     @GetMapping("/item/detail")
     public String itemDetail(
             @RequestParam UUID itemId,
-            Principal principal, Model model) {
+            @RequestParam(defaultValue = "0")
+                    int itemPage,
+            @RequestParam(defaultValue = "0")
+                    int schedPage,
+            @RequestParam(defaultValue = "10")
+                    int itemSize,
+            @RequestParam(defaultValue = "10")
+                    int schedSize,
+            Principal principal, Model model,
+            HttpServletResponse response) {
         AppUser user = userResolver.resolveOrCreate(
                 principal.getName());
         if (!user.hasOrganization()) {
@@ -96,12 +116,11 @@ public class ItemController {
         UUID orgId = user.getOrganization().getId();
         MDC.put(MDC_ORG_ID, orgId.toString());
         try {
-            loadItems(null, orgId, model);
-            loadSchedules(orgId, model);
-            model.addAttribute("username",
-                    user.getUsername());
-            model.addAttribute("organization",
-                    user.getOrganization());
+            loadItems(null, orgId, itemPage, itemSize,
+                    model, response);
+            loadSchedules(orgId, schedPage, schedSize,
+                    model, response);
+            addUserAttrs(user, model);
             model.addAttribute("selectedItemId",
                     itemId);
             model.addAttribute("itemRecords",
@@ -124,7 +143,8 @@ public class ItemController {
             @RequestParam String summary,
             @RequestParam String serviceDate,
             @RequestParam(required = false) String techName,
-            Principal principal, Model model) {
+            Principal principal, Model model,
+            HttpServletResponse response) {
         AppUser user = userResolver.resolveOrCreate(
                 principal.getName());
         setOrgMdc(user);
@@ -133,7 +153,9 @@ public class ItemController {
             Item item = findItem(itemId, orgId);
             saveRecord(orgId, item, null, null,
                     summary, serviceDate, techName);
-            return index(null, principal, model);
+            return index(null, 0, 0,
+                    DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE,
+                    principal, model, response);
         } finally {
             MDC.remove(MDC_ORG_ID);
         }
@@ -145,7 +167,8 @@ public class ItemController {
             @RequestParam String summary,
             @RequestParam String serviceDate,
             @RequestParam(required = false) String techName,
-            Principal principal, Model model) {
+            Principal principal, Model model,
+            HttpServletResponse response) {
         AppUser user = userResolver.resolveOrCreate(
                 principal.getName());
         setOrgMdc(user);
@@ -160,7 +183,9 @@ public class ItemController {
                     summary, serviceDate, techName);
             sched.advanceNextDueDate(completed);
             scheduleRepository.save(sched);
-            return index(null, principal, model);
+            return index(null, 0, 0,
+                    DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE,
+                    principal, model, response);
         } finally {
             MDC.remove(MDC_ORG_ID);
         }
@@ -169,7 +194,8 @@ public class ItemController {
     @PostMapping("/schedule/delete")
     public String deleteSchedule(
             @RequestParam UUID scheduleId,
-            Principal principal, Model model) {
+            Principal principal, Model model,
+            HttpServletResponse response) {
         AppUser user = userResolver.resolveOrCreate(
                 principal.getName());
         setOrgMdc(user);
@@ -181,7 +207,9 @@ public class ItemController {
             scheduleRepository.save(sched);
             log.info("Deactivated schedule {}",
                     scheduleId);
-            return index(null, principal, model);
+            return index(null, 0, 0,
+                    DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE,
+                    principal, model, response);
         } finally {
             MDC.remove(MDC_ORG_ID);
         }
@@ -200,7 +228,8 @@ public class ItemController {
                     String newVendorName,
             @RequestParam(required = false)
                     String newVendorPhone,
-            Principal principal, Model model) {
+            Principal principal, Model model,
+            HttpServletResponse response) {
         AppUser user = userResolver.resolveOrCreate(
                 principal.getName());
         setOrgMdc(user);
@@ -215,7 +244,9 @@ public class ItemController {
             createSchedule(orgId, item, svcType, vendor,
                     nextDueDate, frequencyInterval,
                     frequencyUnit);
-            return index(null, principal, model);
+            return index(null, 0, 0,
+                    DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE,
+                    principal, model, response);
         } finally {
             MDC.remove(MDC_ORG_ID);
         }
@@ -267,20 +298,36 @@ public class ItemController {
         return "home";
     }
 
+    private void addUserAttrs(
+            AppUser user, Model model) {
+        model.addAttribute("username",
+                user.getUsername());
+        model.addAttribute("organization",
+                user.getOrganization());
+    }
+
     private void loadItems(
-            String q, UUID orgId, Model model) {
-        List<Item> items;
+            String q, UUID orgId, int page, int size,
+            Model model, HttpServletResponse response) {
+        int safeSize = clampSize(size);
+        int safePage = Math.max(0, page);
+        PageResult<Item> result;
         if (q != null && !q.isBlank()) {
             log.info("Searching items query={}", q);
-            items = itemRepository
-                    .searchByOrganizationId(orgId, q);
+            result = itemRepository
+                    .searchByOrganizationId(
+                            orgId, q, safePage, safeSize);
             model.addAttribute("q", q);
         } else {
-            log.info("Listing all items");
-            items = itemRepository
-                    .findByOrganizationId(orgId);
+            log.info("Listing items page={}", safePage);
+            result = itemRepository
+                    .findByOrganizationId(
+                            orgId, safePage, safeSize);
         }
-        model.addAttribute("items", items);
+        model.addAttribute("items", result.content());
+        model.addAttribute("itemPage", result);
+        LinkHeaderBuilder.addLinkHeader(
+                response, "item", result, q);
         model.addAttribute("serviceTypes",
                 serviceTypeRepository
                         .findByOrganizationId(orgId));
@@ -291,15 +338,28 @@ public class ItemController {
                 FrequencyUnit.values());
     }
 
-    private void loadSchedules(UUID orgId, Model model) {
-        model.addAttribute("schedules",
+    private void loadSchedules(
+            UUID orgId, int page, int size,
+            Model model, HttpServletResponse response) {
+        int safeSize = clampSize(size);
+        int safePage = Math.max(0, page);
+        PageResult<ServiceSchedule> result =
                 scheduleRepository
                         .findActiveByOrganizationId(
-                                orgId));
+                                orgId, safePage, safeSize);
+        model.addAttribute("schedules",
+                result.content());
+        model.addAttribute("schedPage", result);
+        LinkHeaderBuilder.addLinkHeader(
+                response, "sched", result, null);
         LocalDate today = LocalDate.now();
         model.addAttribute("today", today);
         model.addAttribute("soon",
                 today.plusWeeks(2));
+    }
+
+    private int clampSize(int size) {
+        return Math.max(1, Math.min(size, MAX_PAGE_SIZE));
     }
 
     private Item findItem(UUID itemId, UUID orgId) {

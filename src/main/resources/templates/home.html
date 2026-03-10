@@ -209,6 +209,20 @@
                 </th:block>
                 </tbody>
             </table>
+            <nav th:if="${itemPage != null and itemPage.totalPages() > 1}" class="pagination">
+                <a th:if="${itemPage.hasPrevious()}"
+                   th:href="@{/(itemPage=${itemPage.page() - 1},itemSize=${itemPage.size()},q=${q})}">Prev</a>
+                <span th:text="'Page ' + (${itemPage.page()} + 1) + ' of ' + ${itemPage.totalPages()}"></span>
+                <a th:if="${itemPage.hasNext()}"
+                   th:href="@{/(itemPage=${itemPage.page() + 1},itemSize=${itemPage.size()},q=${q})}">Next</a>
+                <label class="page-size-label">Show
+                    <select onchange="window.location.href='/?itemSize=' + this.value">
+                        <option value="10" th:selected="${itemPage.size() == 10}">10</option>
+                        <option value="25" th:selected="${itemPage.size() == 25}">25</option>
+                        <option value="50" th:selected="${itemPage.size() == 50}">50</option>
+                    </select>
+                </label>
+            </nav>
         </section>
         <section id="schedules" th:if="${schedules != null and !#lists.isEmpty(schedules)}">
             <h2>Upcoming Service</h2>
@@ -284,6 +298,20 @@
                 </th:block>
                 </tbody>
             </table>
+            <nav th:if="${schedPage != null and schedPage.totalPages() > 1}" class="pagination">
+                <a th:if="${schedPage.hasPrevious()}"
+                   th:href="@{/(schedPage=${schedPage.page() - 1},schedSize=${schedPage.size()})}">Prev</a>
+                <span th:text="'Page ' + (${schedPage.page()} + 1) + ' of ' + ${schedPage.totalPages()}"></span>
+                <a th:if="${schedPage.hasNext()}"
+                   th:href="@{/(schedPage=${schedPage.page() + 1},schedSize=${schedPage.size()})}">Next</a>
+                <label class="page-size-label">Show
+                    <select onchange="window.location.href='/?schedSize=' + this.value">
+                        <option value="10" th:selected="${schedPage.size() == 10}">10</option>
+                        <option value="25" th:selected="${schedPage.size() == 25}">25</option>
+                        <option value="50" th:selected="${schedPage.size() == 50}">50</option>
+                    </select>
+                </label>
+            </nav>
         </section>
     </div>
 </main>
