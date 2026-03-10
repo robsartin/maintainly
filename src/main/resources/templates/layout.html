@@ -11,7 +11,14 @@
     function toggleForm(id) {
         var row = document.getElementById(id);
         if (row) {
-            row.style.display = row.style.display === 'none' ? '' : 'none';
+            var showing = row.style.display === 'none';
+            row.style.display = showing ? '' : 'none';
+            if (showing) {
+                var dateInput = row.querySelector('input[type="date"]');
+                if (dateInput && !dateInput.value) {
+                    dateInput.value = new Date().toISOString().slice(0, 10);
+                }
+            }
         }
     }
     function onVendorChange(select) {
