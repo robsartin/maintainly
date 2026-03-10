@@ -20,15 +20,17 @@ public interface JpaPropertyRepository
             + "WHERE p.organizationId = :orgId "
             + "ORDER BY p.nextServiceDate ASC NULLS LAST")
     List<Property> findByOrganizationIdOrderByNextServiceDate(
-            @Param("orgId") int organizationId);
+            @Param("orgId") UUID organizationId);
 
     @Override
     @Query("SELECT p FROM Property p "
             + "WHERE p.organizationId = :orgId "
-            + "AND (LOWER(p.name) LIKE LOWER(CONCAT('%', :q, '%')) "
-            + "OR LOWER(p.address) LIKE LOWER(CONCAT('%', :q, '%')))"
+            + "AND (LOWER(p.name) LIKE "
+            + "LOWER(CONCAT('%', :q, '%')) "
+            + "OR LOWER(p.address) LIKE "
+            + "LOWER(CONCAT('%', :q, '%')))"
             + "ORDER BY p.nextServiceDate ASC NULLS LAST")
     List<Property> searchByOrganizationId(
-            @Param("orgId") int organizationId,
+            @Param("orgId") UUID organizationId,
             @Param("q") String query);
 }

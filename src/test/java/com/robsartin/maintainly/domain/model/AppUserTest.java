@@ -37,11 +37,12 @@ class AppUserTest {
     void shouldSetOrganization() {
         AppUser user = new AppUser(UUID.randomUUID(), "bob");
         Organization org = new Organization();
-        org.setId(1);
+        UUID orgId = UuidV7.generate();
+        org.setId(orgId);
         org.setName("Test Org");
         user.setOrganization(org);
         assertNotNull(user.getOrganization());
-        assertEquals(1, user.getOrganization().getId());
+        assertEquals(orgId, user.getOrganization().getId());
     }
 
     @Test
@@ -50,7 +51,7 @@ class AppUserTest {
         AppUser user = new AppUser(UUID.randomUUID(), "carol");
         assertFalse(user.hasOrganization());
         user.setOrganization(new Organization());
-        user.getOrganization().setId(1);
+        user.getOrganization().setId(UuidV7.generate());
         assertTrue(user.hasOrganization());
     }
 }

@@ -9,10 +9,10 @@ import com.robsartin.maintainly.domain.model.Property;
 public interface PropertyRepository {
 
     List<Property> findByOrganizationIdOrderByNextServiceDate(
-            int organizationId);
+            UUID organizationId);
 
     List<Property> searchByOrganizationId(
-            int organizationId, String query);
+            UUID organizationId, String query);
 
     Optional<Property> findById(UUID id);
 

@@ -1,10 +1,10 @@
 package com.robsartin.maintainly.infrastructure.config;
 
 import java.util.Optional;
-import java.util.UUID;
 
 import com.robsartin.maintainly.domain.model.AppUser;
 import com.robsartin.maintainly.domain.model.Organization;
+import com.robsartin.maintainly.domain.model.UuidV7;
 import com.robsartin.maintainly.domain.port.out.AppUserRepository;
 import com.robsartin.maintainly.domain.port.out.OrganizationRepository;
 import com.robsartin.maintainly.domain.port.out.PropertyRepository;
@@ -31,13 +31,15 @@ class SampleDataConfigurationTest {
         PropertyRepository propRepo =
                 mock(PropertyRepository.class);
         Organization org = new Organization();
-        org.setId(1);
+        org.setId(SampleDataConfiguration.SAMPLE_ORG_ID);
         org.setName("Test Org");
-        when(orgRepo.findById(1))
+        when(orgRepo.findById(
+                SampleDataConfiguration.SAMPLE_ORG_ID))
                 .thenReturn(Optional.empty());
         when(orgRepo.save(any(Organization.class)))
                 .thenReturn(org);
-        AppUser dev = new AppUser(UUID.randomUUID(), "dev");
+        AppUser dev = new AppUser(
+                UuidV7.generate(), "dev");
         when(userRepo.findByUsername("dev"))
                 .thenReturn(Optional.of(dev));
         when(userRepo.save(any(AppUser.class)))
@@ -60,8 +62,10 @@ class SampleDataConfigurationTest {
         PropertyRepository propRepo =
                 mock(PropertyRepository.class);
         Organization existing = new Organization();
-        existing.setId(1);
-        when(orgRepo.findById(1))
+        existing.setId(
+                SampleDataConfiguration.SAMPLE_ORG_ID);
+        when(orgRepo.findById(
+                SampleDataConfiguration.SAMPLE_ORG_ID))
                 .thenReturn(Optional.of(existing));
         SampleDataConfiguration config =
                 new SampleDataConfiguration();
@@ -80,12 +84,14 @@ class SampleDataConfigurationTest {
         PropertyRepository propRepo =
                 mock(PropertyRepository.class);
         Organization org = new Organization();
-        org.setId(1);
-        when(orgRepo.findById(1))
+        org.setId(SampleDataConfiguration.SAMPLE_ORG_ID);
+        when(orgRepo.findById(
+                SampleDataConfiguration.SAMPLE_ORG_ID))
                 .thenReturn(Optional.empty());
         when(orgRepo.save(any(Organization.class)))
                 .thenReturn(org);
-        AppUser dev = new AppUser(UUID.randomUUID(), "dev");
+        AppUser dev = new AppUser(
+                UuidV7.generate(), "dev");
         when(userRepo.findByUsername("dev"))
                 .thenReturn(Optional.empty());
         when(userRepo.save(any(AppUser.class)))

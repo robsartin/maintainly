@@ -1,9 +1,9 @@
 package com.robsartin.maintainly.infrastructure.config;
 
 import java.util.Optional;
-import java.util.UUID;
 
 import com.robsartin.maintainly.domain.model.AppUser;
+import com.robsartin.maintainly.domain.model.UuidV7;
 import com.robsartin.maintainly.domain.port.out.AppUserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,7 +27,7 @@ class UserResolverConfigurationTest {
     @DisplayName("should return existing user")
     void shouldReturnExistingUser() {
         AppUser existing = new AppUser(
-                UUID.randomUUID(), "alice");
+                UuidV7.generate(), "alice");
         when(userRepo.findByUsername("alice"))
                 .thenReturn(Optional.of(existing));
         AppUser result = resolver.resolveOrCreate("alice");
@@ -39,7 +39,7 @@ class UserResolverConfigurationTest {
     @DisplayName("should create new user when not found")
     void shouldCreateNewUser() {
         AppUser saved = new AppUser(
-                UUID.randomUUID(), "newuser");
+                UuidV7.generate(), "newuser");
         when(userRepo.findByUsername("newuser"))
                 .thenReturn(Optional.empty());
         when(userRepo.save(any(AppUser.class)))

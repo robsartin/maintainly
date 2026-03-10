@@ -12,4 +12,4 @@ spring:
 
 logging:
   pattern:
-    console: "%d{HH:mm:ss.SSS} [%thread] [%X{correlationId:-none}] %-5level %logger{36} - %msg%n"
+    console: "%d{HH:mm:ss.SSS} [%thread] [%X{correlationId:-none}] [org:%X{organizationId:-none}] %-5level %logger{36} - %msg%n"

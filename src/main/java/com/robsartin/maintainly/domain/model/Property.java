@@ -23,7 +23,7 @@ public class Property {
     private LocalDate nextServiceDate;
 
     @Column(name = "organization_id")
-    private Integer organizationId;
+    private UUID organizationId;
 
     public Property() {
     }
@@ -60,11 +60,11 @@ public class Property {
         this.nextServiceDate = nextServiceDate;
     }
 
-    public Integer getOrganizationId() {
+    public UUID getOrganizationId() {
         return organizationId;
     }
 
-    public void setOrganizationId(Integer organizationId) {
+    public void setOrganizationId(UUID organizationId) {
         this.organizationId = organizationId;
     }
 }

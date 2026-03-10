@@ -69,6 +69,30 @@ class PropertyControllerIntegrationTest {
                 .andExpect(status().isOk());
     }
 
+    @Test
+    @DisplayName("should handle invalid date format")
+    void shouldHandleInvalidDate() throws Exception {
+        String propId = getFirstPropertyId();
+        mockMvc.perform(post("/properties/service")
+                        .param("propertyId", propId)
+                        .param("description", "Fix HVAC")
+                        .param("serviceDate", "not-a-date")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("error"));
+    }
+
+    @Test
+    @DisplayName("should show no-org message for new user")
+    void shouldShowNoOrgForNewUser() throws Exception {
+        mockMvc.perform(get("/")
+                        .with(user("unknown").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute(
+                        "noOrganization", true));
+    }
+
     @SuppressWarnings("unchecked")
     private String getFirstPropertyId() throws Exception {
         MvcResult result = mockMvc.perform(get("/")

@@ -1,5 +1,7 @@
 package com.robsartin.maintainly.domain.model;
 
+import java.util.UUID;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -21,9 +23,10 @@ class OrganizationTest {
     @DisplayName("should set and get fields")
     void shouldSetAndGetFields() {
         Organization org = new Organization();
-        org.setId(1);
+        UUID id = UuidV7.generate();
+        org.setId(id);
         org.setName("Test Org");
-        assertEquals(1, org.getId());
+        assertEquals(id, org.getId());
         assertEquals("Test Org", org.getName());
     }
 }

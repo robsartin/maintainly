@@ -1,8 +1,8 @@
 package com.robsartin.maintainly.infrastructure.correlation;
 
 import java.io.IOException;
-import java.util.UUID;
 
+import com.robsartin.maintainly.domain.model.UuidV7;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,7 +25,7 @@ public class CorrelationIdFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         String id = request.getHeader(HEADER);
         if (id == null || id.isBlank()) {
-            id = generateUuidV7();
+            id = UuidV7.generate().toString();
         }
         CorrelationIdContext.setId(id);
         MDC.put(MDC_KEY, id);
@@ -36,9 +36,5 @@ public class CorrelationIdFilter extends OncePerRequestFilter {
             CorrelationIdContext.clear();
             MDC.remove(MDC_KEY);
         }
-    }
-
-    private String generateUuidV7() {
-        return UUID.randomUUID().toString();
     }
 }

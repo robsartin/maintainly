@@ -32,13 +32,14 @@ class PropertyTest {
         p.setName("123 Main St");
         p.setAddress("123 Main St, Springfield");
         p.setNextServiceDate(LocalDate.of(2026, 4, 1));
-        p.setOrganizationId(1);
+        UUID orgId = UuidV7.generate();
+        p.setOrganizationId(orgId);
         assertEquals(id, p.getId());
         assertEquals("123 Main St", p.getName());
         assertEquals("123 Main St, Springfield",
                 p.getAddress());
         assertEquals(LocalDate.of(2026, 4, 1),
                 p.getNextServiceDate());
-        assertEquals(1, p.getOrganizationId());
+        assertEquals(orgId, p.getOrganizationId());
     }
 }
