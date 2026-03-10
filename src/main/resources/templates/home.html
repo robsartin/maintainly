@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Maintainly</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+</head>
+<body>
+<header>
+    <h1>Maintainly</h1>
+    <nav>
+        <span th:if="${username}" th:text="'Logged in as ' + ${username}"></span>
+        <form th:action="@{/logout}" method="post" style="display:inline"
+              sec:authorize="isAuthenticated()">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <button type="submit">Logout</button>
+        </form>
+    </nav>
+</header>
+<main>
+    <div th:if="${noOrganization}">
+        <p>You are not assigned to an organization.
+           Please contact an administrator.</p>
+    </div>
+    <div th:unless="${noOrganization}">
+        <section id="search">
+            <form method="get" th:action="@{/}">
+                <input type="text" name="q" placeholder="Search properties..."
+                       th:value="${q}"/>
+                <button type="submit">Search</button>
+            </form>
+        </section>
+        <section id="property-list">
+            <h2>Properties</h2>
+            <p th:if="${#lists.isEmpty(properties)}">No properties found.</p>
+            <table th:unless="${#lists.isEmpty(properties)}">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Address</th>
+                    <th>Next Service</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="prop : ${properties}"
+                    th:classappend="${prop.nextServiceDate != null
+                        and prop.nextServiceDate.isBefore(T(java.time.LocalDate).now())}
+                        ? 'overdue' : ''">
+                    <td th:text="${prop.name}"></td>
+                    <td th:text="${prop.address}"></td>
+                    <td th:text="${prop.nextServiceDate}"></td>
+                    <td>
+                        <button type="button"
+                                hx-get th:hx-get="@{'/properties/' + ${prop.id} + '/service-form'}"
+                                hx-target="#service-form-area"
+                                hx-swap="innerHTML">
+                            Add Service
+                        </button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+        <section id="service-form-area"></section>
+    </div>
+</main>
+</body>
+</html>
