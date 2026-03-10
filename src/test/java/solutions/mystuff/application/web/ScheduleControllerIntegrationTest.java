@@ -19,6 +19,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -132,6 +133,18 @@ class ScheduleControllerIntegrationTest {
                         .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("error"));
+    }
+
+    @Test
+    @DisplayName("should render nav icons in schedules page")
+    void shouldRenderNavIcons() throws Exception {
+        mockMvc.perform(get("/schedules")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(
+                        containsString("class=\"nav-link\"")))
+                .andExpect(content().string(
+                        containsString("<svg")));
     }
 
     @Test
