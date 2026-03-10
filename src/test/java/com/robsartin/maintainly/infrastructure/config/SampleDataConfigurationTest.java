@@ -3,11 +3,18 @@ package com.robsartin.maintainly.infrastructure.config;
 import java.util.Optional;
 
 import com.robsartin.maintainly.domain.model.AppUser;
+import com.robsartin.maintainly.domain.model.Item;
 import com.robsartin.maintainly.domain.model.Organization;
+import com.robsartin.maintainly.domain.model.ServiceSchedule;
+import com.robsartin.maintainly.domain.model.ServiceType;
 import com.robsartin.maintainly.domain.model.UuidV7;
+import com.robsartin.maintainly.domain.model.Vendor;
 import com.robsartin.maintainly.domain.port.out.AppUserRepository;
+import com.robsartin.maintainly.domain.port.out.ItemRepository;
 import com.robsartin.maintainly.domain.port.out.OrganizationRepository;
-import com.robsartin.maintainly.domain.port.out.PropertyRepository;
+import com.robsartin.maintainly.domain.port.out.ServiceScheduleRepository;
+import com.robsartin.maintainly.domain.port.out.ServiceTypeRepository;
+import com.robsartin.maintainly.domain.port.out.VendorRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -21,15 +28,22 @@ import static org.mockito.Mockito.when;
 @DisplayName("SampleDataConfiguration")
 class SampleDataConfigurationTest {
 
+    private final OrganizationRepository orgRepo =
+            mock(OrganizationRepository.class);
+    private final AppUserRepository userRepo =
+            mock(AppUserRepository.class);
+    private final ItemRepository itemRepo =
+            mock(ItemRepository.class);
+    private final ServiceTypeRepository typeRepo =
+            mock(ServiceTypeRepository.class);
+    private final VendorRepository vendorRepo =
+            mock(VendorRepository.class);
+    private final ServiceScheduleRepository scheduleRepo =
+            mock(ServiceScheduleRepository.class);
+
     @Test
-    @DisplayName("should load sample data when DB is empty")
+    @DisplayName("should load sample data when empty")
     void shouldLoadWhenEmpty() throws Exception {
-        OrganizationRepository orgRepo =
-                mock(OrganizationRepository.class);
-        AppUserRepository userRepo =
-                mock(AppUserRepository.class);
-        PropertyRepository propRepo =
-                mock(PropertyRepository.class);
         Organization org = new Organization();
         org.setId(SampleDataConfiguration.SAMPLE_ORG_ID);
         org.setName("Test Org");
@@ -44,45 +58,47 @@ class SampleDataConfigurationTest {
                 .thenReturn(Optional.of(dev));
         when(userRepo.save(any(AppUser.class)))
                 .thenReturn(dev);
-        SampleDataConfiguration config =
-                new SampleDataConfiguration();
-        config.loadSampleData(orgRepo, userRepo, propRepo)
+        when(typeRepo.save(any(ServiceType.class)))
+                .thenAnswer(i -> i.getArgument(0));
+        when(vendorRepo.save(any(Vendor.class)))
+                .thenAnswer(i -> i.getArgument(0));
+        when(itemRepo.save(any(Item.class)))
+                .thenAnswer(i -> i.getArgument(0));
+        when(scheduleRepo.save(
+                any(ServiceSchedule.class)))
+                .thenAnswer(i -> i.getArgument(0));
+        new SampleDataConfiguration()
+                .loadSampleData(orgRepo, userRepo,
+                        itemRepo, typeRepo, vendorRepo,
+                        scheduleRepo)
                 .run();
         verify(orgRepo).save(any(Organization.class));
-        verify(propRepo, atLeastOnce()).save(any());
+        verify(itemRepo, atLeastOnce())
+                .save(any(Item.class));
+        verify(scheduleRepo, atLeastOnce())
+                .save(any(ServiceSchedule.class));
     }
 
     @Test
-    @DisplayName("should skip when data already exists")
+    @DisplayName("should skip when data exists")
     void shouldSkipWhenExists() throws Exception {
-        OrganizationRepository orgRepo =
-                mock(OrganizationRepository.class);
-        AppUserRepository userRepo =
-                mock(AppUserRepository.class);
-        PropertyRepository propRepo =
-                mock(PropertyRepository.class);
         Organization existing = new Organization();
         existing.setId(
                 SampleDataConfiguration.SAMPLE_ORG_ID);
         when(orgRepo.findById(
                 SampleDataConfiguration.SAMPLE_ORG_ID))
                 .thenReturn(Optional.of(existing));
-        SampleDataConfiguration config =
-                new SampleDataConfiguration();
-        config.loadSampleData(orgRepo, userRepo, propRepo)
+        new SampleDataConfiguration()
+                .loadSampleData(orgRepo, userRepo,
+                        itemRepo, typeRepo, vendorRepo,
+                        scheduleRepo)
                 .run();
-        verify(propRepo, never()).save(any());
+        verify(itemRepo, never()).save(any());
     }
 
     @Test
     @DisplayName("should create dev user when not found")
     void shouldCreateDevUser() throws Exception {
-        OrganizationRepository orgRepo =
-                mock(OrganizationRepository.class);
-        AppUserRepository userRepo =
-                mock(AppUserRepository.class);
-        PropertyRepository propRepo =
-                mock(PropertyRepository.class);
         Organization org = new Organization();
         org.setId(SampleDataConfiguration.SAMPLE_ORG_ID);
         when(orgRepo.findById(
@@ -96,9 +112,19 @@ class SampleDataConfigurationTest {
                 .thenReturn(Optional.empty());
         when(userRepo.save(any(AppUser.class)))
                 .thenReturn(dev);
-        SampleDataConfiguration config =
-                new SampleDataConfiguration();
-        config.loadSampleData(orgRepo, userRepo, propRepo)
+        when(typeRepo.save(any(ServiceType.class)))
+                .thenAnswer(i -> i.getArgument(0));
+        when(vendorRepo.save(any(Vendor.class)))
+                .thenAnswer(i -> i.getArgument(0));
+        when(itemRepo.save(any(Item.class)))
+                .thenAnswer(i -> i.getArgument(0));
+        when(scheduleRepo.save(
+                any(ServiceSchedule.class)))
+                .thenAnswer(i -> i.getArgument(0));
+        new SampleDataConfiguration()
+                .loadSampleData(orgRepo, userRepo,
+                        itemRepo, typeRepo, vendorRepo,
+                        scheduleRepo)
                 .run();
         verify(userRepo, atLeastOnce())
                 .save(any(AppUser.class));

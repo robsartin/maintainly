@@ -2,7 +2,7 @@ package com.robsartin.maintainly.application.web;
 
 import java.util.List;
 
-import com.robsartin.maintainly.domain.model.Property;
+import com.robsartin.maintainly.domain.model.Item;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,50 +20,41 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@DisplayName("Property Controller Integration")
-class PropertyControllerIntegrationTest {
+@DisplayName("Item Controller Integration")
+class ItemControllerIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @Test
-    @DisplayName("should render property list for authenticated user")
-    void shouldRenderPropertyList() throws Exception {
+    @DisplayName("should render item list for authenticated user")
+    void shouldRenderItemList() throws Exception {
         mockMvc.perform(get("/")
                         .with(user("dev").roles("USER")))
                 .andExpect(status().isOk())
-                .andExpect(model().attributeExists("properties"));
+                .andExpect(model().attributeExists("items"))
+                .andExpect(model().attributeExists(
+                        "schedules"));
     }
 
     @Test
-    @DisplayName("should search properties")
-    void shouldSearchProperties() throws Exception {
+    @DisplayName("should search items")
+    void shouldSearchItems() throws Exception {
         mockMvc.perform(get("/")
-                        .param("q", "Main")
+                        .param("q", "Furnace")
                         .with(user("dev").roles("USER")))
                 .andExpect(status().isOk())
-                .andExpect(model().attributeExists("properties"));
+                .andExpect(model().attributeExists("items"));
     }
 
     @Test
-    @DisplayName("should add service request")
-    void shouldAddServiceRequest() throws Exception {
-        String propId = getFirstPropertyId();
-        mockMvc.perform(post("/properties/service")
-                        .param("propertyId", propId)
-                        .param("description", "Fix HVAC")
+    @DisplayName("should add service record")
+    void shouldAddServiceRecord() throws Exception {
+        String itemId = getFirstItemId();
+        mockMvc.perform(post("/service/record")
+                        .param("itemId", itemId)
+                        .param("summary", "Filter replaced")
                         .param("serviceDate", "2026-04-15")
-                        .with(user("dev").roles("USER"))
-                        .with(csrf()))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    @DisplayName("should complete service request")
-    void shouldCompleteServiceRequest() throws Exception {
-        mockMvc.perform(post("/properties/service/complete")
-                        .param("serviceRequestId",
-                                "00000000-0000-0000-0000-000000000000")
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
                 .andExpect(status().isOk());
@@ -72,10 +63,10 @@ class PropertyControllerIntegrationTest {
     @Test
     @DisplayName("should handle invalid date format")
     void shouldHandleInvalidDate() throws Exception {
-        String propId = getFirstPropertyId();
-        mockMvc.perform(post("/properties/service")
-                        .param("propertyId", propId)
-                        .param("description", "Fix HVAC")
+        String itemId = getFirstItemId();
+        mockMvc.perform(post("/service/record")
+                        .param("itemId", itemId)
+                        .param("summary", "Test")
                         .param("serviceDate", "not-a-date")
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
@@ -84,7 +75,7 @@ class PropertyControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("should show no-org message for new user")
+    @DisplayName("should show no-org for new user")
     void shouldShowNoOrgForNewUser() throws Exception {
         mockMvc.perform(get("/")
                         .with(user("unknown").roles("USER")))
@@ -94,13 +85,13 @@ class PropertyControllerIntegrationTest {
     }
 
     @SuppressWarnings("unchecked")
-    private String getFirstPropertyId() throws Exception {
+    private String getFirstItemId() throws Exception {
         MvcResult result = mockMvc.perform(get("/")
                         .with(user("dev").roles("USER")))
                 .andReturn();
-        List<Property> props = (List<Property>)
+        List<Item> items = (List<Item>)
                 result.getModelAndView().getModel()
-                        .get("properties");
-        return props.get(0).getId().toString();
+                        .get("items");
+        return items.get(0).getId().toString();
     }
 }

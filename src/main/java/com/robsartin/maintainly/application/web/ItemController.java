@@ -8,12 +8,13 @@ import java.util.List;
 import java.util.UUID;
 
 import com.robsartin.maintainly.domain.model.AppUser;
-import com.robsartin.maintainly.domain.model.Property;
-import com.robsartin.maintainly.domain.model.ServiceRequest;
-import com.robsartin.maintainly.domain.model.UuidV7;
+import com.robsartin.maintainly.domain.model.Item;
+import com.robsartin.maintainly.domain.model.ServiceRecord;
+import com.robsartin.maintainly.domain.model.ServiceSchedule;
 import com.robsartin.maintainly.domain.port.in.UserResolver;
-import com.robsartin.maintainly.domain.port.out.PropertyRepository;
-import com.robsartin.maintainly.domain.port.out.ServiceRequestRepository;
+import com.robsartin.maintainly.domain.port.out.ItemRepository;
+import com.robsartin.maintainly.domain.port.out.ServiceRecordRepository;
+import com.robsartin.maintainly.domain.port.out.ServiceScheduleRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -25,23 +26,26 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
-public class PropertyController {
+public class ItemController {
 
     private static final Logger log =
-            LoggerFactory.getLogger(PropertyController.class);
-    private static final String MDC_ORG_ID = "organizationId";
+            LoggerFactory.getLogger(ItemController.class);
+    private static final String MDC_ORG_ID =
+            "organizationId";
 
-    private final PropertyRepository propertyRepository;
-    private final ServiceRequestRepository serviceRequestRepository;
+    private final ItemRepository itemRepository;
+    private final ServiceScheduleRepository scheduleRepository;
+    private final ServiceRecordRepository recordRepository;
     private final UserResolver userResolver;
 
-    public PropertyController(
-            PropertyRepository propertyRepository,
-            ServiceRequestRepository serviceRequestRepository,
+    public ItemController(
+            ItemRepository itemRepository,
+            ServiceScheduleRepository scheduleRepository,
+            ServiceRecordRepository recordRepository,
             UserResolver userResolver) {
-        this.propertyRepository = propertyRepository;
-        this.serviceRequestRepository =
-                serviceRequestRepository;
+        this.itemRepository = itemRepository;
+        this.scheduleRepository = scheduleRepository;
+        this.recordRepository = recordRepository;
         this.userResolver = userResolver;
     }
 
@@ -55,27 +59,30 @@ public class PropertyController {
             log.warn("User {} has no organization",
                     user.getUsername());
             model.addAttribute("noOrganization", true);
-            model.addAttribute("properties",
+            model.addAttribute("items",
                     Collections.emptyList());
             return "home";
         }
         UUID orgId = user.getOrganization().getId();
         MDC.put(MDC_ORG_ID, orgId.toString());
         try {
-            List<Property> properties;
+            List<Item> items;
             if (q != null && !q.isBlank()) {
-                log.info("Searching properties for query={}",
-                        q);
-                properties = propertyRepository
+                log.info("Searching items query={}", q);
+                items = itemRepository
                         .searchByOrganizationId(orgId, q);
                 model.addAttribute("q", q);
             } else {
-                log.info("Listing all properties");
-                properties = propertyRepository
-                        .findByOrganizationIdOrderByNextServiceDate(
-                                orgId);
+                log.info("Listing all items");
+                items = itemRepository
+                        .findByOrganizationId(orgId);
             }
-            model.addAttribute("properties", properties);
+            List<ServiceSchedule> schedules =
+                    scheduleRepository
+                            .findActiveByOrganizationId(
+                                    orgId);
+            model.addAttribute("items", items);
+            model.addAttribute("schedules", schedules);
             model.addAttribute("username",
                     user.getUsername());
             return "home";
@@ -84,44 +91,33 @@ public class PropertyController {
         }
     }
 
-    @PostMapping("/properties/service")
-    public String addService(
-            @RequestParam UUID propertyId,
-            @RequestParam String description,
+    @PostMapping("/service/record")
+    public String addServiceRecord(
+            @RequestParam UUID itemId,
+            @RequestParam String summary,
             @RequestParam String serviceDate,
             Principal principal, Model model) {
         AppUser user = userResolver.resolveOrCreate(
                 principal.getName());
         setOrgMdc(user);
         try {
-            LocalDate date = LocalDate.parse(serviceDate);
-            ServiceRequest sr = new ServiceRequest();
-            sr.setId(UuidV7.generate());
-            sr.setPropertyId(propertyId);
-            sr.setDescription(description);
-            sr.setServiceDate(date);
-            serviceRequestRepository.save(sr);
-            log.info("Created service request {} "
-                    + "for property {}",
-                    sr.getId(), propertyId);
-            return index(null, principal, model);
-        } finally {
-            MDC.remove(MDC_ORG_ID);
-        }
-    }
-
-    @PostMapping("/properties/service/complete")
-    public String completeService(
-            @RequestParam UUID serviceRequestId,
-            Principal principal, Model model) {
-        AppUser user = userResolver.resolveOrCreate(
-                principal.getName());
-        setOrgMdc(user);
-        try {
-            serviceRequestRepository.markCompleted(
-                    serviceRequestId);
-            log.info("Completed service request {}",
-                    serviceRequestId);
+            UUID orgId = user.getOrganization().getId();
+            Item item = itemRepository
+                    .findByIdAndOrganizationId(
+                            itemId, orgId)
+                    .orElseThrow(() ->
+                            new IllegalArgumentException(
+                                    "Item not found"));
+            LocalDate date =
+                    LocalDate.parse(serviceDate);
+            ServiceRecord record = new ServiceRecord();
+            record.setOrganizationId(orgId);
+            record.setItem(item);
+            record.setServiceDate(date);
+            record.setSummary(summary);
+            recordRepository.save(record);
+            log.info("Created service record for item {}",
+                    itemId);
             return index(null, principal, model);
         } finally {
             MDC.remove(MDC_ORG_ID);
@@ -131,10 +127,12 @@ public class PropertyController {
     @ExceptionHandler(DateTimeParseException.class)
     public String handleDateParseError(
             DateTimeParseException ex, Model model) {
-        log.error("Invalid date format: {}", ex.getMessage());
+        log.error("Invalid date format: {}",
+                ex.getMessage());
         model.addAttribute("error",
-                "Invalid date format: " + ex.getParsedString());
-        model.addAttribute("properties",
+                "Invalid date format: "
+                        + ex.getParsedString());
+        model.addAttribute("items",
                 Collections.emptyList());
         return "home";
     }
@@ -142,9 +140,10 @@ public class PropertyController {
     @ExceptionHandler(IllegalArgumentException.class)
     public String handleIllegalArgument(
             IllegalArgumentException ex, Model model) {
-        log.error("Invalid argument: {}", ex.getMessage());
+        log.error("Invalid argument: {}",
+                ex.getMessage());
         model.addAttribute("error", ex.getMessage());
-        model.addAttribute("properties",
+        model.addAttribute("items",
                 Collections.emptyList());
         return "home";
     }
@@ -156,7 +155,7 @@ public class PropertyController {
                 ex);
         model.addAttribute("error",
                 "An unexpected error occurred");
-        model.addAttribute("properties",
+        model.addAttribute("items",
                 Collections.emptyList());
         return "home";
     }
@@ -164,7 +163,8 @@ public class PropertyController {
     private void setOrgMdc(AppUser user) {
         if (user.hasOrganization()) {
             MDC.put(MDC_ORG_ID,
-                    user.getOrganization().getId().toString());
+                    user.getOrganization().getId()
+                            .toString());
         }
     }
 }

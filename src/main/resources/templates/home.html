@@ -21,6 +21,9 @@
     </nav>
 </header>
 <main>
+    <div th:if="${error}">
+        <p class="error" th:text="${error}"></p>
+    </div>
     <div th:if="${noOrganization}">
         <p>You are not assigned to an organization.
            Please contact an administrator.</p>
@@ -28,39 +31,62 @@
     <div th:unless="${noOrganization}">
         <section id="search">
             <form method="get" th:action="@{/}">
-                <input type="text" name="q" placeholder="Search properties..."
+                <input type="text" name="q" placeholder="Search items..."
                        th:value="${q}"/>
                 <button type="submit">Search</button>
             </form>
         </section>
-        <section id="property-list">
-            <h2>Properties</h2>
-            <p th:if="${#lists.isEmpty(properties)}">No properties found.</p>
-            <table th:unless="${#lists.isEmpty(properties)}">
+        <section id="item-list">
+            <h2>Items</h2>
+            <p th:if="${#lists.isEmpty(items)}">No items found.</p>
+            <table th:unless="${#lists.isEmpty(items)}">
                 <thead>
                 <tr>
                     <th>Name</th>
-                    <th>Address</th>
-                    <th>Next Service</th>
+                    <th>Location</th>
+                    <th>Manufacturer</th>
+                    <th>Model</th>
                     <th>Actions</th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="prop : ${properties}"
-                    th:classappend="${prop.nextServiceDate != null
-                        and prop.nextServiceDate.isBefore(T(java.time.LocalDate).now())}
-                        ? 'overdue' : ''">
-                    <td th:text="${prop.name}"></td>
-                    <td th:text="${prop.address}"></td>
-                    <td th:text="${prop.nextServiceDate}"></td>
+                <tr th:each="item : ${items}">
+                    <td th:text="${item.name}"></td>
+                    <td th:text="${item.location}"></td>
+                    <td th:text="${item.manufacturer}"></td>
+                    <td th:text="${item.modelName}"></td>
                     <td>
                         <button type="button"
-                                hx-get th:hx-get="@{'/properties/' + ${prop.id} + '/service-form'}"
+                                hx-get th:hx-get="@{'/items/' + ${item.id} + '/service-form'}"
                                 hx-target="#service-form-area"
                                 hx-swap="innerHTML">
-                            Add Service
+                            Log Service
                         </button>
                     </td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+        <section id="schedules" th:if="${schedules != null and !#lists.isEmpty(schedules)}">
+            <h2>Upcoming Service</h2>
+            <table>
+                <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Service Type</th>
+                    <th>Next Due</th>
+                    <th>Frequency</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="s : ${schedules}"
+                    th:classappend="${s.nextDueDate != null
+                        and s.nextDueDate.isBefore(T(java.time.LocalDate).now())}
+                        ? 'overdue' : ''">
+                    <td th:text="${s.item.name}"></td>
+                    <td th:text="${s.serviceType.name}"></td>
+                    <td th:text="${s.nextDueDate}"></td>
+                    <td th:text="'Every ' + ${s.frequencyInterval} + ' ' + ${s.frequencyUnit}"></td>
                 </tr>
                 </tbody>
             </table>

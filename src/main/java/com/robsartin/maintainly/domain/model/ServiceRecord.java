@@ -1,0 +1,145 @@
+package com.robsartin.maintainly.domain.model;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.UUID;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "service_records")
+public class ServiceRecord extends BaseEntity {
+
+    @Column(name = "organization_id", nullable = false)
+    private UUID organizationId;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "item_id", nullable = false)
+    private Item item;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "service_type_id")
+    private ServiceType serviceType;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "service_schedule_id")
+    private ServiceSchedule serviceSchedule;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "vendor_id")
+    private Vendor vendor;
+
+    @Column(name = "data_entry_timestamp",
+            nullable = false)
+    private Instant dataEntryTimestamp;
+
+    @Column(name = "service_date", nullable = false)
+    private LocalDate serviceDate;
+
+    @Column(length = 250)
+    private String summary;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Column(precision = 12, scale = 2)
+    private BigDecimal cost;
+
+    @Override
+    @PrePersist
+    protected void onCreate() {
+        super.onCreate();
+        if (dataEntryTimestamp == null) {
+            dataEntryTimestamp = Instant.now();
+        }
+    }
+
+    public UUID getOrganizationId() {
+        return organizationId;
+    }
+
+    public void setOrganizationId(UUID organizationId) {
+        this.organizationId = organizationId;
+    }
+
+    public Item getItem() {
+        return item;
+    }
+
+    public void setItem(Item item) {
+        this.item = item;
+    }
+
+    public ServiceType getServiceType() {
+        return serviceType;
+    }
+
+    public void setServiceType(ServiceType serviceType) {
+        this.serviceType = serviceType;
+    }
+
+    public ServiceSchedule getServiceSchedule() {
+        return serviceSchedule;
+    }
+
+    public void setServiceSchedule(
+            ServiceSchedule serviceSchedule) {
+        this.serviceSchedule = serviceSchedule;
+    }
+
+    public Vendor getVendor() {
+        return vendor;
+    }
+
+    public void setVendor(Vendor vendor) {
+        this.vendor = vendor;
+    }
+
+    public Instant getDataEntryTimestamp() {
+        return dataEntryTimestamp;
+    }
+
+    public void setDataEntryTimestamp(
+            Instant dataEntryTimestamp) {
+        this.dataEntryTimestamp = dataEntryTimestamp;
+    }
+
+    public LocalDate getServiceDate() {
+        return serviceDate;
+    }
+
+    public void setServiceDate(LocalDate serviceDate) {
+        this.serviceDate = serviceDate;
+    }
+
+    public String getSummary() {
+        return summary;
+    }
+
+    public void setSummary(String summary) {
+        this.summary = summary;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public BigDecimal getCost() {
+        return cost;
+    }
+
+    public void setCost(BigDecimal cost) {
+        this.cost = cost;
+    }
+}

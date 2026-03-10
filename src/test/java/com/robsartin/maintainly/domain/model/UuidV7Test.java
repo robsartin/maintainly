@@ -39,10 +39,12 @@ class UuidV7Test {
     }
 
     @Test
-    @DisplayName("should be time-ordered")
-    void shouldBeTimeOrdered() {
-        UUID first = UuidV7.generate();
-        UUID second = UuidV7.generate();
-        assertTrue(first.compareTo(second) <= 0);
+    @DisplayName("should embed timestamp in upper bits")
+    void shouldEmbedTimestamp() {
+        UUID id = UuidV7.generate();
+        long msb = id.getMostSignificantBits();
+        long timestamp = msb >>> 16;
+        long now = System.currentTimeMillis();
+        assertTrue(Math.abs(now - timestamp) < 1000);
     }
 }

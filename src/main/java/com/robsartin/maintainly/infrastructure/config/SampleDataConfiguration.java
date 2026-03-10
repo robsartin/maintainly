@@ -4,12 +4,19 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 import com.robsartin.maintainly.domain.model.AppUser;
+import com.robsartin.maintainly.domain.model.FrequencyUnit;
+import com.robsartin.maintainly.domain.model.Item;
 import com.robsartin.maintainly.domain.model.Organization;
-import com.robsartin.maintainly.domain.model.Property;
+import com.robsartin.maintainly.domain.model.ServiceSchedule;
+import com.robsartin.maintainly.domain.model.ServiceType;
 import com.robsartin.maintainly.domain.model.UuidV7;
+import com.robsartin.maintainly.domain.model.Vendor;
 import com.robsartin.maintainly.domain.port.out.AppUserRepository;
+import com.robsartin.maintainly.domain.port.out.ItemRepository;
 import com.robsartin.maintainly.domain.port.out.OrganizationRepository;
-import com.robsartin.maintainly.domain.port.out.PropertyRepository;
+import com.robsartin.maintainly.domain.port.out.ServiceScheduleRepository;
+import com.robsartin.maintainly.domain.port.out.ServiceTypeRepository;
+import com.robsartin.maintainly.domain.port.out.VendorRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -29,9 +36,13 @@ public class SampleDataConfiguration {
     public CommandLineRunner loadSampleData(
             OrganizationRepository orgRepo,
             AppUserRepository userRepo,
-            PropertyRepository propRepo) {
+            ItemRepository itemRepo,
+            ServiceTypeRepository typeRepo,
+            VendorRepository vendorRepo,
+            ServiceScheduleRepository scheduleRepo) {
         return args -> {
-            if (orgRepo.findById(SAMPLE_ORG_ID).isPresent()) {
+            if (orgRepo.findById(SAMPLE_ORG_ID)
+                    .isPresent()) {
                 log.info("Sample data already loaded");
                 return;
             }
@@ -40,6 +51,7 @@ public class SampleDataConfiguration {
             org.setId(SAMPLE_ORG_ID);
             org.setName("Test Org");
             org = orgRepo.save(org);
+            UUID orgId = org.getId();
 
             AppUser dev = userRepo.findByUsername("dev")
                     .orElseGet(() -> {
@@ -50,33 +62,84 @@ public class SampleDataConfiguration {
             dev.setOrganization(org);
             userRepo.save(dev);
 
-            log.info("Created sample org {}",
-                    org.getId());
-            createProperty(propRepo, org.getId(),
-                    "123 Main St",
-                    "123 Main St, Springfield",
+            ServiceType hvac = createServiceType(
+                    typeRepo, orgId,
+                    "HVAC_INSPECTION",
+                    "HVAC Inspection");
+            ServiceType plumbing = createServiceType(
+                    typeRepo, orgId,
+                    "PLUMBING_CHECK",
+                    "Plumbing Check");
+
+            Vendor vendor = new Vendor();
+            vendor.setId(UuidV7.generate());
+            vendor.setOrganizationId(orgId);
+            vendor.setName("ABC Maintenance");
+            vendor.setPhone("555-0100");
+            vendor = vendorRepo.save(vendor);
+
+            Item furnace = createItem(itemRepo, orgId,
+                    "Main Furnace", "Basement",
+                    "Carrier", "58STA", 2020);
+            Item waterHeater = createItem(itemRepo, orgId,
+                    "Water Heater", "Utility Room",
+                    "Rheem", "PROG50", 2021);
+
+            createSchedule(scheduleRepo, orgId,
+                    furnace, hvac, vendor,
+                    FrequencyUnit.months, 6,
                     LocalDate.now().plusDays(3));
-            createProperty(propRepo, org.getId(),
-                    "456 Oak Ave",
-                    "456 Oak Ave, Shelbyville",
-                    LocalDate.now().plusDays(10));
-            createProperty(propRepo, org.getId(),
-                    "789 Pine Rd",
-                    "789 Pine Rd, Capital City",
+            createSchedule(scheduleRepo, orgId,
+                    waterHeater, plumbing, null,
+                    FrequencyUnit.years, 1,
                     LocalDate.now().minusDays(2));
+
+            log.info("Created sample org {}", orgId);
         };
     }
 
-    private void createProperty(
-            PropertyRepository repo, UUID orgId,
-            String name, String address,
-            LocalDate nextService) {
-        Property p = new Property();
-        p.setId(UuidV7.generate());
-        p.setName(name);
-        p.setAddress(address);
-        p.setNextServiceDate(nextService);
-        p.setOrganizationId(orgId);
-        repo.save(p);
+    private ServiceType createServiceType(
+            ServiceTypeRepository repo, UUID orgId,
+            String code, String name) {
+        ServiceType st = new ServiceType();
+        st.setId(UuidV7.generate());
+        st.setOrganizationId(orgId);
+        st.setCode(code);
+        st.setName(name);
+        return repo.save(st);
+    }
+
+    private Item createItem(
+            ItemRepository repo, UUID orgId,
+            String name, String location,
+            String manufacturer, String model,
+            int year) {
+        Item item = new Item();
+        item.setId(UuidV7.generate());
+        item.setOrganizationId(orgId);
+        item.setName(name);
+        item.setLocation(location);
+        item.setManufacturer(manufacturer);
+        item.setModelName(model);
+        item.setModelYear(year);
+        return repo.save(item);
+    }
+
+    private void createSchedule(
+            ServiceScheduleRepository repo, UUID orgId,
+            Item item, ServiceType type,
+            Vendor vendor, FrequencyUnit unit,
+            int interval, LocalDate nextDue) {
+        ServiceSchedule s = new ServiceSchedule();
+        s.setId(UuidV7.generate());
+        s.setOrganizationId(orgId);
+        s.setItem(item);
+        s.setServiceType(type);
+        s.setPreferredVendor(vendor);
+        s.setFrequencyUnit(unit);
+        s.setFrequencyInterval(interval);
+        s.setFirstDueDate(nextDue);
+        s.setNextDueDate(nextDue);
+        repo.save(s);
     }
 }
