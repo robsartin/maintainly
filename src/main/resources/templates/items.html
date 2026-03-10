@@ -82,15 +82,15 @@
                 </thead>
                 <tbody>
                 <th:block th:each="item : ${items}">
-                <tr>
-                    <td><a th:href="@{/items/detail(itemId=${item.id})}"
-                           th:text="${item.name}" class="item-link"
-                           th:classappend="${selectedItemId != null and selectedItemId.equals(item.id)} ? ' selected'"></a></td>
+                <tr class="item-row"
+                    th:classappend="${selectedItemId != null and selectedItemId.equals(item.id)} ? ' selected'"
+                    th:attr="onclick='window.location.href=\'/items/detail?itemId=' + ${item.id} + '\''">
+                    <td th:text="${item.name}"></td>
                     <td th:text="${item.location}"></td>
                     <td th:text="${item.manufacturer}"></td>
                     <td th:text="${item.modelName}"></td>
                     <td th:text="${item.serialNumber}"></td>
-                    <td class="actions">
+                    <td class="actions" onclick="event.stopPropagation()">
                         <button type="button" class="btn-icon btn-log" title="Log service"
                                 th:attr="onclick='toggleForm(\'item-log-' + ${item.id} + '\')'">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
