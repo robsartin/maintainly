@@ -177,6 +177,41 @@ class ScheduleControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("should edit a schedule")
+    void shouldEditSchedule() throws Exception {
+        String scheduleId = getFirstScheduleId();
+        mockMvc.perform(post("/schedules/edit")
+                        .param("scheduleId", scheduleId)
+                        .param("serviceType",
+                                "Updated Type")
+                        .param("nextDueDate", "2026-12-15")
+                        .param("frequencyInterval", "3")
+                        .param("frequencyUnit", "months")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/schedules"));
+    }
+
+    @Test
+    @DisplayName("should handle invalid schedule on edit")
+    void shouldHandleInvalidScheduleEdit()
+            throws Exception {
+        UUID fakeId = UUID.randomUUID();
+        mockMvc.perform(post("/schedules/edit")
+                        .param("scheduleId",
+                                fakeId.toString())
+                        .param("serviceType", "Test")
+                        .param("nextDueDate", "2026-12-15")
+                        .param("frequencyInterval", "1")
+                        .param("frequencyUnit", "months")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("error"));
+    }
+
+    @Test
     @DisplayName("should show no-org for new user")
     void shouldShowNoOrgForNewUser() throws Exception {
         mockMvc.perform(get("/schedules")
