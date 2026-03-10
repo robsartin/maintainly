@@ -17,11 +17,57 @@
             <form method="get" th:action="@{/items}">
                 <input type="text" name="q" placeholder="Search items..."
                        th:value="${q}"/>
-                <button type="submit">Search</button>
+                <button type="submit" class="btn-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"/>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                    Search
+                </button>
             </form>
         </section>
         <section id="item-list">
-            <h2>Items</h2>
+            <div class="section-header">
+                <h2>Items</h2>
+                <button type="button" class="btn-icon btn-add"
+                        onclick="toggleForm('add-item-form')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="16"/>
+                        <line x1="8" y1="12" x2="16" y2="12"/>
+                    </svg>
+                    Add Item
+                </button>
+            </div>
+            <div id="add-item-form" style="display:none" class="add-form">
+                <form method="post" th:action="@{/items/add}" class="inline-form">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <label>Name <input type="text" name="name" required
+                                       placeholder="Item name"/></label>
+                    <label>Location <input type="text" name="location"
+                                           placeholder="Location"/></label>
+                    <label>Manufacturer <input type="text" name="manufacturer"
+                                               placeholder="Manufacturer"/></label>
+                    <label>Model <input type="text" name="modelName"
+                                        placeholder="Model name"/></label>
+                    <label>Serial # <input type="text" name="serialNumber"
+                                           placeholder="Serial number"/></label>
+                    <button type="submit" class="btn-icon btn-add">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                            <polyline points="17 21 17 13 7 13 7 21"/>
+                            <polyline points="7 3 7 8 15 8"/>
+                        </svg>
+                        Save
+                    </button>
+                </form>
+            </div>
             <p th:if="${#lists.isEmpty(items)}">No items found.</p>
             <table th:unless="${#lists.isEmpty(items)}">
                 <thead>
@@ -97,7 +143,14 @@
                             </span>
                             <label>Tech <input type="text" name="techName"
                                                placeholder="Technician name"/></label>
-                            <button type="submit" class="btn-log">Save</button>
+                            <button type="submit" class="btn-icon btn-log">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                     fill="none" stroke="currentColor" stroke-width="2"
+                                     stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                                Save
+                            </button>
                         </form>
                     </td>
                 </tr>
@@ -136,7 +189,14 @@
                                             th:value="${fu}" th:text="${fu}"></option>
                                 </select>
                             </label>
-                            <button type="submit" class="btn-schedule">Create</button>
+                            <button type="submit" class="btn-icon btn-schedule">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                     fill="none" stroke="currentColor" stroke-width="2"
+                                     stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                                Create
+                            </button>
                         </form>
                     </td>
                 </tr>

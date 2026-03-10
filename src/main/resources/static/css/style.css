@@ -136,12 +136,52 @@ button:hover {
     background: #0d47a1;
 }
 
+.btn-add {
+    background: #1565c0;
+}
+
+.btn-add:hover {
+    background: #0d47a1;
+}
+
 .btn-delete {
     background: #e53935;
 }
 
 .btn-delete:hover {
     background: #b71c1c;
+}
+
+.btn-logout {
+    background: #757575;
+}
+
+.btn-logout:hover {
+    background: #424242;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.section-header h2 {
+    margin: 0;
+}
+
+.add-form {
+    background: #fafafa;
+    padding: 0.75rem 1rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.serial-number {
+    color: #888;
+    font-size: 0.85rem;
 }
 
 td.actions {

@@ -60,7 +60,7 @@ public class ItemController {
 
     @GetMapping("/")
     public String home() {
-        return "redirect:/items";
+        return "redirect:/schedules";
     }
 
     @GetMapping("/items")
@@ -114,6 +114,46 @@ public class ItemController {
                             .findByItemIdAndOrganizationId(
                                     itemId, orgId));
             return "items";
+        } finally {
+            helper.clearOrgMdc();
+        }
+    }
+
+    @PostMapping("/items/add")
+    public String addItem(
+            @RequestParam String name,
+            @RequestParam(required = false) String location,
+            @RequestParam(required = false)
+                    String manufacturer,
+            @RequestParam(required = false)
+                    String modelName,
+            @RequestParam(required = false)
+                    String serialNumber,
+            Principal principal) {
+        AppUser user = helper.resolveUser(principal);
+        helper.setOrgMdc(user);
+        try {
+            UUID orgId = user.getOrganization().getId();
+            Item item = new Item();
+            item.setOrganizationId(orgId);
+            item.setName(name.trim());
+            if (location != null && !location.isBlank()) {
+                item.setLocation(location.trim());
+            }
+            if (manufacturer != null
+                    && !manufacturer.isBlank()) {
+                item.setManufacturer(manufacturer.trim());
+            }
+            if (modelName != null && !modelName.isBlank()) {
+                item.setModelName(modelName.trim());
+            }
+            if (serialNumber != null
+                    && !serialNumber.isBlank()) {
+                item.setSerialNumber(serialNumber.trim());
+            }
+            itemRepository.save(item);
+            log.info("Created item {}", item.getName());
+            return "redirect:/items";
         } finally {
             helper.clearOrgMdc();
         }

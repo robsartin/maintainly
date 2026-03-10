@@ -35,10 +35,36 @@ class ItemControllerIntegrationTest {
     private MockMvc mockMvc;
 
     @Test
-    @DisplayName("should redirect root to items")
-    void shouldRedirectRootToItems() throws Exception {
+    @DisplayName("should redirect root to schedules")
+    void shouldRedirectRootToSchedules() throws Exception {
         mockMvc.perform(get("/")
                         .with(user("dev").roles("USER")))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/schedules"));
+    }
+
+    @Test
+    @DisplayName("should add a new item")
+    void shouldAddNewItem() throws Exception {
+        mockMvc.perform(post("/items/add")
+                        .param("name", "Test Widget")
+                        .param("location", "Garage")
+                        .param("manufacturer", "Acme")
+                        .param("modelName", "W-100")
+                        .param("serialNumber", "SN-999")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/items"));
+    }
+
+    @Test
+    @DisplayName("should add item with name only")
+    void shouldAddItemNameOnly() throws Exception {
+        mockMvc.perform(post("/items/add")
+                        .param("name", "Minimal Item")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/items"));
     }
