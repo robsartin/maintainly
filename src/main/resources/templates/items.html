@@ -199,13 +199,18 @@
                     class="detail-row">
                     <td colspan="6">
                         <div class="item-detail">
-                            <div class="detail-section" th:if="${itemRecords != null and !#lists.isEmpty(itemRecords)}">
+                            <div class="detail-section"
+                                 th:if="${itemRecords != null and !#lists.isEmpty(itemRecords)}">
                                 <h4>Service History</h4>
                                 <table class="detail-table">
-                                    <thead><tr><th>Date</th><th>Summary</th><th>Details</th></tr></thead>
+                                    <thead><tr>
+                                        <th>Date</th><th>Service Type</th>
+                                        <th>Summary</th><th>Details</th>
+                                    </tr></thead>
                                     <tbody>
                                     <tr th:each="r : ${itemRecords}">
                                         <td th:text="${r.serviceDate}"></td>
+                                        <td th:text="${r.serviceType}"></td>
                                         <td th:text="${r.summary}"></td>
                                         <td th:text="${r.description}"></td>
                                     </tr>
@@ -214,18 +219,122 @@
                             </div>
                             <p th:if="${itemRecords == null or #lists.isEmpty(itemRecords)}"
                                class="detail-empty">No service history.</p>
-                            <div class="detail-section" th:if="${itemSchedules != null and !#lists.isEmpty(itemSchedules)}">
-                                <h4>Schedules</h4>
+                            <div class="detail-section"
+                                 th:if="${itemSchedules != null and !#lists.isEmpty(itemSchedules)}">
+                                <h4>Active Schedules</h4>
                                 <table class="detail-table">
-                                    <thead><tr><th>Service Type</th><th>Next Due</th><th>Frequency</th><th>Last Completed</th><th>Status</th></tr></thead>
+                                    <thead><tr>
+                                        <th>Service Type</th><th>Next Due</th>
+                                        <th>Frequency</th><th>Last Completed</th>
+                                        <th>Actions</th>
+                                    </tr></thead>
                                     <tbody>
-                                    <tr th:each="is : ${itemSchedules}">
+                                    <th:block th:each="is : ${itemSchedules}">
+                                    <tr th:if="${is.active}">
                                         <td th:text="${is.serviceType}"></td>
                                         <td th:text="${is.nextDueDate}"></td>
                                         <td th:text="'Every ' + ${is.frequencyInterval} + ' ' + ${is.frequencyUnit}"></td>
-                                        <td th:text="${is.lastCompletedDate != null ? is.lastCompletedDate : 'Never'}"></td>
-                                        <td th:text="${is.active ? 'Active' : 'Inactive'}"></td>
+                                        <td th:text="${is.lastCompletedDate != null
+                                            ? is.lastCompletedDate : 'Never'}"></td>
+                                        <td class="actions">
+                                            <button type="button" class="btn-icon btn-log"
+                                                    title="Complete service"
+                                                    th:attr="onclick='toggleForm(\'complete-'
+                                                        + ${is.id} + '\')'">
+                                                <svg xmlns="http://www.w3.org/2000/svg"
+                                                     width="16" height="16" viewBox="0 0 24 24"
+                                                     fill="none" stroke="currentColor"
+                                                     stroke-width="2" stroke-linecap="round"
+                                                     stroke-linejoin="round">
+                                                    <polyline points="20 6 9 17 4 12"/>
+                                                </svg>
+                                            </button>
+                                            <form method="post" th:action="@{/items/skip}"
+                                                  style="display:inline">
+                                                <input type="hidden" name="scheduleId"
+                                                       th:value="${is.id}"/>
+                                                <input type="hidden"
+                                                       th:name="${_csrf.parameterName}"
+                                                       th:value="${_csrf.token}"/>
+                                                <button type="submit"
+                                                        class="btn-icon btn-skip"
+                                                        title="Skip to next occurrence"
+                                                        onclick="return confirm(
+                                                            'Skip this occurrence?')">
+                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                         width="16" height="16"
+                                                         viewBox="0 0 24 24" fill="none"
+                                                         stroke="currentColor" stroke-width="2"
+                                                         stroke-linecap="round"
+                                                         stroke-linejoin="round">
+                                                        <polygon points="5 4 15 12 5 20 5 4"/>
+                                                        <line x1="19" y1="5" x2="19" y2="19"/>
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                        </td>
                                     </tr>
+                                    <tr th:id="'complete-' + ${is.id}"
+                                        class="form-row" style="display:none">
+                                        <td colspan="5">
+                                            <form method="post"
+                                                  th:action="@{/items/complete}"
+                                                  class="inline-form">
+                                                <input type="hidden" name="scheduleId"
+                                                       th:value="${is.id}"/>
+                                                <input type="hidden"
+                                                       th:name="${_csrf.parameterName}"
+                                                       th:value="${_csrf.token}"/>
+                                                <label>Date <input type="date"
+                                                    name="serviceDate" required/></label>
+                                                <label>Summary <input type="text"
+                                                    name="summary" required
+                                                    placeholder="What was done"/></label>
+                                                <label>Vendor
+                                                    <select name="vendorId"
+                                                            onchange="onVendorChange(this)">
+                                                        <option value="">None</option>
+                                                        <option th:each="v : ${vendors}"
+                                                                th:value="${v.id}"
+                                                                th:text="${v.name}"
+                                                                th:selected="${is.preferredVendor
+                                                                    != null and is.preferredVendor
+                                                                    .id.equals(v.id)}">
+                                                        </option>
+                                                        <option value="__new__">
+                                                            + New vendor...</option>
+                                                    </select>
+                                                </label>
+                                                <span class="new-vendor-fields"
+                                                      style="display:none">
+                                                    <label>Name <input type="text"
+                                                        name="newVendorName"
+                                                        placeholder="Vendor name"/></label>
+                                                    <label>Phone <input type="text"
+                                                        name="newVendorPhone"
+                                                        placeholder="Phone"/></label>
+                                                </span>
+                                                <label>Tech <input type="text"
+                                                    name="techName"
+                                                    placeholder="Technician name"/></label>
+                                                <button type="submit"
+                                                        class="btn-icon btn-log">
+                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                         width="16" height="16"
+                                                         viewBox="0 0 24 24" fill="none"
+                                                         stroke="currentColor"
+                                                         stroke-width="2"
+                                                         stroke-linecap="round"
+                                                         stroke-linejoin="round">
+                                                        <polyline
+                                                            points="20 6 9 17 4 12"/>
+                                                    </svg>
+                                                    Save
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    </th:block>
                                     </tbody>
                                 </table>
                             </div>

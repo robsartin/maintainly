@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.Item;
+import solutions.mystuff.domain.model.ServiceSchedule;
 import solutions.mystuff.domain.model.Vendor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -356,6 +357,60 @@ class ItemControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("should complete a scheduled service")
+    void shouldCompleteSchedule() throws Exception {
+        String scheduleId = getFirstScheduleId();
+        mockMvc.perform(post("/items/complete")
+                        .param("scheduleId", scheduleId)
+                        .param("summary", "Routine check")
+                        .param("serviceDate", "2026-03-10")
+                        .param("techName", "John")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection());
+    }
+
+    @Test
+    @DisplayName("should handle invalid schedule on complete")
+    void shouldHandleInvalidComplete()
+            throws Exception {
+        UUID fakeId = UUID.randomUUID();
+        mockMvc.perform(post("/items/complete")
+                        .param("scheduleId",
+                                fakeId.toString())
+                        .param("summary", "Test")
+                        .param("serviceDate", "2026-03-10")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("error"));
+    }
+
+    @Test
+    @DisplayName("should skip a scheduled service")
+    void shouldSkipSchedule() throws Exception {
+        String scheduleId = getFirstScheduleId();
+        mockMvc.perform(post("/items/skip")
+                        .param("scheduleId", scheduleId)
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection());
+    }
+
+    @Test
+    @DisplayName("should handle invalid schedule on skip")
+    void shouldHandleInvalidSkip() throws Exception {
+        UUID fakeId = UUID.randomUUID();
+        mockMvc.perform(post("/items/skip")
+                        .param("scheduleId",
+                                fakeId.toString())
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("error"));
+    }
+
+    @Test
     @DisplayName("should show no-org for new user")
     void shouldShowNoOrgForNewUser() throws Exception {
         mockMvc.perform(get("/items")
@@ -369,6 +424,23 @@ class ItemControllerIntegrationTest {
     private String getFirstItemId() throws Exception {
         return ((List<Item>) getModel("items"))
                 .get(0).getId().toString();
+    }
+
+    @SuppressWarnings("unchecked")
+    private String getFirstScheduleId()
+            throws Exception {
+        String itemId = getFirstItemId();
+        MvcResult result = mockMvc.perform(
+                get("/items/detail")
+                        .param("itemId", itemId)
+                        .with(user("dev").roles("USER")))
+                .andReturn();
+        List<ServiceSchedule> schedules =
+                (List<ServiceSchedule>)
+                        result.getModelAndView()
+                                .getModel()
+                                .get("itemSchedules");
+        return schedules.get(0).getId().toString();
     }
 
     @SuppressWarnings("unchecked")

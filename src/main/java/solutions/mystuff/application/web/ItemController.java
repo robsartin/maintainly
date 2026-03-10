@@ -1,6 +1,7 @@
 package solutions.mystuff.application.web;
 
 import java.security.Principal;
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.UUID;
 
@@ -8,6 +9,7 @@ import solutions.mystuff.domain.model.AppUser;
 import solutions.mystuff.domain.model.FrequencyUnit;
 import solutions.mystuff.domain.model.Item;
 import solutions.mystuff.domain.model.PageResult;
+import solutions.mystuff.domain.model.ServiceSchedule;
 import solutions.mystuff.domain.model.Vendor;
 import solutions.mystuff.domain.port.out.ItemRepository;
 import solutions.mystuff.domain.port.out
@@ -214,6 +216,72 @@ public class ItemController {
         }
     }
 
+    @PostMapping("/items/complete")
+    public String completeSchedule(
+            @RequestParam UUID scheduleId,
+            @RequestParam String summary,
+            @RequestParam String serviceDate,
+            @RequestParam(required = false)
+                    String vendorId,
+            @RequestParam(required = false)
+                    String newVendorName,
+            @RequestParam(required = false)
+                    String newVendorPhone,
+            @RequestParam(required = false)
+                    String techName,
+            Principal principal) {
+        AppUser user = helper.resolveUser(principal);
+        helper.setOrgMdc(user);
+        try {
+            UUID orgId = user.getOrganization().getId();
+            ServiceSchedule sched =
+                    findSchedule(scheduleId, orgId);
+            LocalDate completed =
+                    LocalDate.parse(serviceDate);
+            Vendor vendor = helper.resolveVendor(orgId,
+                    vendorId, newVendorName,
+                    newVendorPhone);
+            helper.saveRecord(orgId, sched.getItem(),
+                    sched.getServiceType(), sched,
+                    vendor, summary, serviceDate,
+                    techName);
+            sched.advanceNextDueDate(completed);
+            scheduleRepo.save(sched);
+            log.info("Completed schedule {}",
+                    scheduleId);
+            return "redirect:/items/detail?itemId="
+                    + sched.getItem().getId();
+        } finally {
+            helper.clearOrgMdc();
+        }
+    }
+
+    @PostMapping("/items/skip")
+    public String skipSchedule(
+            @RequestParam UUID scheduleId,
+            Principal principal) {
+        AppUser user = helper.resolveUser(principal);
+        helper.setOrgMdc(user);
+        try {
+            UUID orgId = user.getOrganization().getId();
+            ServiceSchedule sched =
+                    findSchedule(scheduleId, orgId);
+            LocalDate current = sched.getNextDueDate();
+            if (current == null) {
+                current = LocalDate.now();
+            }
+            sched.advanceNextDueDate(current);
+            sched.setLastCompletedDate(null);
+            scheduleRepo.save(sched);
+            log.info("Skipped schedule {}",
+                    scheduleId);
+            return "redirect:/items/detail?itemId="
+                    + sched.getItem().getId();
+        } finally {
+            helper.clearOrgMdc();
+        }
+    }
+
     private String handleNoOrg(
             AppUser user, Model model) {
         log.warn("User {} has no organization",
@@ -261,4 +329,13 @@ public class ItemController {
                                 "Item not found"));
     }
 
+    private ServiceSchedule findSchedule(
+            UUID scheduleId, UUID orgId) {
+        return scheduleRepo
+                .findByIdAndOrganizationId(
+                        scheduleId, orgId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Schedule not found"));
+    }
 }
