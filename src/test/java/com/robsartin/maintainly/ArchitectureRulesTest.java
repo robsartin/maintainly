@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import jakarta.persistence.Entity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Controller;
 
@@ -118,6 +119,17 @@ class ArchitectureRulesTest {
                     .that().resideInAPackage(
                             "..domain.port..")
                     .should().beInterfaces()
+                    .check(classes);
+        }
+
+        @Test
+        @DisplayName("entities should reside in domain.model")
+        void entitiesInCorrectPackage() {
+            classes()
+                    .that().areAnnotatedWith(
+                            Entity.class)
+                    .should().resideInAPackage(
+                            "..domain.model..")
                     .check(classes);
         }
     }

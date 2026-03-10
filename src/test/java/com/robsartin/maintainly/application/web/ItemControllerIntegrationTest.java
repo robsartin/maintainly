@@ -1,6 +1,5 @@
 package com.robsartin.maintainly.application.web;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,7 +13,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -67,13 +65,14 @@ class ItemControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("should add service record")
-    void shouldAddServiceRecord() throws Exception {
+    @DisplayName("should log service for item")
+    void shouldLogItemService() throws Exception {
         String itemId = getFirstItemId();
-        mockMvc.perform(post("/service/record")
+        mockMvc.perform(post("/item/log")
                         .param("itemId", itemId)
                         .param("summary", "Filter replaced")
                         .param("serviceDate", "2026-04-15")
+                        .param("techName", "Jane")
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
                 .andExpect(status().isOk())
@@ -81,10 +80,24 @@ class ItemControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("should handle invalid date format")
+    @DisplayName("should log item service without tech name")
+    void shouldLogItemServiceNoTech() throws Exception {
+        String itemId = getFirstItemId();
+        mockMvc.perform(post("/item/log")
+                        .param("itemId", itemId)
+                        .param("summary", "Quick check")
+                        .param("serviceDate", "2026-04-16")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("items"));
+    }
+
+    @Test
+    @DisplayName("should handle invalid date on item log")
     void shouldHandleInvalidDate() throws Exception {
         String itemId = getFirstItemId();
-        mockMvc.perform(post("/service/record")
+        mockMvc.perform(post("/item/log")
                         .param("itemId", itemId)
                         .param("summary", "Test")
                         .param("serviceDate", "not-a-date")
@@ -95,10 +108,10 @@ class ItemControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("should handle invalid item ID")
+    @DisplayName("should handle invalid item ID on log")
     void shouldHandleInvalidItemId() throws Exception {
         UUID fakeId = UUID.randomUUID();
-        mockMvc.perform(post("/service/record")
+        mockMvc.perform(post("/item/log")
                         .param("itemId", fakeId.toString())
                         .param("summary", "Test")
                         .param("serviceDate", "2026-04-15")
@@ -109,24 +122,30 @@ class ItemControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("should provide today and soon dates for schedule coloring")
+    @DisplayName("should handle invalid schedule ID on log")
+    void shouldHandleInvalidScheduleId() throws Exception {
+        UUID fakeId = UUID.randomUUID();
+        mockMvc.perform(post("/schedule/log")
+                        .param("scheduleId",
+                                fakeId.toString())
+                        .param("summary", "Test")
+                        .param("serviceDate", "2026-04-15")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("error"));
+    }
+
+    @Test
+    @DisplayName("should provide today and soon dates")
     void shouldProvideScheduleDates() throws Exception {
-        MvcResult result = mockMvc.perform(get("/")
+        mockMvc.perform(get("/")
                         .with(user("dev").roles("USER")))
                 .andExpect(status().isOk())
                 .andExpect(
                         model().attributeExists("today"))
                 .andExpect(
-                        model().attributeExists("soon"))
-                .andReturn();
-        LocalDate today = (LocalDate)
-                result.getModelAndView().getModel()
-                        .get("today");
-        LocalDate soon = (LocalDate)
-                result.getModelAndView().getModel()
-                        .get("soon");
-        assertNotNull(today);
-        assertNotNull(soon);
+                        model().attributeExists("soon"));
     }
 
     @Test

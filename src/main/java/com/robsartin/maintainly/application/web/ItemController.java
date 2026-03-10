@@ -11,6 +11,7 @@ import com.robsartin.maintainly.domain.model.AppUser;
 import com.robsartin.maintainly.domain.model.Item;
 import com.robsartin.maintainly.domain.model.ServiceRecord;
 import com.robsartin.maintainly.domain.model.ServiceSchedule;
+import com.robsartin.maintainly.domain.model.ServiceType;
 import com.robsartin.maintainly.domain.port.in.UserResolver;
 import com.robsartin.maintainly.domain.port.out.ItemRepository;
 import com.robsartin.maintainly.domain.port.out.ServiceRecordRepository;
@@ -71,33 +72,21 @@ public class ItemController {
         }
     }
 
-    @PostMapping("/service/record")
-    public String addServiceRecord(
+    @PostMapping("/item/log")
+    public String logItemService(
             @RequestParam UUID itemId,
             @RequestParam String summary,
             @RequestParam String serviceDate,
+            @RequestParam(required = false) String techName,
             Principal principal, Model model) {
         AppUser user = userResolver.resolveOrCreate(
                 principal.getName());
         setOrgMdc(user);
         try {
             UUID orgId = user.getOrganization().getId();
-            Item item = itemRepository
-                    .findByIdAndOrganizationId(
-                            itemId, orgId)
-                    .orElseThrow(() ->
-                            new IllegalArgumentException(
-                                    "Item not found"));
-            LocalDate date =
-                    LocalDate.parse(serviceDate);
-            ServiceRecord record = new ServiceRecord();
-            record.setOrganizationId(orgId);
-            record.setItem(item);
-            record.setServiceDate(date);
-            record.setSummary(summary);
-            recordRepository.save(record);
-            log.info("Created service record for item {}",
-                    itemId);
+            Item item = findItem(itemId, orgId);
+            saveRecord(orgId, item, null, null,
+                    summary, serviceDate, techName);
             return index(null, principal, model);
         } finally {
             MDC.remove(MDC_ORG_ID);
@@ -105,7 +94,7 @@ public class ItemController {
     }
 
     @PostMapping("/schedule/log")
-    public String logService(
+    public String logScheduleService(
             @RequestParam UUID scheduleId,
             @RequestParam String summary,
             @RequestParam String serviceDate,
@@ -118,8 +107,12 @@ public class ItemController {
             UUID orgId = user.getOrganization().getId();
             ServiceSchedule sched = findSchedule(
                     scheduleId, orgId);
-            createRecord(sched, orgId, summary,
-                    serviceDate, techName);
+            saveRecord(orgId, sched.getItem(),
+                    sched.getServiceType(), sched,
+                    summary, serviceDate, techName);
+            sched.setLastCompletedDate(
+                    LocalDate.parse(serviceDate));
+            scheduleRepository.save(sched);
             return index(null, principal, model);
         } finally {
             MDC.remove(MDC_ORG_ID);
@@ -219,6 +212,14 @@ public class ItemController {
                 today.plusWeeks(2));
     }
 
+    private Item findItem(UUID itemId, UUID orgId) {
+        return itemRepository
+                .findByIdAndOrganizationId(itemId, orgId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Item not found"));
+    }
+
     private ServiceSchedule findSchedule(
             UUID scheduleId, UUID orgId) {
         return scheduleRepository
@@ -229,16 +230,18 @@ public class ItemController {
                                 "Schedule not found"));
     }
 
-    private void createRecord(
-            ServiceSchedule sched, UUID orgId,
+    private void saveRecord(
+            UUID orgId, Item item,
+            ServiceType serviceType,
+            ServiceSchedule schedule,
             String summary, String serviceDate,
             String techName) {
         LocalDate date = LocalDate.parse(serviceDate);
         ServiceRecord record = new ServiceRecord();
         record.setOrganizationId(orgId);
-        record.setItem(sched.getItem());
-        record.setServiceType(sched.getServiceType());
-        record.setServiceSchedule(sched);
+        record.setItem(item);
+        record.setServiceType(serviceType);
+        record.setServiceSchedule(schedule);
         record.setServiceDate(date);
         record.setSummary(summary);
         if (techName != null && !techName.isBlank()) {
@@ -246,10 +249,8 @@ public class ItemController {
                     "Technician: " + techName.trim());
         }
         recordRepository.save(record);
-        sched.setLastCompletedDate(date);
-        scheduleRepository.save(sched);
-        log.info("Logged service for schedule {}",
-                sched.getId());
+        log.info("Saved service record for item {}",
+                item.getId());
     }
 
     private void createScheduleFrom(
