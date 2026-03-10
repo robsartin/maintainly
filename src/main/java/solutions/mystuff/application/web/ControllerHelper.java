@@ -18,6 +18,10 @@ import solutions.mystuff.domain.port.out
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import org.springframework.security.oauth2.client
+        .authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.user
+        .OAuth2User;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
 
@@ -46,7 +50,19 @@ public class ControllerHelper {
 
     AppUser resolveUser(Principal principal) {
         return userResolver.resolveOrCreate(
-                principal.getName());
+                extractUsername(principal));
+    }
+
+    private String extractUsername(Principal principal) {
+        if (principal instanceof OAuth2AuthenticationToken
+                oauth) {
+            OAuth2User user = oauth.getPrincipal();
+            String email = user.getAttribute("email");
+            if (email != null && !email.isBlank()) {
+                return email;
+            }
+        }
+        return principal.getName();
     }
 
     void addUserAttrs(AppUser user, Model model) {
