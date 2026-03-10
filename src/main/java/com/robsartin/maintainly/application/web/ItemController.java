@@ -84,6 +84,40 @@ public class ItemController {
         }
     }
 
+    @GetMapping("/item/detail")
+    public String itemDetail(
+            @RequestParam UUID itemId,
+            Principal principal, Model model) {
+        AppUser user = userResolver.resolveOrCreate(
+                principal.getName());
+        if (!user.hasOrganization()) {
+            return handleNoOrganization(user, model);
+        }
+        UUID orgId = user.getOrganization().getId();
+        MDC.put(MDC_ORG_ID, orgId.toString());
+        try {
+            loadItems(null, orgId, model);
+            loadSchedules(orgId, model);
+            model.addAttribute("username",
+                    user.getUsername());
+            model.addAttribute("organization",
+                    user.getOrganization());
+            model.addAttribute("selectedItemId",
+                    itemId);
+            model.addAttribute("itemRecords",
+                    recordRepository
+                            .findByItemIdAndOrganizationId(
+                                    itemId, orgId));
+            model.addAttribute("itemSchedules",
+                    scheduleRepository
+                            .findByItemIdAndOrganizationId(
+                                    itemId, orgId));
+            return "home";
+        } finally {
+            MDC.remove(MDC_ORG_ID);
+        }
+    }
+
     @PostMapping("/item/log")
     public String logItemService(
             @RequestParam UUID itemId,
@@ -119,11 +153,12 @@ public class ItemController {
             UUID orgId = user.getOrganization().getId();
             ServiceSchedule sched = findSchedule(
                     scheduleId, orgId);
+            LocalDate completed =
+                    LocalDate.parse(serviceDate);
             saveRecord(orgId, sched.getItem(),
                     sched.getServiceType(), sched,
                     summary, serviceDate, techName);
-            sched.setLastCompletedDate(
-                    LocalDate.parse(serviceDate));
+            sched.advanceNextDueDate(completed);
             scheduleRepository.save(sched);
             return index(null, principal, model);
         } finally {

@@ -41,4 +41,16 @@ public interface JpaServiceScheduleRepository
     @Override
     Optional<ServiceSchedule> findByIdAndOrganizationId(
             UUID id, UUID organizationId);
+
+    @Override
+    @Query("SELECT s FROM ServiceSchedule s "
+            + "JOIN FETCH s.serviceType "
+            + "LEFT JOIN FETCH s.preferredVendor "
+            + "WHERE s.item.id = :itemId "
+            + "AND s.organizationId = :orgId "
+            + "ORDER BY s.nextDueDate ASC NULLS LAST")
+    List<ServiceSchedule>
+            findByItemIdAndOrganizationId(
+                    @Param("itemId") UUID itemId,
+                    @Param("orgId") UUID organizationId);
 }

@@ -77,7 +77,9 @@
                 <tbody>
                 <th:block th:each="item : ${items}">
                 <tr>
-                    <td th:text="${item.name}"></td>
+                    <td><a th:href="@{/item/detail(itemId=${item.id})}"
+                           th:text="${item.name}" class="item-link"
+                           th:classappend="${selectedItemId != null and selectedItemId.equals(item.id)} ? ' selected'"></a></td>
                     <td th:text="${item.location}"></td>
                     <td th:text="${item.manufacturer}"></td>
                     <td th:text="${item.modelName}"></td>
@@ -161,6 +163,45 @@
                             </label>
                             <button type="submit" class="btn-schedule">Create</button>
                         </form>
+                    </td>
+                </tr>
+                <tr th:if="${selectedItemId != null and selectedItemId.equals(item.id)}"
+                    class="detail-row">
+                    <td colspan="5">
+                        <div class="item-detail">
+                            <div class="detail-section" th:if="${itemRecords != null and !#lists.isEmpty(itemRecords)}">
+                                <h4>Service History</h4>
+                                <table class="detail-table">
+                                    <thead><tr><th>Date</th><th>Summary</th><th>Details</th></tr></thead>
+                                    <tbody>
+                                    <tr th:each="r : ${itemRecords}">
+                                        <td th:text="${r.serviceDate}"></td>
+                                        <td th:text="${r.summary}"></td>
+                                        <td th:text="${r.description}"></td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p th:if="${itemRecords == null or #lists.isEmpty(itemRecords)}"
+                               class="detail-empty">No service history.</p>
+                            <div class="detail-section" th:if="${itemSchedules != null and !#lists.isEmpty(itemSchedules)}">
+                                <h4>Schedules</h4>
+                                <table class="detail-table">
+                                    <thead><tr><th>Service Type</th><th>Next Due</th><th>Frequency</th><th>Last Completed</th><th>Status</th></tr></thead>
+                                    <tbody>
+                                    <tr th:each="is : ${itemSchedules}">
+                                        <td th:text="${is.serviceType.name}"></td>
+                                        <td th:text="${is.nextDueDate}"></td>
+                                        <td th:text="'Every ' + ${is.frequencyInterval} + ' ' + ${is.frequencyUnit}"></td>
+                                        <td th:text="${is.lastCompletedDate != null ? is.lastCompletedDate : 'Never'}"></td>
+                                        <td th:text="${is.active ? 'Active' : 'Inactive'}"></td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p th:if="${itemSchedules == null or #lists.isEmpty(itemSchedules)}"
+                               class="detail-empty">No schedules.</p>
+                        </div>
                     </td>
                 </tr>
                 </th:block>

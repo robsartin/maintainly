@@ -133,4 +133,22 @@ public class ServiceSchedule extends OrgOwnedEntity {
     public void setNotes(String notes) {
         this.notes = notes;
     }
+
+    public void advanceNextDueDate(
+            LocalDate completedDate) {
+        this.lastCompletedDate = completedDate;
+        if (frequencyUnit != null
+                && frequencyInterval != null) {
+            this.nextDueDate = switch (frequencyUnit) {
+                case days -> completedDate
+                        .plusDays(frequencyInterval);
+                case weeks -> completedDate
+                        .plusWeeks(frequencyInterval);
+                case months -> completedDate
+                        .plusMonths(frequencyInterval);
+                case years -> completedDate
+                        .plusYears(frequencyInterval);
+            };
+        }
+    }
 }

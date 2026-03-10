@@ -306,6 +306,38 @@ class ItemControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("should show item detail with history")
+    void shouldShowItemDetail() throws Exception {
+        String itemId = getFirstItemId();
+        mockMvc.perform(get("/item/detail")
+                        .param("itemId", itemId)
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists(
+                        "selectedItemId"))
+                .andExpect(model().attributeExists(
+                        "itemRecords"))
+                .andExpect(model().attributeExists(
+                        "itemSchedules"))
+                .andExpect(model().attributeExists(
+                        "items"));
+    }
+
+    @Test
+    @DisplayName("should handle invalid item on detail")
+    void shouldHandleInvalidItemDetail()
+            throws Exception {
+        UUID fakeId = UUID.randomUUID();
+        mockMvc.perform(get("/item/detail")
+                        .param("itemId",
+                                fakeId.toString())
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists(
+                        "itemRecords"));
+    }
+
+    @Test
     @DisplayName("should show no-org for new user")
     void shouldShowNoOrgForNewUser() throws Exception {
         mockMvc.perform(get("/")

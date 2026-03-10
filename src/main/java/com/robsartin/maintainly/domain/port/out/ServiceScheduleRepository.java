@@ -18,5 +18,9 @@ public interface ServiceScheduleRepository {
     Optional<ServiceSchedule> findByIdAndOrganizationId(
             UUID id, UUID organizationId);
 
+    List<ServiceSchedule>
+            findByItemIdAndOrganizationId(
+                    UUID itemId, UUID organizationId);
+
     ServiceSchedule save(ServiceSchedule schedule);
 }
