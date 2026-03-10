@@ -2,7 +2,6 @@ package com.robsartin.maintainly.application.web;
 
 import java.security.Principal;
 import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 import java.util.Collections;
 import java.util.UUID;
 
@@ -10,23 +9,23 @@ import com.robsartin.maintainly.domain.model.AppUser;
 import com.robsartin.maintainly.domain.model.FrequencyUnit;
 import com.robsartin.maintainly.domain.model.Item;
 import com.robsartin.maintainly.domain.model.PageResult;
-import com.robsartin.maintainly.domain.model.ServiceRecord;
 import com.robsartin.maintainly.domain.model.ServiceSchedule;
 import com.robsartin.maintainly.domain.model.ServiceType;
 import com.robsartin.maintainly.domain.model.Vendor;
-import com.robsartin.maintainly.domain.port.in.UserResolver;
 import com.robsartin.maintainly.domain.port.out.ItemRepository;
-import com.robsartin.maintainly.domain.port.out.ServiceRecordRepository;
-import com.robsartin.maintainly.domain.port.out.ServiceScheduleRepository;
-import com.robsartin.maintainly.domain.port.out.ServiceTypeRepository;
-import com.robsartin.maintainly.domain.port.out.VendorRepository;
+import com.robsartin.maintainly.domain.port.out
+        .ServiceRecordRepository;
+import com.robsartin.maintainly.domain.port.out
+        .ServiceScheduleRepository;
+import com.robsartin.maintainly.domain.port.out
+        .ServiceTypeRepository;
+import com.robsartin.maintainly.domain.port.out
+        .VendorRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -36,186 +35,122 @@ public class ItemController {
 
     private static final Logger log =
             LoggerFactory.getLogger(ItemController.class);
-    private static final String MDC_ORG_ID =
-            "organizationId";
-    private static final int DEFAULT_PAGE_SIZE = 10;
-    private static final int MAX_PAGE_SIZE = 50;
 
     private final ItemRepository itemRepository;
-    private final ServiceScheduleRepository scheduleRepository;
-    private final ServiceRecordRepository recordRepository;
-    private final ServiceTypeRepository serviceTypeRepository;
+    private final ServiceScheduleRepository scheduleRepo;
+    private final ServiceRecordRepository recordRepo;
+    private final ServiceTypeRepository typeRepo;
     private final VendorRepository vendorRepository;
-    private final UserResolver userResolver;
+    private final ControllerHelper helper;
 
     public ItemController(
             ItemRepository itemRepository,
-            ServiceScheduleRepository scheduleRepository,
-            ServiceRecordRepository recordRepository,
-            ServiceTypeRepository serviceTypeRepository,
+            ServiceScheduleRepository scheduleRepo,
+            ServiceRecordRepository recordRepo,
+            ServiceTypeRepository typeRepo,
             VendorRepository vendorRepository,
-            UserResolver userResolver) {
+            ControllerHelper helper) {
         this.itemRepository = itemRepository;
-        this.scheduleRepository = scheduleRepository;
-        this.recordRepository = recordRepository;
-        this.serviceTypeRepository = serviceTypeRepository;
+        this.scheduleRepo = scheduleRepo;
+        this.recordRepo = recordRepo;
+        this.typeRepo = typeRepo;
         this.vendorRepository = vendorRepository;
-        this.userResolver = userResolver;
+        this.helper = helper;
     }
 
     @GetMapping("/")
-    public String index(
+    public String home() {
+        return "redirect:/items";
+    }
+
+    @GetMapping("/items")
+    public String items(
             @RequestParam(required = false) String q,
-            @RequestParam(defaultValue = "0")
-                    int itemPage,
-            @RequestParam(defaultValue = "0")
-                    int schedPage,
-            @RequestParam(defaultValue = "10")
-                    int itemSize,
-            @RequestParam(defaultValue = "10")
-                    int schedSize,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
             Principal principal, Model model,
             HttpServletResponse response) {
-        AppUser user = userResolver.resolveOrCreate(
-                principal.getName());
+        AppUser user = helper.resolveUser(principal);
         if (!user.hasOrganization()) {
-            return handleNoOrganization(user, model);
+            return handleNoOrg(user, model);
         }
-        UUID orgId = user.getOrganization().getId();
-        MDC.put(MDC_ORG_ID, orgId.toString());
+        helper.setOrgMdc(user);
         try {
-            loadItems(q, orgId, itemPage, itemSize,
+            UUID orgId = user.getOrganization().getId();
+            loadItems(q, orgId, page, size,
                     model, response);
-            loadSchedules(orgId, schedPage, schedSize,
-                    model, response);
-            addUserAttrs(user, model);
-            return "home";
+            helper.addUserAttrs(user, model);
+            return "items";
         } finally {
-            MDC.remove(MDC_ORG_ID);
+            helper.clearOrgMdc();
         }
     }
 
-    @GetMapping("/item/detail")
+    @GetMapping("/items/detail")
     public String itemDetail(
             @RequestParam UUID itemId,
-            @RequestParam(defaultValue = "0")
-                    int itemPage,
-            @RequestParam(defaultValue = "0")
-                    int schedPage,
-            @RequestParam(defaultValue = "10")
-                    int itemSize,
-            @RequestParam(defaultValue = "10")
-                    int schedSize,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
             Principal principal, Model model,
             HttpServletResponse response) {
-        AppUser user = userResolver.resolveOrCreate(
-                principal.getName());
+        AppUser user = helper.resolveUser(principal);
         if (!user.hasOrganization()) {
-            return handleNoOrganization(user, model);
+            return handleNoOrg(user, model);
         }
-        UUID orgId = user.getOrganization().getId();
-        MDC.put(MDC_ORG_ID, orgId.toString());
+        helper.setOrgMdc(user);
         try {
-            loadItems(null, orgId, itemPage, itemSize,
+            UUID orgId = user.getOrganization().getId();
+            loadItems(null, orgId, page, size,
                     model, response);
-            loadSchedules(orgId, schedPage, schedSize,
-                    model, response);
-            addUserAttrs(user, model);
+            helper.addUserAttrs(user, model);
             model.addAttribute("selectedItemId",
                     itemId);
             model.addAttribute("itemRecords",
-                    recordRepository
+                    recordRepo
                             .findByItemIdAndOrganizationId(
                                     itemId, orgId));
             model.addAttribute("itemSchedules",
-                    scheduleRepository
+                    scheduleRepo
                             .findByItemIdAndOrganizationId(
                                     itemId, orgId));
-            return "home";
+            return "items";
         } finally {
-            MDC.remove(MDC_ORG_ID);
+            helper.clearOrgMdc();
         }
     }
 
-    @PostMapping("/item/log")
+    @PostMapping("/items/log")
     public String logItemService(
             @RequestParam UUID itemId,
             @RequestParam String summary,
             @RequestParam String serviceDate,
-            @RequestParam(required = false) String techName,
-            Principal principal, Model model,
-            HttpServletResponse response) {
-        AppUser user = userResolver.resolveOrCreate(
-                principal.getName());
-        setOrgMdc(user);
+            @RequestParam(required = false)
+                    String vendorId,
+            @RequestParam(required = false)
+                    String newVendorName,
+            @RequestParam(required = false)
+                    String newVendorPhone,
+            @RequestParam(required = false)
+                    String techName,
+            Principal principal) {
+        AppUser user = helper.resolveUser(principal);
+        helper.setOrgMdc(user);
         try {
             UUID orgId = user.getOrganization().getId();
             Item item = findItem(itemId, orgId);
-            saveRecord(orgId, item, null, null,
-                    summary, serviceDate, techName);
-            return index(null, 0, 0,
-                    DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE,
-                    principal, model, response);
+            Vendor vendor = helper.resolveVendor(orgId,
+                    vendorId, newVendorName,
+                    newVendorPhone);
+            helper.saveRecord(orgId, item, null, null,
+                    vendor, summary, serviceDate,
+                    techName);
+            return "redirect:/items";
         } finally {
-            MDC.remove(MDC_ORG_ID);
+            helper.clearOrgMdc();
         }
     }
 
-    @PostMapping("/schedule/log")
-    public String logScheduleService(
-            @RequestParam UUID scheduleId,
-            @RequestParam String summary,
-            @RequestParam String serviceDate,
-            @RequestParam(required = false) String techName,
-            Principal principal, Model model,
-            HttpServletResponse response) {
-        AppUser user = userResolver.resolveOrCreate(
-                principal.getName());
-        setOrgMdc(user);
-        try {
-            UUID orgId = user.getOrganization().getId();
-            ServiceSchedule sched = findSchedule(
-                    scheduleId, orgId);
-            LocalDate completed =
-                    LocalDate.parse(serviceDate);
-            saveRecord(orgId, sched.getItem(),
-                    sched.getServiceType(), sched,
-                    summary, serviceDate, techName);
-            sched.advanceNextDueDate(completed);
-            scheduleRepository.save(sched);
-            return index(null, 0, 0,
-                    DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE,
-                    principal, model, response);
-        } finally {
-            MDC.remove(MDC_ORG_ID);
-        }
-    }
-
-    @PostMapping("/schedule/delete")
-    public String deleteSchedule(
-            @RequestParam UUID scheduleId,
-            Principal principal, Model model,
-            HttpServletResponse response) {
-        AppUser user = userResolver.resolveOrCreate(
-                principal.getName());
-        setOrgMdc(user);
-        try {
-            UUID orgId = user.getOrganization().getId();
-            ServiceSchedule sched = findSchedule(
-                    scheduleId, orgId);
-            sched.setActive(false);
-            scheduleRepository.save(sched);
-            log.info("Deactivated schedule {}",
-                    scheduleId);
-            return index(null, 0, 0,
-                    DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE,
-                    principal, model, response);
-        } finally {
-            MDC.remove(MDC_ORG_ID);
-        }
-    }
-
-    @PostMapping("/item/schedule")
+    @PostMapping("/items/schedule")
     public String scheduleItemService(
             @RequestParam UUID itemId,
             @RequestParam UUID serviceTypeId,
@@ -228,88 +163,40 @@ public class ItemController {
                     String newVendorName,
             @RequestParam(required = false)
                     String newVendorPhone,
-            Principal principal, Model model,
-            HttpServletResponse response) {
-        AppUser user = userResolver.resolveOrCreate(
-                principal.getName());
-        setOrgMdc(user);
+            Principal principal) {
+        AppUser user = helper.resolveUser(principal);
+        helper.setOrgMdc(user);
         try {
             UUID orgId = user.getOrganization().getId();
             Item item = findItem(itemId, orgId);
             ServiceType svcType = findServiceType(
                     serviceTypeId, orgId);
-            Vendor vendor = resolveVendor(orgId,
+            Vendor vendor = helper.resolveVendor(orgId,
                     vendorId, newVendorName,
                     newVendorPhone);
-            createSchedule(orgId, item, svcType, vendor,
-                    nextDueDate, frequencyInterval,
-                    frequencyUnit);
-            return index(null, 0, 0,
-                    DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE,
-                    principal, model, response);
+            createSchedule(orgId, item, svcType,
+                    vendor, nextDueDate,
+                    frequencyInterval, frequencyUnit);
+            return "redirect:/items";
         } finally {
-            MDC.remove(MDC_ORG_ID);
+            helper.clearOrgMdc();
         }
     }
 
-    @ExceptionHandler(DateTimeParseException.class)
-    public String handleDateParseError(
-            DateTimeParseException ex, Model model) {
-        log.error("Invalid date format: {}",
-                ex.getMessage());
-        model.addAttribute("error",
-                "Invalid date format: "
-                        + ex.getParsedString());
-        model.addAttribute("items",
-                Collections.emptyList());
-        return "home";
-    }
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    public String handleIllegalArgument(
-            IllegalArgumentException ex, Model model) {
-        log.error("Invalid argument: {}",
-                ex.getMessage());
-        model.addAttribute("error", ex.getMessage());
-        model.addAttribute("items",
-                Collections.emptyList());
-        return "home";
-    }
-
-    @ExceptionHandler(RuntimeException.class)
-    public String handleRuntimeException(
-            RuntimeException ex, Model model) {
-        log.error("Unexpected error processing request",
-                ex);
-        model.addAttribute("error",
-                "An unexpected error occurred");
-        model.addAttribute("items",
-                Collections.emptyList());
-        return "home";
-    }
-
-    private String handleNoOrganization(
+    private String handleNoOrg(
             AppUser user, Model model) {
         log.warn("User {} has no organization",
                 user.getUsername());
         model.addAttribute("noOrganization", true);
         model.addAttribute("items",
                 Collections.emptyList());
-        return "home";
-    }
-
-    private void addUserAttrs(
-            AppUser user, Model model) {
-        model.addAttribute("username",
-                user.getUsername());
-        model.addAttribute("organization",
-                user.getOrganization());
+        return "items";
     }
 
     private void loadItems(
             String q, UUID orgId, int page, int size,
             Model model, HttpServletResponse response) {
-        int safeSize = clampSize(size);
+        int safeSize = helper.clampSize(size);
         int safePage = Math.max(0, page);
         PageResult<Item> result;
         if (q != null && !q.isBlank()) {
@@ -327,39 +214,14 @@ public class ItemController {
         model.addAttribute("items", result.content());
         model.addAttribute("itemPage", result);
         LinkHeaderBuilder.addLinkHeader(
-                response, "item", result, q);
+                response, "/items", result, q);
         model.addAttribute("serviceTypes",
-                serviceTypeRepository
-                        .findByOrganizationId(orgId));
+                typeRepo.findByOrganizationId(orgId));
         model.addAttribute("vendors",
                 vendorRepository
                         .findByOrganizationId(orgId));
         model.addAttribute("frequencyUnits",
                 FrequencyUnit.values());
-    }
-
-    private void loadSchedules(
-            UUID orgId, int page, int size,
-            Model model, HttpServletResponse response) {
-        int safeSize = clampSize(size);
-        int safePage = Math.max(0, page);
-        PageResult<ServiceSchedule> result =
-                scheduleRepository
-                        .findActiveByOrganizationId(
-                                orgId, safePage, safeSize);
-        model.addAttribute("schedules",
-                result.content());
-        model.addAttribute("schedPage", result);
-        LinkHeaderBuilder.addLinkHeader(
-                response, "sched", result, null);
-        LocalDate today = LocalDate.now();
-        model.addAttribute("today", today);
-        model.addAttribute("soon",
-                today.plusWeeks(2));
-    }
-
-    private int clampSize(int size) {
-        return Math.max(1, Math.min(size, MAX_PAGE_SIZE));
     }
 
     private Item findItem(UUID itemId, UUID orgId) {
@@ -370,82 +232,13 @@ public class ItemController {
                                 "Item not found"));
     }
 
-    private ServiceSchedule findSchedule(
-            UUID scheduleId, UUID orgId) {
-        return scheduleRepository
-                .findByIdAndOrganizationId(
-                        scheduleId, orgId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException(
-                                "Schedule not found"));
-    }
-
-    private void saveRecord(
-            UUID orgId, Item item,
-            ServiceType serviceType,
-            ServiceSchedule schedule,
-            String summary, String serviceDate,
-            String techName) {
-        LocalDate date = LocalDate.parse(serviceDate);
-        ServiceRecord record = new ServiceRecord();
-        record.setOrganizationId(orgId);
-        record.setItem(item);
-        record.setServiceType(serviceType);
-        record.setServiceSchedule(schedule);
-        record.setServiceDate(date);
-        record.setSummary(summary);
-        if (techName != null && !techName.isBlank()) {
-            record.setDescription(
-                    "Technician: " + techName.trim());
-        }
-        recordRepository.save(record);
-        log.info("Saved service record for item {}",
-                item.getId());
-    }
-
     private ServiceType findServiceType(
             UUID serviceTypeId, UUID orgId) {
-        return serviceTypeRepository
-                .findByIdAndOrganizationId(
+        return typeRepo.findByIdAndOrganizationId(
                         serviceTypeId, orgId)
                 .orElseThrow(() ->
                         new IllegalArgumentException(
                                 "Service type not found"));
-    }
-
-    private Vendor resolveVendor(
-            UUID orgId, String vendorId,
-            String newVendorName,
-            String newVendorPhone) {
-        if ("__new__".equals(vendorId)) {
-            return createVendor(orgId,
-                    newVendorName, newVendorPhone);
-        }
-        if (vendorId != null && !vendorId.isBlank()) {
-            return vendorRepository
-                    .findByIdAndOrganizationId(
-                            UUID.fromString(vendorId),
-                            orgId)
-                    .orElseThrow(() ->
-                            new IllegalArgumentException(
-                                    "Vendor not found"));
-        }
-        return null;
-    }
-
-    private Vendor createVendor(
-            UUID orgId, String name, String phone) {
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException(
-                    "Vendor name is required");
-        }
-        Vendor vendor = new Vendor();
-        vendor.setOrganizationId(orgId);
-        vendor.setName(name.trim());
-        if (phone != null && !phone.isBlank()) {
-            vendor.setPhone(phone.trim());
-        }
-        return vendorRepository.save(vendor);
     }
 
     private void createSchedule(
@@ -465,16 +258,8 @@ public class ItemController {
         newSched.setFrequencyInterval(frequencyInterval);
         newSched.setFirstDueDate(due);
         newSched.setNextDueDate(due);
-        scheduleRepository.save(newSched);
+        scheduleRepo.save(newSched);
         log.info("Created schedule for item {}",
                 item.getId());
-    }
-
-    private void setOrgMdc(AppUser user) {
-        if (user.hasOrganization()) {
-            MDC.put(MDC_ORG_ID,
-                    user.getOrganization().getId()
-                            .toString());
-        }
     }
 }

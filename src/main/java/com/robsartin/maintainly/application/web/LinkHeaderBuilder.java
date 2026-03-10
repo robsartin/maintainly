@@ -10,26 +10,21 @@ final class LinkHeaderBuilder {
 
     static void addLinkHeader(
             HttpServletResponse response,
-            String prefix,
+            String basePath,
             PageResult<?> page, String q) {
         StringBuilder link = new StringBuilder();
-        String pageParam = prefix + "Page";
-        String sizeParam = prefix + "Size";
         int size = page.size();
-        appendLink(link, pageParam, 0, sizeParam,
-                size, q, "first");
-        appendLink(link, pageParam,
+        appendLink(link, basePath, 0, size, q, "first");
+        appendLink(link, basePath,
                 Math.max(0, page.totalPages() - 1),
-                sizeParam, size, q, "last");
+                size, q, "last");
         if (page.hasPrevious()) {
-            appendLink(link, pageParam,
-                    page.page() - 1, sizeParam,
-                    size, q, "prev");
+            appendLink(link, basePath,
+                    page.page() - 1, size, q, "prev");
         }
         if (page.hasNext()) {
-            appendLink(link, pageParam,
-                    page.page() + 1, sizeParam,
-                    size, q, "next");
+            appendLink(link, basePath,
+                    page.page() + 1, size, q, "next");
         }
         if (!link.isEmpty()) {
             response.addHeader("Link",
@@ -38,16 +33,15 @@ final class LinkHeaderBuilder {
     }
 
     private static void appendLink(
-            StringBuilder sb, String pageParam,
-            int page, String sizeParam, int size,
+            StringBuilder sb, String basePath,
+            int page, int size,
             String q, String rel) {
         if (!sb.isEmpty()) {
             sb.append(", ");
         }
-        sb.append("</?").append(pageParam).append("=")
-                .append(page).append("&")
-                .append(sizeParam).append("=")
-                .append(size);
+        sb.append("<").append(basePath)
+                .append("?page=").append(page)
+                .append("&size=").append(size);
         if (q != null && !q.isBlank()) {
             sb.append("&q=").append(q);
         }

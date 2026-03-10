@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:fragment="head">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Maintainly</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <script>
+    function toggleForm(id) {
+        var row = document.getElementById(id);
+        if (row) {
+            row.style.display = row.style.display === 'none' ? '' : 'none';
+        }
+    }
+    function onVendorChange(select) {
+        var row = select.closest('tr');
+        var fields = row.querySelector('.new-vendor-fields');
+        fields.style.display = select.value === '__new__' ? '' : 'none';
+        if (select.value !== '__new__') {
+            fields.querySelectorAll('input').forEach(function(i) { i.value = ''; });
+        }
+    }
+    </script>
+</head>
+<body>
+<header th:fragment="header">
+    <div class="header-brand">
+        <img th:if="${organization != null and organization.logoUrl != null}"
+             th:src="${organization.logoUrl}"
+             alt="Organization logo" class="org-logo"/>
+        <div>
+            <h1>Maintainly</h1>
+            <span th:if="${organization != null}"
+                  class="org-name" th:text="${organization.name}"></span>
+        </div>
+    </div>
+    <nav>
+        <a th:href="@{/items}" class="nav-link">Items</a>
+        <a th:href="@{/schedules}" class="nav-link">Schedules</a>
+        <span th:if="${username}" th:text="'Logged in as ' + ${username}"></span>
+        <form th:action="@{/logout}" method="post" style="display:inline"
+              sec:authorize="isAuthenticated()">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <button type="submit">Logout</button>
+        </form>
+    </nav>
+</header>
+</body>
+</html>

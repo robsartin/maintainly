@@ -56,7 +56,7 @@ class SecurityConfigurationTest {
     @Test
     @DisplayName("should allow authenticated access")
     void shouldAllowAuthenticated() throws Exception {
-        mockMvc.perform(get("/")
+        mockMvc.perform(get("/items")
                         .with(user("dev").roles("USER")))
                 .andExpect(status().isOk());
     }

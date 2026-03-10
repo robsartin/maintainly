@@ -4,8 +4,6 @@ import java.util.List;
 import java.util.UUID;
 
 import com.robsartin.maintainly.domain.model.Item;
-import com.robsartin.maintainly.domain.model.PageResult;
-import com.robsartin.maintainly.domain.model.ServiceSchedule;
 import com.robsartin.maintainly.domain.model.ServiceType;
 import com.robsartin.maintainly.domain.model.Vendor;
 import org.junit.jupiter.api.DisplayName;
@@ -25,6 +23,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -36,16 +35,23 @@ class ItemControllerIntegrationTest {
     private MockMvc mockMvc;
 
     @Test
+    @DisplayName("should redirect root to items")
+    void shouldRedirectRootToItems() throws Exception {
+        mockMvc.perform(get("/")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/items"));
+    }
+
+    @Test
     @DisplayName("should render paginated item list")
     void shouldRenderItemList() throws Exception {
-        mockMvc.perform(get("/")
+        mockMvc.perform(get("/items")
                         .with(user("dev").roles("USER")))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("items"))
                 .andExpect(model().attributeExists(
                         "itemPage"))
-                .andExpect(model().attributeExists(
-                        "schedPage"))
                 .andExpect(model().attributeExists(
                         "username"))
                 .andExpect(model().attributeExists(
@@ -55,8 +61,8 @@ class ItemControllerIntegrationTest {
     @Test
     @DisplayName("should limit items to page size")
     void shouldLimitItemsToPageSize() throws Exception {
-        mockMvc.perform(get("/")
-                        .param("itemSize", "5")
+        mockMvc.perform(get("/items")
+                        .param("size", "5")
                         .with(user("dev").roles("USER")))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("items",
@@ -66,8 +72,8 @@ class ItemControllerIntegrationTest {
     @Test
     @DisplayName("should clamp page size to max 50")
     void shouldClampPageSizeToMax() throws Exception {
-        mockMvc.perform(get("/")
-                        .param("itemSize", "100")
+        mockMvc.perform(get("/items")
+                        .param("size", "100")
                         .with(user("dev").roles("USER")))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("items",
@@ -77,8 +83,8 @@ class ItemControllerIntegrationTest {
     @Test
     @DisplayName("should include Link header for items")
     void shouldIncludeLinkHeader() throws Exception {
-        mockMvc.perform(get("/")
-                        .param("itemSize", "2")
+        mockMvc.perform(get("/items")
+                        .param("size", "2")
                         .with(user("dev").roles("USER")))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Link",
@@ -92,9 +98,9 @@ class ItemControllerIntegrationTest {
     @Test
     @DisplayName("should navigate to second item page")
     void shouldNavigateToSecondPage() throws Exception {
-        mockMvc.perform(get("/")
-                        .param("itemPage", "1")
-                        .param("itemSize", "2")
+        mockMvc.perform(get("/items")
+                        .param("page", "1")
+                        .param("size", "2")
                         .with(user("dev").roles("USER")))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists(
@@ -104,7 +110,7 @@ class ItemControllerIntegrationTest {
     @Test
     @DisplayName("should search items with pagination")
     void shouldSearchItems() throws Exception {
-        mockMvc.perform(get("/")
+        mockMvc.perform(get("/items")
                         .param("q", "Furnace")
                         .with(user("dev").roles("USER")))
                 .andExpect(status().isOk())
@@ -117,7 +123,7 @@ class ItemControllerIntegrationTest {
     @DisplayName("should return all items with blank search")
     void shouldReturnAllWithBlankSearch()
             throws Exception {
-        mockMvc.perform(get("/")
+        mockMvc.perform(get("/items")
                         .param("q", "  ")
                         .with(user("dev").roles("USER")))
                 .andExpect(status().isOk())
@@ -130,122 +136,39 @@ class ItemControllerIntegrationTest {
     @DisplayName("should log service for item")
     void shouldLogItemService() throws Exception {
         String itemId = getFirstItemId();
-        mockMvc.perform(post("/item/log")
+        mockMvc.perform(post("/items/log")
                         .param("itemId", itemId)
                         .param("summary", "Filter replaced")
                         .param("serviceDate", "2026-04-15")
                         .param("techName", "Jane")
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
-                .andExpect(status().isOk())
-                .andExpect(model().attributeExists("items"));
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/items"));
     }
 
     @Test
     @DisplayName("should log item service without tech")
     void shouldLogItemServiceNoTech() throws Exception {
         String itemId = getFirstItemId();
-        mockMvc.perform(post("/item/log")
+        mockMvc.perform(post("/items/log")
                         .param("itemId", itemId)
                         .param("summary", "Quick check")
                         .param("serviceDate", "2026-04-16")
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
-                .andExpect(status().isOk())
-                .andExpect(model().attributeExists("items"));
-    }
-
-    @Test
-    @DisplayName("should handle invalid date on item log")
-    void shouldHandleInvalidDate() throws Exception {
-        String itemId = getFirstItemId();
-        mockMvc.perform(post("/item/log")
-                        .param("itemId", itemId)
-                        .param("summary", "Test")
-                        .param("serviceDate", "not-a-date")
-                        .with(user("dev").roles("USER"))
-                        .with(csrf()))
-                .andExpect(status().isOk())
-                .andExpect(model().attributeExists("error"));
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/items"));
     }
 
     @Test
     @DisplayName("should handle invalid item ID on log")
     void shouldHandleInvalidItemId() throws Exception {
         UUID fakeId = UUID.randomUUID();
-        mockMvc.perform(post("/item/log")
+        mockMvc.perform(post("/items/log")
                         .param("itemId", fakeId.toString())
                         .param("summary", "Test")
                         .param("serviceDate", "2026-04-15")
-                        .with(user("dev").roles("USER"))
-                        .with(csrf()))
-                .andExpect(status().isOk())
-                .andExpect(model().attributeExists("error"));
-    }
-
-    @Test
-    @DisplayName("should handle invalid schedule on log")
-    void shouldHandleInvalidScheduleId()
-            throws Exception {
-        UUID fakeId = UUID.randomUUID();
-        mockMvc.perform(post("/schedule/log")
-                        .param("scheduleId",
-                                fakeId.toString())
-                        .param("summary", "Test")
-                        .param("serviceDate", "2026-04-15")
-                        .with(user("dev").roles("USER"))
-                        .with(csrf()))
-                .andExpect(status().isOk())
-                .andExpect(model().attributeExists("error"));
-    }
-
-    @Test
-    @DisplayName("should provide today and soon dates")
-    void shouldProvideScheduleDates() throws Exception {
-        mockMvc.perform(get("/")
-                        .with(user("dev").roles("USER")))
-                .andExpect(status().isOk())
-                .andExpect(
-                        model().attributeExists("today"))
-                .andExpect(
-                        model().attributeExists("soon"));
-    }
-
-    @Test
-    @DisplayName("should log service for a schedule")
-    void shouldLogServiceForSchedule() throws Exception {
-        String scheduleId = getFirstScheduleId();
-        mockMvc.perform(post("/schedule/log")
-                        .param("scheduleId", scheduleId)
-                        .param("summary", "Routine check")
-                        .param("serviceDate", "2026-03-10")
-                        .param("techName", "John")
-                        .with(user("dev").roles("USER"))
-                        .with(csrf()))
-                .andExpect(status().isOk())
-                .andExpect(model().attributeExists("items"));
-    }
-
-    @Test
-    @DisplayName("should delete a schedule")
-    void shouldDeleteSchedule() throws Exception {
-        String scheduleId = getFirstScheduleId();
-        mockMvc.perform(post("/schedule/delete")
-                        .param("scheduleId", scheduleId)
-                        .with(user("dev").roles("USER"))
-                        .with(csrf()))
-                .andExpect(status().isOk())
-                .andExpect(model().attributeExists("items"));
-    }
-
-    @Test
-    @DisplayName("should handle invalid schedule delete")
-    void shouldHandleInvalidScheduleDelete()
-            throws Exception {
-        UUID fakeId = UUID.randomUUID();
-        mockMvc.perform(post("/schedule/delete")
-                        .param("scheduleId",
-                                fakeId.toString())
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
                 .andExpect(status().isOk())
@@ -257,7 +180,7 @@ class ItemControllerIntegrationTest {
     void shouldScheduleFromItem() throws Exception {
         String itemId = getFirstItemId();
         String svcTypeId = getFirstServiceTypeId();
-        mockMvc.perform(post("/item/schedule")
+        mockMvc.perform(post("/items/schedule")
                         .param("itemId", itemId)
                         .param("serviceTypeId", svcTypeId)
                         .param("nextDueDate", "2026-09-15")
@@ -265,8 +188,8 @@ class ItemControllerIntegrationTest {
                         .param("frequencyUnit", "months")
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
-                .andExpect(status().isOk())
-                .andExpect(model().attributeExists("items"));
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/items"));
     }
 
     @Test
@@ -275,7 +198,7 @@ class ItemControllerIntegrationTest {
             throws Exception {
         UUID fakeId = UUID.randomUUID();
         String svcTypeId = getFirstServiceTypeId();
-        mockMvc.perform(post("/item/schedule")
+        mockMvc.perform(post("/items/schedule")
                         .param("itemId",
                                 fakeId.toString())
                         .param("serviceTypeId", svcTypeId)
@@ -291,7 +214,7 @@ class ItemControllerIntegrationTest {
     @Test
     @DisplayName("should provide form data attributes")
     void shouldProvideFormData() throws Exception {
-        mockMvc.perform(get("/")
+        mockMvc.perform(get("/items")
                         .with(user("dev").roles("USER")))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists(
@@ -309,7 +232,7 @@ class ItemControllerIntegrationTest {
         String itemId = getFirstItemId();
         String svcTypeId = getFirstServiceTypeId();
         String vendorId = getFirstVendorId();
-        mockMvc.perform(post("/item/schedule")
+        mockMvc.perform(post("/items/schedule")
                         .param("itemId", itemId)
                         .param("serviceTypeId", svcTypeId)
                         .param("nextDueDate", "2026-10-01")
@@ -318,8 +241,8 @@ class ItemControllerIntegrationTest {
                         .param("vendorId", vendorId)
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
-                .andExpect(status().isOk())
-                .andExpect(model().attributeExists("items"));
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/items"));
     }
 
     @Test
@@ -328,7 +251,7 @@ class ItemControllerIntegrationTest {
             throws Exception {
         String itemId = getFirstItemId();
         String svcTypeId = getFirstServiceTypeId();
-        mockMvc.perform(post("/item/schedule")
+        mockMvc.perform(post("/items/schedule")
                         .param("itemId", itemId)
                         .param("serviceTypeId", svcTypeId)
                         .param("nextDueDate", "2026-11-01")
@@ -341,8 +264,8 @@ class ItemControllerIntegrationTest {
                                 "555-9999")
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
-                .andExpect(status().isOk())
-                .andExpect(model().attributeExists("items"));
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/items"));
     }
 
     @Test
@@ -351,7 +274,7 @@ class ItemControllerIntegrationTest {
             throws Exception {
         String itemId = getFirstItemId();
         String svcTypeId = getFirstServiceTypeId();
-        mockMvc.perform(post("/item/schedule")
+        mockMvc.perform(post("/items/schedule")
                         .param("itemId", itemId)
                         .param("serviceTypeId", svcTypeId)
                         .param("nextDueDate", "2026-11-01")
@@ -368,7 +291,7 @@ class ItemControllerIntegrationTest {
     @DisplayName("should show item detail with history")
     void shouldShowItemDetail() throws Exception {
         String itemId = getFirstItemId();
-        mockMvc.perform(get("/item/detail")
+        mockMvc.perform(get("/items/detail")
                         .param("itemId", itemId)
                         .with(user("dev").roles("USER")))
                 .andExpect(status().isOk())
@@ -387,7 +310,7 @@ class ItemControllerIntegrationTest {
     void shouldHandleInvalidItemDetail()
             throws Exception {
         UUID fakeId = UUID.randomUUID();
-        mockMvc.perform(get("/item/detail")
+        mockMvc.perform(get("/items/detail")
                         .param("itemId",
                                 fakeId.toString())
                         .with(user("dev").roles("USER")))
@@ -399,7 +322,7 @@ class ItemControllerIntegrationTest {
     @Test
     @DisplayName("should show no-org for new user")
     void shouldShowNoOrgForNewUser() throws Exception {
-        mockMvc.perform(get("/")
+        mockMvc.perform(get("/items")
                         .with(user("unknown").roles("USER")))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute(
@@ -409,14 +332,6 @@ class ItemControllerIntegrationTest {
     @SuppressWarnings("unchecked")
     private String getFirstItemId() throws Exception {
         return ((List<Item>) getModel("items"))
-                .get(0).getId().toString();
-    }
-
-    @SuppressWarnings("unchecked")
-    private String getFirstScheduleId()
-            throws Exception {
-        return ((List<ServiceSchedule>)
-                getModel("schedules"))
                 .get(0).getId().toString();
     }
 
@@ -438,7 +353,7 @@ class ItemControllerIntegrationTest {
 
     private Object getModel(String attr)
             throws Exception {
-        MvcResult result = mockMvc.perform(get("/")
+        MvcResult result = mockMvc.perform(get("/items")
                         .with(user("dev").roles("USER")))
                 .andReturn();
         return result.getModelAndView().getModel()

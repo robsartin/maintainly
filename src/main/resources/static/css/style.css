@@ -39,6 +39,17 @@ header h1 {
     color: #666;
 }
 
+.nav-link {
+    color: #1565c0;
+    text-decoration: none;
+    font-weight: 500;
+    margin-right: 0.5rem;
+}
+
+.nav-link:hover {
+    text-decoration: underline;
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
