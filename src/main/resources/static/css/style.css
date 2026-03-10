@@ -79,6 +79,65 @@ button:hover {
     background: #1976D2;
 }
 
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.35rem 0.6rem;
+    font-size: 0.85rem;
+}
+
+.btn-icon svg {
+    vertical-align: middle;
+}
+
+.btn-log {
+    background: #43a047;
+}
+
+.btn-log:hover {
+    background: #2e7d32;
+}
+
+.btn-schedule {
+    background: #1565c0;
+}
+
+.btn-schedule:hover {
+    background: #0d47a1;
+}
+
+td.actions {
+    white-space: nowrap;
+    display: flex;
+    gap: 0.35rem;
+}
+
+tr.form-row td {
+    background: #fafafa;
+    padding: 0.5rem 1rem;
+}
+
+.inline-form {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.inline-form label {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.85rem;
+    color: #555;
+}
+
+.inline-form input {
+    padding: 0.35rem 0.5rem;
+    font-size: 0.85rem;
+}
+
 input[type="text"], input[type="date"] {
     padding: 0.5rem;
     border: 1px solid #ccc;

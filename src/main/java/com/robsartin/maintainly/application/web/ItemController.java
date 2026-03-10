@@ -10,6 +10,7 @@ import java.util.UUID;
 import com.robsartin.maintainly.domain.model.AppUser;
 import com.robsartin.maintainly.domain.model.Item;
 import com.robsartin.maintainly.domain.model.ServiceRecord;
+import com.robsartin.maintainly.domain.model.ServiceSchedule;
 import com.robsartin.maintainly.domain.port.in.UserResolver;
 import com.robsartin.maintainly.domain.port.out.ItemRepository;
 import com.robsartin.maintainly.domain.port.out.ServiceRecordRepository;
@@ -103,6 +104,48 @@ public class ItemController {
         }
     }
 
+    @PostMapping("/schedule/log")
+    public String logService(
+            @RequestParam UUID scheduleId,
+            @RequestParam String summary,
+            @RequestParam String serviceDate,
+            @RequestParam(required = false) String techName,
+            Principal principal, Model model) {
+        AppUser user = userResolver.resolveOrCreate(
+                principal.getName());
+        setOrgMdc(user);
+        try {
+            UUID orgId = user.getOrganization().getId();
+            ServiceSchedule sched = findSchedule(
+                    scheduleId, orgId);
+            createRecord(sched, orgId, summary,
+                    serviceDate, techName);
+            return index(null, principal, model);
+        } finally {
+            MDC.remove(MDC_ORG_ID);
+        }
+    }
+
+    @PostMapping("/schedule/new")
+    public String scheduleService(
+            @RequestParam UUID scheduleId,
+            @RequestParam String nextDueDate,
+            Principal principal, Model model) {
+        AppUser user = userResolver.resolveOrCreate(
+                principal.getName());
+        setOrgMdc(user);
+        try {
+            UUID orgId = user.getOrganization().getId();
+            ServiceSchedule source = findSchedule(
+                    scheduleId, orgId);
+            createScheduleFrom(source, orgId,
+                    nextDueDate);
+            return index(null, principal, model);
+        } finally {
+            MDC.remove(MDC_ORG_ID);
+        }
+    }
+
     @ExceptionHandler(DateTimeParseException.class)
     public String handleDateParseError(
             DateTimeParseException ex, Model model) {
@@ -174,6 +217,62 @@ public class ItemController {
         model.addAttribute("today", today);
         model.addAttribute("soon",
                 today.plusWeeks(2));
+    }
+
+    private ServiceSchedule findSchedule(
+            UUID scheduleId, UUID orgId) {
+        return scheduleRepository
+                .findByIdAndOrganizationId(
+                        scheduleId, orgId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Schedule not found"));
+    }
+
+    private void createRecord(
+            ServiceSchedule sched, UUID orgId,
+            String summary, String serviceDate,
+            String techName) {
+        LocalDate date = LocalDate.parse(serviceDate);
+        ServiceRecord record = new ServiceRecord();
+        record.setOrganizationId(orgId);
+        record.setItem(sched.getItem());
+        record.setServiceType(sched.getServiceType());
+        record.setServiceSchedule(sched);
+        record.setServiceDate(date);
+        record.setSummary(summary);
+        if (techName != null && !techName.isBlank()) {
+            record.setDescription(
+                    "Technician: " + techName.trim());
+        }
+        recordRepository.save(record);
+        sched.setLastCompletedDate(date);
+        scheduleRepository.save(sched);
+        log.info("Logged service for schedule {}",
+                sched.getId());
+    }
+
+    private void createScheduleFrom(
+            ServiceSchedule source, UUID orgId,
+            String nextDueDate) {
+        LocalDate due = LocalDate.parse(nextDueDate);
+        ServiceSchedule newSched =
+                new ServiceSchedule();
+        newSched.setOrganizationId(orgId);
+        newSched.setItem(source.getItem());
+        newSched.setServiceType(
+                source.getServiceType());
+        newSched.setPreferredVendor(
+                source.getPreferredVendor());
+        newSched.setFrequencyUnit(
+                source.getFrequencyUnit());
+        newSched.setFrequencyInterval(
+                source.getFrequencyInterval());
+        newSched.setFirstDueDate(due);
+        newSched.setNextDueDate(due);
+        scheduleRepository.save(newSched);
+        log.info("Created new schedule for item {}",
+                source.getItem().getId());
     }
 
     private void setOrgMdc(AppUser user) {
