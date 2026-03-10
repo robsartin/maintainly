@@ -91,7 +91,7 @@
                     <td th:text="${item.modelName}"></td>
                     <td th:text="${item.serialNumber}"></td>
                     <td class="actions">
-                        <button type="button" class="btn-icon btn-log"
+                        <button type="button" class="btn-icon btn-log" title="Log service"
                                 th:attr="onclick='toggleForm(\'item-log-' + ${item.id} + '\')'">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                                  fill="none" stroke="currentColor" stroke-width="2"
@@ -101,9 +101,8 @@
                                 <line x1="16" y1="13" x2="8" y2="13"/>
                                 <line x1="16" y1="17" x2="8" y2="17"/>
                             </svg>
-                            Log
                         </button>
-                        <button type="button" class="btn-icon btn-schedule"
+                        <button type="button" class="btn-icon btn-schedule" title="Create schedule"
                                 th:attr="onclick='toggleForm(\'item-sched-' + ${item.id} + '\')'">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                                  fill="none" stroke="currentColor" stroke-width="2"
@@ -115,7 +114,6 @@
                                 <line x1="12" y1="14" x2="12" y2="18"/>
                                 <line x1="10" y1="16" x2="14" y2="16"/>
                             </svg>
-                            Schedule
                         </button>
                     </td>
                 </tr>

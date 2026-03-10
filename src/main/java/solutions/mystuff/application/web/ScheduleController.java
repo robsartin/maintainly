@@ -6,11 +6,17 @@ import java.util.Collections;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.AppUser;
+import solutions.mystuff.domain.model.FrequencyUnit;
+import solutions.mystuff.domain.model.Item;
 import solutions.mystuff.domain.model.PageResult;
 import solutions.mystuff.domain.model.ServiceSchedule;
+import solutions.mystuff.domain.model.ServiceType;
 import solutions.mystuff.domain.model.Vendor;
+import solutions.mystuff.domain.port.out.ItemRepository;
 import solutions.mystuff.domain.port.out
         .ServiceScheduleRepository;
+import solutions.mystuff.domain.port.out
+        .ServiceTypeRepository;
 import solutions.mystuff.domain.port.out
         .VendorRepository;
 import jakarta.servlet.http.HttpServletResponse;
@@ -30,14 +36,20 @@ public class ScheduleController {
                     ScheduleController.class);
 
     private final ServiceScheduleRepository scheduleRepo;
+    private final ItemRepository itemRepository;
+    private final ServiceTypeRepository typeRepo;
     private final VendorRepository vendorRepository;
     private final ControllerHelper helper;
 
     public ScheduleController(
             ServiceScheduleRepository scheduleRepo,
+            ItemRepository itemRepository,
+            ServiceTypeRepository typeRepo,
             VendorRepository vendorRepository,
             ControllerHelper helper) {
         this.scheduleRepo = scheduleRepo;
+        this.itemRepository = itemRepository;
+        this.typeRepo = typeRepo;
         this.vendorRepository = vendorRepository;
         this.helper = helper;
     }
@@ -121,6 +133,45 @@ public class ScheduleController {
         }
     }
 
+    @PostMapping("/schedules/create")
+    public String createSchedule(
+            @RequestParam UUID itemId,
+            @RequestParam UUID serviceTypeId,
+            @RequestParam String nextDueDate,
+            @RequestParam int frequencyInterval,
+            @RequestParam FrequencyUnit frequencyUnit,
+            @RequestParam(required = false)
+                    String vendorId,
+            @RequestParam(required = false)
+                    String newVendorName,
+            @RequestParam(required = false)
+                    String newVendorPhone,
+            Principal principal) {
+        AppUser user = helper.resolveUser(principal);
+        helper.setOrgMdc(user);
+        try {
+            UUID orgId = user.getOrganization().getId();
+            Item item = itemRepository
+                    .findByIdAndOrganizationId(
+                            itemId, orgId)
+                    .orElseThrow(() ->
+                            new IllegalArgumentException(
+                                    "Item not found"));
+            ServiceType svcType =
+                    helper.findServiceType(
+                            serviceTypeId, orgId);
+            Vendor vendor = helper.resolveVendor(orgId,
+                    vendorId, newVendorName,
+                    newVendorPhone);
+            helper.createSchedule(orgId, item, svcType,
+                    vendor, nextDueDate,
+                    frequencyInterval, frequencyUnit);
+            return "redirect:/schedules";
+        } finally {
+            helper.clearOrgMdc();
+        }
+    }
+
     private String handleNoOrg(
             AppUser user, Model model) {
         log.warn("User {} has no organization",
@@ -147,6 +198,10 @@ public class ScheduleController {
         model.addAttribute("vendors",
                 vendorRepository
                         .findByOrganizationId(orgId));
+        model.addAttribute("serviceTypes",
+                typeRepo.findByOrganizationId(orgId));
+        model.addAttribute("frequencyUnits",
+                FrequencyUnit.values());
         LocalDate today = LocalDate.now();
         model.addAttribute("today", today);
         model.addAttribute("soon",

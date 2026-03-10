@@ -10,6 +10,10 @@ import solutions.mystuff.domain.port.in.UserResolver;
 import solutions.mystuff.domain.port.out
         .ServiceRecordRepository;
 import solutions.mystuff.domain.port.out
+        .ServiceScheduleRepository;
+import solutions.mystuff.domain.port.out
+        .ServiceTypeRepository;
+import solutions.mystuff.domain.port.out
         .VendorRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -37,11 +41,16 @@ class ControllerHelperTest {
             mock(UserResolver.class);
     private final ServiceRecordRepository recordRepo =
             mock(ServiceRecordRepository.class);
+    private final ServiceScheduleRepository schedRepo =
+            mock(ServiceScheduleRepository.class);
+    private final ServiceTypeRepository typeRepo =
+            mock(ServiceTypeRepository.class);
     private final VendorRepository vendorRepo =
             mock(VendorRepository.class);
     private final ControllerHelper helper =
             new ControllerHelper(
-                    userResolver, recordRepo, vendorRepo);
+                    userResolver, recordRepo,
+                    schedRepo, typeRepo, vendorRepo);
 
     @Test
     @DisplayName("should extract email from OAuth2 token")

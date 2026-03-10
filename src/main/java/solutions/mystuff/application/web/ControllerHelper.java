@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.AppUser;
+import solutions.mystuff.domain.model.FrequencyUnit;
 import solutions.mystuff.domain.model.Item;
 import solutions.mystuff.domain.model.ServiceRecord;
 import solutions.mystuff.domain.model.ServiceSchedule;
@@ -13,6 +14,10 @@ import solutions.mystuff.domain.model.Vendor;
 import solutions.mystuff.domain.port.in.UserResolver;
 import solutions.mystuff.domain.port.out
         .ServiceRecordRepository;
+import solutions.mystuff.domain.port.out
+        .ServiceScheduleRepository;
+import solutions.mystuff.domain.port.out
+        .ServiceTypeRepository;
 import solutions.mystuff.domain.port.out
         .VendorRepository;
 import org.slf4j.Logger;
@@ -37,14 +42,20 @@ public class ControllerHelper {
 
     private final UserResolver userResolver;
     private final ServiceRecordRepository recordRepository;
+    private final ServiceScheduleRepository scheduleRepository;
+    private final ServiceTypeRepository typeRepository;
     private final VendorRepository vendorRepository;
 
     public ControllerHelper(
             UserResolver userResolver,
             ServiceRecordRepository recordRepository,
+            ServiceScheduleRepository scheduleRepository,
+            ServiceTypeRepository typeRepository,
             VendorRepository vendorRepository) {
         this.userResolver = userResolver;
         this.recordRepository = recordRepository;
+        this.scheduleRepository = scheduleRepository;
+        this.typeRepository = typeRepository;
         this.vendorRepository = vendorRepository;
     }
 
@@ -131,6 +142,37 @@ public class ControllerHelper {
                                     "Vendor not found"));
         }
         return null;
+    }
+
+    ServiceType findServiceType(
+            UUID serviceTypeId, UUID orgId) {
+        return typeRepository.findByIdAndOrganizationId(
+                        serviceTypeId, orgId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Service type not found"));
+    }
+
+    void createSchedule(
+            UUID orgId, Item item,
+            ServiceType serviceType, Vendor vendor,
+            String nextDueDate,
+            int frequencyInterval,
+            FrequencyUnit frequencyUnit) {
+        LocalDate due = LocalDate.parse(nextDueDate);
+        ServiceSchedule newSched =
+                new ServiceSchedule();
+        newSched.setOrganizationId(orgId);
+        newSched.setItem(item);
+        newSched.setServiceType(serviceType);
+        newSched.setPreferredVendor(vendor);
+        newSched.setFrequencyUnit(frequencyUnit);
+        newSched.setFrequencyInterval(frequencyInterval);
+        newSched.setFirstDueDate(due);
+        newSched.setNextDueDate(due);
+        scheduleRepository.save(newSched);
+        log.info("Created schedule for item {}",
+                item.getId());
     }
 
     private Vendor createVendor(

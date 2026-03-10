@@ -1,7 +1,6 @@
 package solutions.mystuff.application.web;
 
 import java.security.Principal;
-import java.time.LocalDate;
 import java.util.Collections;
 import java.util.UUID;
 
@@ -9,7 +8,6 @@ import solutions.mystuff.domain.model.AppUser;
 import solutions.mystuff.domain.model.FrequencyUnit;
 import solutions.mystuff.domain.model.Item;
 import solutions.mystuff.domain.model.PageResult;
-import solutions.mystuff.domain.model.ServiceSchedule;
 import solutions.mystuff.domain.model.ServiceType;
 import solutions.mystuff.domain.model.Vendor;
 import solutions.mystuff.domain.port.out.ItemRepository;
@@ -209,12 +207,13 @@ public class ItemController {
         try {
             UUID orgId = user.getOrganization().getId();
             Item item = findItem(itemId, orgId);
-            ServiceType svcType = findServiceType(
-                    serviceTypeId, orgId);
+            ServiceType svcType =
+                    helper.findServiceType(
+                            serviceTypeId, orgId);
             Vendor vendor = helper.resolveVendor(orgId,
                     vendorId, newVendorName,
                     newVendorPhone);
-            createSchedule(orgId, item, svcType,
+            helper.createSchedule(orgId, item, svcType,
                     vendor, nextDueDate,
                     frequencyInterval, frequencyUnit);
             return "redirect:/items";
@@ -272,34 +271,4 @@ public class ItemController {
                                 "Item not found"));
     }
 
-    private ServiceType findServiceType(
-            UUID serviceTypeId, UUID orgId) {
-        return typeRepo.findByIdAndOrganizationId(
-                        serviceTypeId, orgId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException(
-                                "Service type not found"));
-    }
-
-    private void createSchedule(
-            UUID orgId, Item item,
-            ServiceType serviceType, Vendor vendor,
-            String nextDueDate,
-            int frequencyInterval,
-            FrequencyUnit frequencyUnit) {
-        LocalDate due = LocalDate.parse(nextDueDate);
-        ServiceSchedule newSched =
-                new ServiceSchedule();
-        newSched.setOrganizationId(orgId);
-        newSched.setItem(item);
-        newSched.setServiceType(serviceType);
-        newSched.setPreferredVendor(vendor);
-        newSched.setFrequencyUnit(frequencyUnit);
-        newSched.setFrequencyInterval(frequencyInterval);
-        newSched.setFirstDueDate(due);
-        newSched.setNextDueDate(due);
-        scheduleRepo.save(newSched);
-        log.info("Created schedule for item {}",
-                item.getId());
-    }
 }

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.ServiceSchedule;
+import solutions.mystuff.domain.model.ServiceType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -148,6 +149,37 @@ class ScheduleControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("should provide schedule form data")
+    void shouldProvideScheduleFormData()
+            throws Exception {
+        mockMvc.perform(get("/schedules")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists(
+                        "serviceTypes"))
+                .andExpect(model().attributeExists(
+                        "frequencyUnits"));
+    }
+
+    @Test
+    @DisplayName("should create schedule from schedules page")
+    void shouldCreateScheduleFromSchedules()
+            throws Exception {
+        String itemId = getFirstItemId();
+        String svcTypeId = getFirstServiceTypeId();
+        mockMvc.perform(post("/schedules/create")
+                        .param("itemId", itemId)
+                        .param("serviceTypeId", svcTypeId)
+                        .param("nextDueDate", "2026-12-01")
+                        .param("frequencyInterval", "6")
+                        .param("frequencyUnit", "months")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/schedules"));
+    }
+
+    @Test
     @DisplayName("should show no-org for new user")
     void shouldShowNoOrgForNewUser() throws Exception {
         mockMvc.perform(get("/schedules")
@@ -160,14 +192,41 @@ class ScheduleControllerIntegrationTest {
     @SuppressWarnings("unchecked")
     private String getFirstScheduleId()
             throws Exception {
+        return ((List<ServiceSchedule>)
+                getScheduleModel("schedules"))
+                .get(0).getId().toString();
+    }
+
+    private String getFirstItemId() throws Exception {
+        List<ServiceSchedule> schedules =
+                getScheduleList();
+        return schedules.get(0).getItem().getId()
+                .toString();
+    }
+
+    @SuppressWarnings("unchecked")
+    private String getFirstServiceTypeId()
+            throws Exception {
+        return ((List<ServiceType>)
+                getScheduleModel("serviceTypes"))
+                .get(0).getId().toString();
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<ServiceSchedule> getScheduleList()
+            throws Exception {
+        return (List<ServiceSchedule>)
+                getScheduleModel("schedules");
+    }
+
+    private Object getScheduleModel(String attr)
+            throws Exception {
         MvcResult result = mockMvc.perform(
                         get("/schedules")
                                 .with(user("dev")
                                         .roles("USER")))
                 .andReturn();
-        return ((List<ServiceSchedule>)
-                result.getModelAndView().getModel()
-                        .get("schedules"))
-                .get(0).getId().toString();
+        return result.getModelAndView().getModel()
+                .get(attr);
     }
 }
