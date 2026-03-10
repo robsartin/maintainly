@@ -20,6 +20,8 @@
                 <thead>
                 <tr>
                     <th>Item</th>
+                    <th>Location</th>
+                    <th>Details</th>
                     <th>Service Type</th>
                     <th>Vendor</th>
                     <th>Next Due</th>
@@ -36,6 +38,11 @@
                                 ? 'schedule-soon'
                                 : 'schedule-ok'))}">
                     <td th:text="${s.item.name}"></td>
+                    <td th:text="${s.item.location}"></td>
+                    <td><span th:if="${s.item.modelName}" th:text="${s.item.modelName}"></span>
+                        <span th:if="${s.item.modelYear}" th:text="' (' + ${s.item.modelYear} + ')'"></span>
+                        <span th:if="${s.item.serialNumber}" class="serial-number"
+                              th:text="' S/N: ' + ${s.item.serialNumber}"></span></td>
                     <td th:text="${s.serviceType.name}"></td>
                     <td th:text="${s.preferredVendor != null ? s.preferredVendor.name : ''}"></td>
                     <td th:text="${s.nextDueDate}"></td>
@@ -72,7 +79,7 @@
                     </td>
                 </tr>
                 <tr th:id="'log-' + ${s.id}" class="form-row" style="display:none">
-                    <td colspan="6">
+                    <td colspan="8">
                         <form method="post" th:action="@{/schedules/log}" class="inline-form">
                             <input type="hidden" name="scheduleId" th:value="${s.id}"/>
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
