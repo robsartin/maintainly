@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5434/maintainlydb
+    url: jdbc:postgresql://localhost:5434/mystuffdb
     username: postgres
     password: test
   jpa:

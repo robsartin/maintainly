@@ -1,0 +1,32 @@
+package solutions.mystuff.domain.port.out;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import solutions.mystuff.domain.model.PageResult;
+import solutions.mystuff.domain.model.ServiceSchedule;
+
+public interface ServiceScheduleRepository {
+
+    List<ServiceSchedule>
+            findByOrganizationIdOrderByNextDueDate(
+                    UUID organizationId);
+
+    List<ServiceSchedule> findActiveByOrganizationId(
+            UUID organizationId);
+
+    PageResult<ServiceSchedule>
+            findActiveByOrganizationId(
+                    UUID organizationId,
+                    int page, int size);
+
+    Optional<ServiceSchedule> findByIdAndOrganizationId(
+            UUID id, UUID organizationId);
+
+    List<ServiceSchedule>
+            findByItemIdAndOrganizationId(
+                    UUID itemId, UUID organizationId);
+
+    ServiceSchedule save(ServiceSchedule schedule);
+}

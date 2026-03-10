@@ -11,12 +11,12 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.robsartin</groupId>
-    <artifactId>maintainly</artifactId>
+    <groupId>solutions.mystuff</groupId>
+    <artifactId>mystuff</artifactId>
     <version>0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>Maintainly</name>
+    <name>MyStuff</name>
     <description>Property maintenance tracking application</description>
 
     <properties>

@@ -1,2 +1,2 @@
-# maintainly
-Maintain register of property, maintenence schedule, maintenance history and venfors. Recommend service when needed
+# mystuff
+Maintain register of property, maintenance schedule, maintenance history and vendors. Recommend service when needed

@@ -4,7 +4,7 @@
 <head th:fragment="head">
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Maintainly</title>
+    <title>MyStuff</title>
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
     <script>
@@ -31,7 +31,7 @@
              th:src="${organization.logoUrl}"
              alt="Organization logo" class="org-logo"/>
         <div>
-            <h1>Maintainly</h1>
+            <h1>MyStuff</h1>
             <span th:if="${organization != null}"
                   class="org-name" th:text="${organization.name}"></span>
         </div>
