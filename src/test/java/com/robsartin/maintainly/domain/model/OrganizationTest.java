@@ -17,6 +17,7 @@ class OrganizationTest {
         Organization org = new Organization();
         assertNull(org.getId());
         assertNull(org.getName());
+        assertNull(org.getLogoUrl());
     }
 
     @Test
@@ -26,7 +27,10 @@ class OrganizationTest {
         UUID id = UuidV7.generate();
         org.setId(id);
         org.setName("Test Org");
+        org.setLogoUrl("/images/logo.png");
         assertEquals(id, org.getId());
         assertEquals("Test Org", org.getName());
+        assertEquals("/images/logo.png",
+                org.getLogoUrl());
     }
 }

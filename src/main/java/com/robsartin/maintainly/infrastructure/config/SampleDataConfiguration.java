@@ -62,6 +62,7 @@ public class SampleDataConfiguration {
         Organization org = new Organization();
         org.setId(SAMPLE_ORG_ID);
         org.setName("Test Org");
+        org.setLogoUrl("/images/sample-logo.png");
         return orgRepo.save(org);
     }
 

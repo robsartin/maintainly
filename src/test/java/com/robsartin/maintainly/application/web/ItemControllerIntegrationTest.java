@@ -39,7 +39,9 @@ class ItemControllerIntegrationTest {
                 .andExpect(model().attributeExists(
                         "schedules"))
                 .andExpect(model().attributeExists(
-                        "username"));
+                        "username"))
+                .andExpect(model().attributeExists(
+                        "organization"));
     }
 
     @Test

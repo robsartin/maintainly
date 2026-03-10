@@ -11,6 +11,9 @@ public class Organization extends BaseEntity {
     @Column(nullable = false)
     private String name;
 
+    @Column(name = "logo_url", length = 512)
+    private String logoUrl;
+
     public Organization() {
     }
 
@@ -20,5 +23,13 @@ public class Organization extends BaseEntity {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getLogoUrl() {
+        return logoUrl;
+    }
+
+    public void setLogoUrl(String logoUrl) {
+        this.logoUrl = logoUrl;
     }
 }

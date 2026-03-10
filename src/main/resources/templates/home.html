@@ -18,7 +18,16 @@
 </head>
 <body>
 <header>
-    <h1>Maintainly</h1>
+    <div class="header-brand">
+        <img th:if="${organization != null and organization.logoUrl != null}"
+             th:src="${organization.logoUrl}"
+             alt="Organization logo" class="org-logo"/>
+        <div>
+            <h1>Maintainly</h1>
+            <span th:if="${organization != null}"
+                  class="org-name" th:text="${organization.name}"></span>
+        </div>
+    </div>
     <nav>
         <span th:if="${username}" th:text="'Logged in as ' + ${username}"></span>
         <form th:action="@{/logout}" method="post" style="display:inline"

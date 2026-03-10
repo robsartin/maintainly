@@ -71,6 +71,8 @@ public class ItemController {
             loadSchedules(orgId, model);
             model.addAttribute("username",
                     user.getUsername());
+            model.addAttribute("organization",
+                    user.getOrganization());
             return "home";
         } finally {
             MDC.remove(MDC_ORG_ID);
