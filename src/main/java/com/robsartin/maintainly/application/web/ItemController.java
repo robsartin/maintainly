@@ -10,7 +10,6 @@ import java.util.UUID;
 import com.robsartin.maintainly.domain.model.AppUser;
 import com.robsartin.maintainly.domain.model.Item;
 import com.robsartin.maintainly.domain.model.ServiceRecord;
-import com.robsartin.maintainly.domain.model.ServiceSchedule;
 import com.robsartin.maintainly.domain.port.in.UserResolver;
 import com.robsartin.maintainly.domain.port.out.ItemRepository;
 import com.robsartin.maintainly.domain.port.out.ServiceRecordRepository;
@@ -56,33 +55,16 @@ public class ItemController {
         AppUser user = userResolver.resolveOrCreate(
                 principal.getName());
         if (!user.hasOrganization()) {
-            log.warn("User {} has no organization",
-                    user.getUsername());
-            model.addAttribute("noOrganization", true);
-            model.addAttribute("items",
-                    Collections.emptyList());
-            return "home";
+            return handleNoOrganization(user, model);
         }
         UUID orgId = user.getOrganization().getId();
         MDC.put(MDC_ORG_ID, orgId.toString());
         try {
-            List<Item> items;
-            if (q != null && !q.isBlank()) {
-                log.info("Searching items query={}", q);
-                items = itemRepository
-                        .searchByOrganizationId(orgId, q);
-                model.addAttribute("q", q);
-            } else {
-                log.info("Listing all items");
-                items = itemRepository
-                        .findByOrganizationId(orgId);
-            }
-            List<ServiceSchedule> schedules =
+            loadItems(q, orgId, model);
+            model.addAttribute("schedules",
                     scheduleRepository
                             .findActiveByOrganizationId(
-                                    orgId);
-            model.addAttribute("items", items);
-            model.addAttribute("schedules", schedules);
+                                    orgId));
             model.addAttribute("username",
                     user.getUsername());
             return "home";
@@ -158,6 +140,32 @@ public class ItemController {
         model.addAttribute("items",
                 Collections.emptyList());
         return "home";
+    }
+
+    private String handleNoOrganization(
+            AppUser user, Model model) {
+        log.warn("User {} has no organization",
+                user.getUsername());
+        model.addAttribute("noOrganization", true);
+        model.addAttribute("items",
+                Collections.emptyList());
+        return "home";
+    }
+
+    private void loadItems(
+            String q, UUID orgId, Model model) {
+        List<Item> items;
+        if (q != null && !q.isBlank()) {
+            log.info("Searching items query={}", q);
+            items = itemRepository
+                    .searchByOrganizationId(orgId, q);
+            model.addAttribute("q", q);
+        } else {
+            log.info("Listing all items");
+            items = itemRepository
+                    .findByOrganizationId(orgId);
+        }
+        model.addAttribute("items", items);
     }
 
     private void setOrgMdc(AppUser user) {

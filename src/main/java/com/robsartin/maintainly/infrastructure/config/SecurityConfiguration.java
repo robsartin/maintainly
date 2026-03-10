@@ -19,48 +19,39 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfiguration {
 
     private static final Logger log =
-            LoggerFactory.getLogger(SecurityConfiguration.class);
+            LoggerFactory.getLogger(
+                    SecurityConfiguration.class);
+
+    private static final String[] PUBLIC_PATHS = {
+        "/actuator/health",
+        "/actuator/prometheus",
+        "/api-docs/**",
+        "/swagger-ui/**",
+        "/swagger-ui.html"
+    };
 
     @Bean
     @Profile("prod")
-    public SecurityFilterChain prodSecurityFilterChain(
+    public SecurityFilterChain prodFilterChain(
             HttpSecurity http) throws Exception {
         log.info("Configuring production security "
                 + "with Google OAuth2");
-        http
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/actuator/health")
-                    .permitAll()
-                .anyRequest().authenticated()
-            )
-            .oauth2Login(oauth2 -> oauth2
-                .defaultSuccessUrl("/", true)
-            )
-            .csrf(csrf -> csrf
-                .ignoringRequestMatchers("/actuator/**")
-            );
+        configureCommon(http);
+        http.oauth2Login(oauth2 -> oauth2
+                .defaultSuccessUrl("/", true));
         return http.build();
     }
 
     @Bean
     @Profile("!prod")
-    public SecurityFilterChain devSecurityFilterChain(
+    public SecurityFilterChain devFilterChain(
             HttpSecurity http) throws Exception {
         log.info("Configuring development security "
                 + "with form login (dev/dev)");
-        http
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/actuator/health")
-                    .permitAll()
-                .anyRequest().authenticated()
-            )
-            .formLogin(form -> form
+        configureCommon(http);
+        http.formLogin(form -> form
                 .defaultSuccessUrl("/", true)
-                .permitAll()
-            )
-            .csrf(csrf -> csrf
-                .ignoringRequestMatchers("/actuator/**")
-            );
+                .permitAll());
         return http.build();
     }
 
@@ -79,5 +70,16 @@ public class SecurityConfiguration {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    private void configureCommon(HttpSecurity http)
+            throws Exception {
+        http
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(PUBLIC_PATHS).permitAll()
+                .anyRequest().authenticated())
+            .csrf(csrf -> csrf
+                .ignoringRequestMatchers(
+                        "/actuator/**"));
     }
 }

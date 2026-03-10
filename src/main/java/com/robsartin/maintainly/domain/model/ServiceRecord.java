@@ -3,7 +3,6 @@ package com.robsartin.maintainly.domain.model;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -15,10 +14,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "service_records")
-public class ServiceRecord extends BaseEntity {
-
-    @Column(name = "organization_id", nullable = false)
-    private UUID organizationId;
+public class ServiceRecord extends OrgOwnedEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "item_id", nullable = false)
@@ -59,14 +55,6 @@ public class ServiceRecord extends BaseEntity {
         if (dataEntryTimestamp == null) {
             dataEntryTimestamp = Instant.now();
         }
-    }
-
-    public UUID getOrganizationId() {
-        return organizationId;
-    }
-
-    public void setOrganizationId(UUID organizationId) {
-        this.organizationId = organizationId;
     }
 
     public Item getItem() {

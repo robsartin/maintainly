@@ -1,7 +1,6 @@
 package com.robsartin.maintainly.domain.model;
 
 import java.time.LocalDate;
-import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -14,10 +13,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "service_schedules")
-public class ServiceSchedule extends BaseEntity {
-
-    @Column(name = "organization_id", nullable = false)
-    private UUID organizationId;
+public class ServiceSchedule extends OrgOwnedEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "item_id", nullable = false)
@@ -54,14 +50,6 @@ public class ServiceSchedule extends BaseEntity {
 
     @Column(columnDefinition = "TEXT")
     private String notes;
-
-    public UUID getOrganizationId() {
-        return organizationId;
-    }
-
-    public void setOrganizationId(UUID organizationId) {
-        this.organizationId = organizationId;
-    }
 
     public Item getItem() {
         return item;

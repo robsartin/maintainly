@@ -1,17 +1,12 @@
 package com.robsartin.maintainly.domain.model;
 
-import java.util.UUID;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "service_types")
-public class ServiceType extends BaseEntity {
-
-    @Column(name = "organization_id", nullable = false)
-    private UUID organizationId;
+public class ServiceType extends OrgOwnedEntity {
 
     @Column(nullable = false, length = 100)
     private String code;
@@ -21,14 +16,6 @@ public class ServiceType extends BaseEntity {
 
     @Column(columnDefinition = "TEXT")
     private String description;
-
-    public UUID getOrganizationId() {
-        return organizationId;
-    }
-
-    public void setOrganizationId(UUID organizationId) {
-        this.organizationId = organizationId;
-    }
 
     public String getCode() {
         return code;

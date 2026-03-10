@@ -1,29 +1,17 @@
 package com.robsartin.maintainly.domain.model;
 
-import java.util.UUID;
-
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "organizations")
-public class Organization {
+public class Organization extends BaseEntity {
 
-    @Id
-    private UUID id;
-
+    @Column(nullable = false)
     private String name;
 
     public Organization() {
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
     }
 
     public String getName() {

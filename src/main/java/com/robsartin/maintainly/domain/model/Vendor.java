@@ -2,7 +2,6 @@ package com.robsartin.maintainly.domain.model;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -12,10 +11,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "vendors")
-public class Vendor extends BaseEntity {
-
-    @Column(name = "organization_id", nullable = false)
-    private UUID organizationId;
+public class Vendor extends OrgOwnedEntity {
 
     @Column(nullable = false, length = 200)
     private String name;
@@ -49,14 +45,6 @@ public class Vendor extends BaseEntity {
             orphanRemoval = true)
     private List<VendorAltPhone> altPhones =
             new ArrayList<>();
-
-    public UUID getOrganizationId() {
-        return organizationId;
-    }
-
-    public void setOrganizationId(UUID organizationId) {
-        this.organizationId = organizationId;
-    }
 
     public String getName() {
         return name;

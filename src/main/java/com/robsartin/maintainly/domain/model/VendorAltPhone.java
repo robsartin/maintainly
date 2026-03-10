@@ -1,7 +1,5 @@
 package com.robsartin.maintainly.domain.model;
 
-import java.util.UUID;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -11,10 +9,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "vendor_alt_phones")
-public class VendorAltPhone extends BaseEntity {
-
-    @Column(name = "organization_id", nullable = false)
-    private UUID organizationId;
+public class VendorAltPhone extends OrgOwnedEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "vendor_id", nullable = false)
@@ -25,14 +20,6 @@ public class VendorAltPhone extends BaseEntity {
 
     @Column(length = 50)
     private String label;
-
-    public UUID getOrganizationId() {
-        return organizationId;
-    }
-
-    public void setOrganizationId(UUID organizationId) {
-        this.organizationId = organizationId;
-    }
 
     public Vendor getVendor() {
         return vendor;

@@ -47,55 +47,74 @@ public class SampleDataConfiguration {
                 return;
             }
             log.info("Loading sample data");
-            Organization org = new Organization();
-            org.setId(SAMPLE_ORG_ID);
-            org.setName("Test Org");
-            org = orgRepo.save(org);
-            UUID orgId = org.getId();
-
-            AppUser dev = userRepo.findByUsername("dev")
-                    .orElseGet(() -> {
-                        AppUser u = new AppUser(
-                                UuidV7.generate(), "dev");
-                        return userRepo.save(u);
-                    });
-            dev.setOrganization(org);
-            userRepo.save(dev);
-
-            ServiceType hvac = createServiceType(
-                    typeRepo, orgId,
-                    "HVAC_INSPECTION",
-                    "HVAC Inspection");
-            ServiceType plumbing = createServiceType(
-                    typeRepo, orgId,
-                    "PLUMBING_CHECK",
-                    "Plumbing Check");
-
-            Vendor vendor = new Vendor();
-            vendor.setId(UuidV7.generate());
-            vendor.setOrganizationId(orgId);
-            vendor.setName("ABC Maintenance");
-            vendor.setPhone("555-0100");
-            vendor = vendorRepo.save(vendor);
-
-            Item furnace = createItem(itemRepo, orgId,
-                    "Main Furnace", "Basement",
-                    "Carrier", "58STA", 2020);
-            Item waterHeater = createItem(itemRepo, orgId,
-                    "Water Heater", "Utility Room",
-                    "Rheem", "PROG50", 2021);
-
-            createSchedule(scheduleRepo, orgId,
-                    furnace, hvac, vendor,
-                    FrequencyUnit.months, 6,
-                    LocalDate.now().plusDays(3));
-            createSchedule(scheduleRepo, orgId,
-                    waterHeater, plumbing, null,
-                    FrequencyUnit.years, 1,
-                    LocalDate.now().minusDays(2));
-
-            log.info("Created sample org {}", orgId);
+            Organization org = createOrg(orgRepo);
+            assignDevUser(userRepo, org);
+            createSampleEntities(itemRepo, typeRepo,
+                    vendorRepo, scheduleRepo,
+                    org.getId());
+            log.info("Created sample org {}",
+                    org.getId());
         };
+    }
+
+    private Organization createOrg(
+            OrganizationRepository orgRepo) {
+        Organization org = new Organization();
+        org.setId(SAMPLE_ORG_ID);
+        org.setName("Test Org");
+        return orgRepo.save(org);
+    }
+
+    private void assignDevUser(
+            AppUserRepository userRepo,
+            Organization org) {
+        AppUser dev = userRepo.findByUsername("dev")
+                .orElseGet(() -> {
+                    AppUser u = new AppUser(
+                            UuidV7.generate(), "dev");
+                    return userRepo.save(u);
+                });
+        dev.setOrganization(org);
+        userRepo.save(dev);
+    }
+
+    private void createSampleEntities(
+            ItemRepository itemRepo,
+            ServiceTypeRepository typeRepo,
+            VendorRepository vendorRepo,
+            ServiceScheduleRepository scheduleRepo,
+            UUID orgId) {
+        ServiceType hvac = createServiceType(
+                typeRepo, orgId,
+                "HVAC_INSPECTION", "HVAC Inspection");
+        ServiceType plumbing = createServiceType(
+                typeRepo, orgId,
+                "PLUMBING_CHECK", "Plumbing Check");
+        Vendor vendor = createVendor(vendorRepo, orgId);
+        Item furnace = createItem(itemRepo, orgId,
+                "Main Furnace", "Basement",
+                "Carrier", "58STA", 2020);
+        Item waterHeater = createItem(itemRepo, orgId,
+                "Water Heater", "Utility Room",
+                "Rheem", "PROG50", 2021);
+        createSchedule(scheduleRepo, orgId,
+                furnace, hvac, vendor,
+                FrequencyUnit.months, 6,
+                LocalDate.now().plusDays(3));
+        createSchedule(scheduleRepo, orgId,
+                waterHeater, plumbing, null,
+                FrequencyUnit.years, 1,
+                LocalDate.now().minusDays(2));
+    }
+
+    private Vendor createVendor(
+            VendorRepository vendorRepo, UUID orgId) {
+        Vendor vendor = new Vendor();
+        vendor.setId(UuidV7.generate());
+        vendor.setOrganizationId(orgId);
+        vendor.setName("ABC Maintenance");
+        vendor.setPhone("555-0100");
+        return vendorRepo.save(vendor);
     }
 
     private ServiceType createServiceType(
