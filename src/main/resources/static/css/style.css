@@ -41,13 +41,29 @@ th {
     color: white;
 }
 
-tr.overdue {
-    background: #fff3e0;
+tr.schedule-overdue {
+    background: #ffebee;
 }
 
-tr.overdue td:nth-child(3) {
-    color: #e65100;
+tr.schedule-overdue td {
+    color: #b71c1c;
     font-weight: bold;
+}
+
+tr.schedule-soon {
+    background: #fffde7;
+}
+
+tr.schedule-soon td {
+    color: #f57f17;
+}
+
+tr.schedule-ok {
+    background: #e8f5e9;
+}
+
+tr.schedule-ok td {
+    color: #1b5e20;
 }
 
 button {

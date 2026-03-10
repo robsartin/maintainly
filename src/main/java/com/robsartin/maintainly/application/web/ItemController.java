@@ -61,10 +61,7 @@ public class ItemController {
         MDC.put(MDC_ORG_ID, orgId.toString());
         try {
             loadItems(q, orgId, model);
-            model.addAttribute("schedules",
-                    scheduleRepository
-                            .findActiveByOrganizationId(
-                                    orgId));
+            loadSchedules(orgId, model);
             model.addAttribute("username",
                     user.getUsername());
             return "home";
@@ -166,6 +163,17 @@ public class ItemController {
                     .findByOrganizationId(orgId);
         }
         model.addAttribute("items", items);
+    }
+
+    private void loadSchedules(UUID orgId, Model model) {
+        model.addAttribute("schedules",
+                scheduleRepository
+                        .findActiveByOrganizationId(
+                                orgId));
+        LocalDate today = LocalDate.now();
+        model.addAttribute("today", today);
+        model.addAttribute("soon",
+                today.plusWeeks(2));
     }
 
     private void setOrgMdc(AppUser user) {

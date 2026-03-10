@@ -80,9 +80,12 @@
                 </thead>
                 <tbody>
                 <tr th:each="s : ${schedules}"
-                    th:classappend="${s.nextDueDate != null
-                        and s.nextDueDate.isBefore(T(java.time.LocalDate).now())}
-                        ? 'overdue' : ''">
+                    th:classappend="${s.nextDueDate == null ? ''
+                        : (s.nextDueDate.isBefore(today)
+                            ? 'schedule-overdue'
+                            : (s.nextDueDate.isBefore(soon)
+                                ? 'schedule-soon'
+                                : 'schedule-ok'))}">
                     <td th:text="${s.item.name}"></td>
                     <td th:text="${s.serviceType.name}"></td>
                     <td th:text="${s.nextDueDate}"></td>
