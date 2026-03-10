@@ -94,10 +94,12 @@ public class SampleDataConfiguration {
         Vendor vendor = createVendor(vendorRepo, orgId);
         Item furnace = createItem(itemRepo, orgId,
                 "Main Furnace", "Basement",
-                "Carrier", "58STA", 2020);
+                "Carrier", "58STA", 2020,
+                "CR-58STA-20-4471");
         Item waterHeater = createItem(itemRepo, orgId,
                 "Water Heater", "Utility Room",
-                "Rheem", "PROG50", 2021);
+                "Rheem", "PROG50", 2021,
+                "RH-P50-21-8832");
         createSchedule(scheduleRepo, orgId,
                 furnace, hvac, vendor,
                 FrequencyUnit.months, 6,
@@ -133,7 +135,7 @@ public class SampleDataConfiguration {
             ItemRepository repo, UUID orgId,
             String name, String location,
             String manufacturer, String model,
-            int year) {
+            int year, String serialNumber) {
         Item item = new Item();
         item.setId(UuidV7.generate());
         item.setOrganizationId(orgId);
@@ -142,6 +144,7 @@ public class SampleDataConfiguration {
         item.setManufacturer(manufacturer);
         item.setModelName(model);
         item.setModelYear(year);
+        item.setSerialNumber(serialNumber);
         return repo.save(item);
     }
 
