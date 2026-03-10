@@ -17,7 +17,7 @@ import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
 import jakarta.servlet.http.HttpServletResponse;
 
-final class DueNextMonthPdf {
+final class ServiceSummaryPdf {
 
     private static final DateTimeFormatter FMT =
             DateTimeFormatter.ofPattern("MMM d, yyyy");
@@ -30,27 +30,28 @@ final class DueNextMonthPdf {
     private static final Font BODY_FONT =
             FontFactory.getFont(
                     FontFactory.HELVETICA, 10);
+    private static final java.awt.Color HEADER_BG =
+            new java.awt.Color(220, 220, 220);
 
-    private DueNextMonthPdf() {
+    private ServiceSummaryPdf() {
     }
 
     static void write(
             HttpServletResponse response,
             List<ServiceSchedule> schedules,
-            LocalDate cutoff, String orgName)
-            throws Exception {
+            String orgName) throws Exception {
         response.setContentType("application/pdf");
         response.setHeader("Content-Disposition",
-                "inline; filename=due-next-month.pdf");
+                "inline; filename=service-summary.pdf");
         Document doc = new Document(
                 PageSize.LETTER.rotate());
         PdfWriter.getInstance(doc,
                 response.getOutputStream());
         doc.open();
-        addTitle(doc, orgName, cutoff);
+        addTitle(doc, orgName);
         if (schedules.isEmpty()) {
             doc.add(new Paragraph(
-                    "No service due.", BODY_FONT));
+                    "No active schedules.", BODY_FONT));
         } else {
             doc.add(buildTable(schedules));
         }
@@ -58,70 +59,67 @@ final class DueNextMonthPdf {
     }
 
     private static void addTitle(
-            Document doc, String orgName,
-            LocalDate cutoff) throws Exception {
+            Document doc, String orgName)
+            throws Exception {
         Paragraph title = new Paragraph(
-                orgName + " — Service Due Through "
-                        + cutoff.format(FMT),
+                orgName
+                        + " — Upcoming Scheduled Service",
                 TITLE_FONT);
         title.setAlignment(Element.ALIGN_CENTER);
-        title.setSpacingAfter(12);
+        title.setSpacingAfter(4);
         doc.add(title);
-        Paragraph generated = new Paragraph(
+        Paragraph gen = new Paragraph(
                 "Generated "
                         + LocalDate.now().format(FMT),
                 BODY_FONT);
-        generated.setAlignment(Element.ALIGN_RIGHT);
-        generated.setSpacingAfter(8);
-        doc.add(generated);
+        gen.setAlignment(Element.ALIGN_RIGHT);
+        gen.setSpacingAfter(12);
+        doc.add(gen);
     }
 
     private static PdfPTable buildTable(
             List<ServiceSchedule> schedules)
             throws Exception {
         PdfPTable table = new PdfPTable(
-                new float[]{3, 2, 2, 3, 2, 2});
+                new float[]{3, 2, 2, 2, 2, 2, 2});
         table.setWidthPercentage(100);
-        addHeaders(table);
+        addHeaderRow(table, "Item", "Location",
+                "Service Type", "Vendor",
+                "Next Due", "Frequency",
+                "Last Completed");
         for (ServiceSchedule s : schedules) {
             addRow(table, s);
         }
         return table;
     }
 
-    private static void addHeaders(PdfPTable table) {
-        String[] headers = {"Item", "Location",
-                "Service Type", "Vendor",
-                "Next Due", "Frequency"};
-        for (String h : headers) {
-            PdfPCell cell = new PdfPCell(
-                    new Phrase(h, HEADER_FONT));
-            cell.setBackgroundColor(
-                    new java.awt.Color(220, 220, 220));
-            cell.setPadding(5);
-            table.addCell(cell);
-        }
-    }
-
     private static void addRow(
             PdfPTable table, ServiceSchedule s) {
         addCell(table, s.getItem().getName());
-        addCell(table,
-                s.getItem().getLocation() != null
-                        ? s.getItem().getLocation()
-                        : "");
+        addCell(table, safe(
+                s.getItem().getLocation()));
         addCell(table, s.getServiceType());
         addCell(table,
                 s.getPreferredVendor() != null
                         ? s.getPreferredVendor().getName()
                         : "");
-        addCell(table,
-                s.getNextDueDate() != null
-                        ? s.getNextDueDate().format(FMT)
-                        : "");
+        addCell(table, fmtDate(s.getNextDueDate()));
         addCell(table,
                 "Every " + s.getFrequencyInterval()
                         + " " + s.getFrequencyUnit());
+        addCell(table,
+                fmtDate(s.getLastCompletedDate()));
+    }
+
+    private static void addHeaderRow(
+            PdfPTable table, String... headers) {
+        for (String h : headers) {
+            PdfPCell cell = new PdfPCell(
+                    new Phrase(h, HEADER_FONT));
+            cell.setBackgroundColor(HEADER_BG);
+            cell.setPadding(5);
+            table.addCell(cell);
+        }
     }
 
     private static void addCell(
@@ -130,5 +128,13 @@ final class DueNextMonthPdf {
                 new Phrase(text, BODY_FONT));
         cell.setPadding(4);
         table.addCell(cell);
+    }
+
+    private static String fmtDate(LocalDate date) {
+        return date != null ? date.format(FMT) : "";
+    }
+
+    private static String safe(String val) {
+        return val != null ? val : "";
     }
 }

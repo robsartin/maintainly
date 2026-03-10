@@ -10,5 +10,8 @@ public interface ServiceRecordRepository {
     List<ServiceRecord> findByItemIdAndOrganizationId(
             UUID itemId, UUID organizationId);
 
+    List<ServiceRecord> findByOrganizationId(
+            UUID organizationId);
+
     ServiceRecord save(ServiceRecord record);
 }

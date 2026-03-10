@@ -1,5 +1,9 @@
 package solutions.mystuff.application.web;
 
+import java.util.List;
+import java.util.UUID;
+
+import solutions.mystuff.domain.model.Item;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,6 +11,7 @@ import org.springframework.boot.webmvc.test.autoconfigure
         .AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 import static org.springframework.security.test.web.servlet
         .request.SecurityMockMvcRequestPostProcessors.user;
@@ -36,18 +41,53 @@ class ReportControllerIntegrationTest {
                 .andExpect(model().attributeExists(
                         "username"))
                 .andExpect(model().attributeExists(
-                        "organization"));
+                        "organization"))
+                .andExpect(model().attributeExists(
+                        "items"));
     }
 
     @Test
-    @DisplayName("should generate due next month PDF")
-    void shouldGenerateDueNextMonthPdf()
+    @DisplayName("should generate service summary PDF")
+    void shouldGenerateServiceSummaryPdf()
             throws Exception {
-        mockMvc.perform(get("/reports/due-next-month")
-                        .with(user("dev").roles("USER")))
+        mockMvc.perform(
+                        get("/reports/service-summary")
+                                .with(user("dev")
+                                        .roles("USER")))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(
                         "application/pdf"));
+    }
+
+    @Test
+    @DisplayName("should generate item history PDF")
+    void shouldGenerateItemHistoryPdf()
+            throws Exception {
+        String itemId = getFirstItemId();
+        mockMvc.perform(
+                        get("/reports/item-history")
+                                .param("itemId", itemId)
+                                .with(user("dev")
+                                        .roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(
+                        "application/pdf"));
+    }
+
+    @Test
+    @DisplayName("should handle invalid item on history")
+    void shouldHandleInvalidItemHistory()
+            throws Exception {
+        UUID fakeId = UUID.randomUUID();
+        mockMvc.perform(
+                        get("/reports/item-history")
+                                .param("itemId",
+                                        fakeId.toString())
+                                .with(user("dev")
+                                        .roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists(
+                        "error"));
     }
 
     @Test
@@ -59,5 +99,18 @@ class ReportControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(model().attribute(
                         "noOrganization", true));
+    }
+
+    @SuppressWarnings("unchecked")
+    private String getFirstItemId() throws Exception {
+        MvcResult result = mockMvc.perform(
+                        get("/items")
+                                .with(user("dev")
+                                        .roles("USER")))
+                .andReturn();
+        List<Item> items = (List<Item>)
+                result.getModelAndView().getModel()
+                        .get("items");
+        return items.get(0).getId().toString();
     }
 }
