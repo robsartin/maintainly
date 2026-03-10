@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import com.robsartin.maintainly.domain.model.Item;
 import com.robsartin.maintainly.domain.model.ServiceSchedule;
+import com.robsartin.maintainly.domain.model.ServiceType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -164,16 +165,78 @@ class ItemControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("should create new schedule from existing")
-    void shouldCreateNewSchedule() throws Exception {
+    @DisplayName("should delete a schedule")
+    void shouldDeleteSchedule() throws Exception {
         String scheduleId = getFirstScheduleId();
-        mockMvc.perform(post("/schedule/new")
+        mockMvc.perform(post("/schedule/delete")
                         .param("scheduleId", scheduleId)
-                        .param("nextDueDate", "2026-09-15")
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("items"));
+    }
+
+    @Test
+    @DisplayName("should handle invalid schedule on delete")
+    void shouldHandleInvalidScheduleDelete()
+            throws Exception {
+        UUID fakeId = UUID.randomUUID();
+        mockMvc.perform(post("/schedule/delete")
+                        .param("scheduleId",
+                                fakeId.toString())
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("error"));
+    }
+
+    @Test
+    @DisplayName("should schedule service from item")
+    void shouldScheduleFromItem() throws Exception {
+        String itemId = getFirstItemId();
+        String svcTypeId = getFirstServiceTypeId();
+        mockMvc.perform(post("/item/schedule")
+                        .param("itemId", itemId)
+                        .param("serviceTypeId", svcTypeId)
+                        .param("nextDueDate", "2026-09-15")
+                        .param("frequencyInterval", "6")
+                        .param("frequencyUnit", "months")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("items"));
+    }
+
+    @Test
+    @DisplayName("should handle invalid item on schedule")
+    void shouldHandleInvalidItemSchedule()
+            throws Exception {
+        UUID fakeId = UUID.randomUUID();
+        String svcTypeId = getFirstServiceTypeId();
+        mockMvc.perform(post("/item/schedule")
+                        .param("itemId",
+                                fakeId.toString())
+                        .param("serviceTypeId", svcTypeId)
+                        .param("nextDueDate", "2026-09-15")
+                        .param("frequencyInterval", "6")
+                        .param("frequencyUnit", "months")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("error"));
+    }
+
+    @Test
+    @DisplayName("should provide service types and units")
+    void shouldProvideServiceTypesAndUnits()
+            throws Exception {
+        mockMvc.perform(get("/")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists(
+                        "serviceTypes"))
+                .andExpect(model().attributeExists(
+                        "frequencyUnits"));
     }
 
     @Test
@@ -197,6 +260,14 @@ class ItemControllerIntegrationTest {
             throws Exception {
         return ((List<ServiceSchedule>)
                 getModel("schedules"))
+                .get(0).getId().toString();
+    }
+
+    @SuppressWarnings("unchecked")
+    private String getFirstServiceTypeId()
+            throws Exception {
+        return ((List<ServiceType>)
+                getModel("serviceTypes"))
                 .get(0).getId().toString();
     }
 

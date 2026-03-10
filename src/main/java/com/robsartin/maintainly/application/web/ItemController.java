@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.robsartin.maintainly.domain.model.AppUser;
+import com.robsartin.maintainly.domain.model.FrequencyUnit;
 import com.robsartin.maintainly.domain.model.Item;
 import com.robsartin.maintainly.domain.model.ServiceRecord;
 import com.robsartin.maintainly.domain.model.ServiceSchedule;
@@ -16,6 +17,7 @@ import com.robsartin.maintainly.domain.port.in.UserResolver;
 import com.robsartin.maintainly.domain.port.out.ItemRepository;
 import com.robsartin.maintainly.domain.port.out.ServiceRecordRepository;
 import com.robsartin.maintainly.domain.port.out.ServiceScheduleRepository;
+import com.robsartin.maintainly.domain.port.out.ServiceTypeRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -37,16 +39,19 @@ public class ItemController {
     private final ItemRepository itemRepository;
     private final ServiceScheduleRepository scheduleRepository;
     private final ServiceRecordRepository recordRepository;
+    private final ServiceTypeRepository serviceTypeRepository;
     private final UserResolver userResolver;
 
     public ItemController(
             ItemRepository itemRepository,
             ServiceScheduleRepository scheduleRepository,
             ServiceRecordRepository recordRepository,
+            ServiceTypeRepository serviceTypeRepository,
             UserResolver userResolver) {
         this.itemRepository = itemRepository;
         this.scheduleRepository = scheduleRepository;
         this.recordRepository = recordRepository;
+        this.serviceTypeRepository = serviceTypeRepository;
         this.userResolver = userResolver;
     }
 
@@ -119,20 +124,46 @@ public class ItemController {
         }
     }
 
-    @PostMapping("/schedule/new")
-    public String scheduleService(
+    @PostMapping("/schedule/delete")
+    public String deleteSchedule(
             @RequestParam UUID scheduleId,
-            @RequestParam String nextDueDate,
             Principal principal, Model model) {
         AppUser user = userResolver.resolveOrCreate(
                 principal.getName());
         setOrgMdc(user);
         try {
             UUID orgId = user.getOrganization().getId();
-            ServiceSchedule source = findSchedule(
+            ServiceSchedule sched = findSchedule(
                     scheduleId, orgId);
-            createScheduleFrom(source, orgId,
-                    nextDueDate);
+            sched.setActive(false);
+            scheduleRepository.save(sched);
+            log.info("Deactivated schedule {}",
+                    scheduleId);
+            return index(null, principal, model);
+        } finally {
+            MDC.remove(MDC_ORG_ID);
+        }
+    }
+
+    @PostMapping("/item/schedule")
+    public String scheduleItemService(
+            @RequestParam UUID itemId,
+            @RequestParam UUID serviceTypeId,
+            @RequestParam String nextDueDate,
+            @RequestParam int frequencyInterval,
+            @RequestParam FrequencyUnit frequencyUnit,
+            Principal principal, Model model) {
+        AppUser user = userResolver.resolveOrCreate(
+                principal.getName());
+        setOrgMdc(user);
+        try {
+            UUID orgId = user.getOrganization().getId();
+            Item item = findItem(itemId, orgId);
+            ServiceType svcType = findServiceType(
+                    serviceTypeId, orgId);
+            createSchedule(orgId, item, svcType,
+                    nextDueDate, frequencyInterval,
+                    frequencyUnit);
             return index(null, principal, model);
         } finally {
             MDC.remove(MDC_ORG_ID);
@@ -199,6 +230,11 @@ public class ItemController {
                     .findByOrganizationId(orgId);
         }
         model.addAttribute("items", items);
+        model.addAttribute("serviceTypes",
+                serviceTypeRepository
+                        .findByOrganizationId(orgId));
+        model.addAttribute("frequencyUnits",
+                FrequencyUnit.values());
     }
 
     private void loadSchedules(UUID orgId, Model model) {
@@ -253,27 +289,35 @@ public class ItemController {
                 item.getId());
     }
 
-    private void createScheduleFrom(
-            ServiceSchedule source, UUID orgId,
-            String nextDueDate) {
+    private ServiceType findServiceType(
+            UUID serviceTypeId, UUID orgId) {
+        return serviceTypeRepository
+                .findByIdAndOrganizationId(
+                        serviceTypeId, orgId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Service type not found"));
+    }
+
+    private void createSchedule(
+            UUID orgId, Item item,
+            ServiceType serviceType,
+            String nextDueDate,
+            int frequencyInterval,
+            FrequencyUnit frequencyUnit) {
         LocalDate due = LocalDate.parse(nextDueDate);
         ServiceSchedule newSched =
                 new ServiceSchedule();
         newSched.setOrganizationId(orgId);
-        newSched.setItem(source.getItem());
-        newSched.setServiceType(
-                source.getServiceType());
-        newSched.setPreferredVendor(
-                source.getPreferredVendor());
-        newSched.setFrequencyUnit(
-                source.getFrequencyUnit());
-        newSched.setFrequencyInterval(
-                source.getFrequencyInterval());
+        newSched.setItem(item);
+        newSched.setServiceType(serviceType);
+        newSched.setFrequencyUnit(frequencyUnit);
+        newSched.setFrequencyInterval(frequencyInterval);
         newSched.setFirstDueDate(due);
         newSched.setNextDueDate(due);
         scheduleRepository.save(newSched);
-        log.info("Created new schedule for item {}",
-                source.getItem().getId());
+        log.info("Created schedule for item {}",
+                item.getId());
     }
 
     private void setOrgMdc(AppUser user) {
