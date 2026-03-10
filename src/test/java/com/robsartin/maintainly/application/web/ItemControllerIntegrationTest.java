@@ -1,9 +1,11 @@
 package com.robsartin.maintainly.application.web;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
 import com.robsartin.maintainly.domain.model.Item;
+import com.robsartin.maintainly.domain.model.ServiceSchedule;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -106,6 +109,55 @@ class ItemControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("should provide today and soon dates for schedule coloring")
+    void shouldProvideScheduleDates() throws Exception {
+        MvcResult result = mockMvc.perform(get("/")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(
+                        model().attributeExists("today"))
+                .andExpect(
+                        model().attributeExists("soon"))
+                .andReturn();
+        LocalDate today = (LocalDate)
+                result.getModelAndView().getModel()
+                        .get("today");
+        LocalDate soon = (LocalDate)
+                result.getModelAndView().getModel()
+                        .get("soon");
+        assertNotNull(today);
+        assertNotNull(soon);
+    }
+
+    @Test
+    @DisplayName("should log service for a schedule")
+    void shouldLogServiceForSchedule() throws Exception {
+        String scheduleId = getFirstScheduleId();
+        mockMvc.perform(post("/schedule/log")
+                        .param("scheduleId", scheduleId)
+                        .param("summary", "Routine check")
+                        .param("serviceDate", "2026-03-10")
+                        .param("techName", "John")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("items"));
+    }
+
+    @Test
+    @DisplayName("should create new schedule from existing")
+    void shouldCreateNewSchedule() throws Exception {
+        String scheduleId = getFirstScheduleId();
+        mockMvc.perform(post("/schedule/new")
+                        .param("scheduleId", scheduleId)
+                        .param("nextDueDate", "2026-09-15")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("items"));
+    }
+
+    @Test
     @DisplayName("should show no-org for new user")
     void shouldShowNoOrgForNewUser() throws Exception {
         mockMvc.perform(get("/")
@@ -117,12 +169,24 @@ class ItemControllerIntegrationTest {
 
     @SuppressWarnings("unchecked")
     private String getFirstItemId() throws Exception {
+        return ((List<Item>) getModel("items"))
+                .get(0).getId().toString();
+    }
+
+    @SuppressWarnings("unchecked")
+    private String getFirstScheduleId()
+            throws Exception {
+        return ((List<ServiceSchedule>)
+                getModel("schedules"))
+                .get(0).getId().toString();
+    }
+
+    private Object getModel(String attr)
+            throws Exception {
         MvcResult result = mockMvc.perform(get("/")
                         .with(user("dev").roles("USER")))
                 .andReturn();
-        List<Item> items = (List<Item>)
-                result.getModelAndView().getModel()
-                        .get("items");
-        return items.get(0).getId().toString();
+        return result.getModelAndView().getModel()
+                .get(attr);
     }
 }
