@@ -6,6 +6,7 @@ import java.util.UUID;
 import com.robsartin.maintainly.domain.model.Item;
 import com.robsartin.maintainly.domain.model.ServiceSchedule;
 import com.robsartin.maintainly.domain.model.ServiceType;
+import com.robsartin.maintainly.domain.model.Vendor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -229,16 +230,79 @@ class ItemControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("should provide service types and units")
-    void shouldProvideServiceTypesAndUnits()
-            throws Exception {
+    @DisplayName("should provide service types, vendors, and units")
+    void shouldProvideFormData() throws Exception {
         mockMvc.perform(get("/")
                         .with(user("dev").roles("USER")))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists(
                         "serviceTypes"))
                 .andExpect(model().attributeExists(
+                        "vendors"))
+                .andExpect(model().attributeExists(
                         "frequencyUnits"));
+    }
+
+    @Test
+    @DisplayName("should schedule with existing vendor")
+    void shouldScheduleWithExistingVendor()
+            throws Exception {
+        String itemId = getFirstItemId();
+        String svcTypeId = getFirstServiceTypeId();
+        String vendorId = getFirstVendorId();
+        mockMvc.perform(post("/item/schedule")
+                        .param("itemId", itemId)
+                        .param("serviceTypeId", svcTypeId)
+                        .param("nextDueDate", "2026-10-01")
+                        .param("frequencyInterval", "3")
+                        .param("frequencyUnit", "months")
+                        .param("vendorId", vendorId)
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("items"));
+    }
+
+    @Test
+    @DisplayName("should schedule with new vendor")
+    void shouldScheduleWithNewVendor()
+            throws Exception {
+        String itemId = getFirstItemId();
+        String svcTypeId = getFirstServiceTypeId();
+        mockMvc.perform(post("/item/schedule")
+                        .param("itemId", itemId)
+                        .param("serviceTypeId", svcTypeId)
+                        .param("nextDueDate", "2026-11-01")
+                        .param("frequencyInterval", "1")
+                        .param("frequencyUnit", "years")
+                        .param("vendorId", "__new__")
+                        .param("newVendorName",
+                                "New Test Vendor")
+                        .param("newVendorPhone",
+                                "555-9999")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("items"));
+    }
+
+    @Test
+    @DisplayName("should reject new vendor without name")
+    void shouldRejectNewVendorNoName()
+            throws Exception {
+        String itemId = getFirstItemId();
+        String svcTypeId = getFirstServiceTypeId();
+        mockMvc.perform(post("/item/schedule")
+                        .param("itemId", itemId)
+                        .param("serviceTypeId", svcTypeId)
+                        .param("nextDueDate", "2026-11-01")
+                        .param("frequencyInterval", "1")
+                        .param("frequencyUnit", "years")
+                        .param("vendorId", "__new__")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("error"));
     }
 
     @Test
@@ -270,6 +334,14 @@ class ItemControllerIntegrationTest {
             throws Exception {
         return ((List<ServiceType>)
                 getModel("serviceTypes"))
+                .get(0).getId().toString();
+    }
+
+    @SuppressWarnings("unchecked")
+    private String getFirstVendorId()
+            throws Exception {
+        return ((List<Vendor>)
+                getModel("vendors"))
                 .get(0).getId().toString();
     }
 

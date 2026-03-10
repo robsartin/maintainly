@@ -13,11 +13,13 @@ import com.robsartin.maintainly.domain.model.Item;
 import com.robsartin.maintainly.domain.model.ServiceRecord;
 import com.robsartin.maintainly.domain.model.ServiceSchedule;
 import com.robsartin.maintainly.domain.model.ServiceType;
+import com.robsartin.maintainly.domain.model.Vendor;
 import com.robsartin.maintainly.domain.port.in.UserResolver;
 import com.robsartin.maintainly.domain.port.out.ItemRepository;
 import com.robsartin.maintainly.domain.port.out.ServiceRecordRepository;
 import com.robsartin.maintainly.domain.port.out.ServiceScheduleRepository;
 import com.robsartin.maintainly.domain.port.out.ServiceTypeRepository;
+import com.robsartin.maintainly.domain.port.out.VendorRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -40,6 +42,7 @@ public class ItemController {
     private final ServiceScheduleRepository scheduleRepository;
     private final ServiceRecordRepository recordRepository;
     private final ServiceTypeRepository serviceTypeRepository;
+    private final VendorRepository vendorRepository;
     private final UserResolver userResolver;
 
     public ItemController(
@@ -47,11 +50,13 @@ public class ItemController {
             ServiceScheduleRepository scheduleRepository,
             ServiceRecordRepository recordRepository,
             ServiceTypeRepository serviceTypeRepository,
+            VendorRepository vendorRepository,
             UserResolver userResolver) {
         this.itemRepository = itemRepository;
         this.scheduleRepository = scheduleRepository;
         this.recordRepository = recordRepository;
         this.serviceTypeRepository = serviceTypeRepository;
+        this.vendorRepository = vendorRepository;
         this.userResolver = userResolver;
     }
 
@@ -154,6 +159,12 @@ public class ItemController {
             @RequestParam String nextDueDate,
             @RequestParam int frequencyInterval,
             @RequestParam FrequencyUnit frequencyUnit,
+            @RequestParam(required = false)
+                    String vendorId,
+            @RequestParam(required = false)
+                    String newVendorName,
+            @RequestParam(required = false)
+                    String newVendorPhone,
             Principal principal, Model model) {
         AppUser user = userResolver.resolveOrCreate(
                 principal.getName());
@@ -163,7 +174,10 @@ public class ItemController {
             Item item = findItem(itemId, orgId);
             ServiceType svcType = findServiceType(
                     serviceTypeId, orgId);
-            createSchedule(orgId, item, svcType,
+            Vendor vendor = resolveVendor(orgId,
+                    vendorId, newVendorName,
+                    newVendorPhone);
+            createSchedule(orgId, item, svcType, vendor,
                     nextDueDate, frequencyInterval,
                     frequencyUnit);
             return index(null, principal, model);
@@ -235,6 +249,9 @@ public class ItemController {
         model.addAttribute("serviceTypes",
                 serviceTypeRepository
                         .findByOrganizationId(orgId));
+        model.addAttribute("vendors",
+                vendorRepository
+                        .findByOrganizationId(orgId));
         model.addAttribute("frequencyUnits",
                 FrequencyUnit.values());
     }
@@ -301,9 +318,44 @@ public class ItemController {
                                 "Service type not found"));
     }
 
+    private Vendor resolveVendor(
+            UUID orgId, String vendorId,
+            String newVendorName,
+            String newVendorPhone) {
+        if ("__new__".equals(vendorId)) {
+            return createVendor(orgId,
+                    newVendorName, newVendorPhone);
+        }
+        if (vendorId != null && !vendorId.isBlank()) {
+            return vendorRepository
+                    .findByIdAndOrganizationId(
+                            UUID.fromString(vendorId),
+                            orgId)
+                    .orElseThrow(() ->
+                            new IllegalArgumentException(
+                                    "Vendor not found"));
+        }
+        return null;
+    }
+
+    private Vendor createVendor(
+            UUID orgId, String name, String phone) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException(
+                    "Vendor name is required");
+        }
+        Vendor vendor = new Vendor();
+        vendor.setOrganizationId(orgId);
+        vendor.setName(name.trim());
+        if (phone != null && !phone.isBlank()) {
+            vendor.setPhone(phone.trim());
+        }
+        return vendorRepository.save(vendor);
+    }
+
     private void createSchedule(
             UUID orgId, Item item,
-            ServiceType serviceType,
+            ServiceType serviceType, Vendor vendor,
             String nextDueDate,
             int frequencyInterval,
             FrequencyUnit frequencyUnit) {
@@ -313,6 +365,7 @@ public class ItemController {
         newSched.setOrganizationId(orgId);
         newSched.setItem(item);
         newSched.setServiceType(serviceType);
+        newSched.setPreferredVendor(vendor);
         newSched.setFrequencyUnit(frequencyUnit);
         newSched.setFrequencyInterval(frequencyInterval);
         newSched.setFirstDueDate(due);
