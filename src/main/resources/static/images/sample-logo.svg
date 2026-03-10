@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="16" fill="#2196F3"/>
+  <g fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <!-- wrench -->
+    <path d="M44 84L76 52"/>
+    <path d="M70 46a14 14 0 0 1 18 18l-6-2-4 4-2-6z"/>
+    <path d="M50 90a8 8 0 0 1-12-12l6 6z"/>
+    <!-- gear -->
+    <circle cx="84" cy="44" r="6" stroke-width="3"/>
+  </g>
+  <text x="64" y="116" text-anchor="middle" fill="white" font-family="sans-serif" font-size="14" font-weight="bold">TESTORG</text>
+</svg>
