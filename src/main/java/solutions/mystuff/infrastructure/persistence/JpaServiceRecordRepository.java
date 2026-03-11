@@ -16,8 +16,14 @@ public interface JpaServiceRecordRepository
         ServiceRecordRepository {
 
     @Override
+    @Query("SELECT r FROM ServiceRecord r "
+            + "LEFT JOIN FETCH r.vendor "
+            + "WHERE r.item.id = :itemId "
+            + "AND r.organizationId = :orgId "
+            + "ORDER BY r.serviceDate DESC")
     List<ServiceRecord> findByItemIdAndOrganizationId(
-            UUID itemId, UUID organizationId);
+            @Param("itemId") UUID itemId,
+            @Param("orgId") UUID organizationId);
 
     @Override
     @Query("SELECT r FROM ServiceRecord r "
