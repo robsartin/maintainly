@@ -11,6 +11,19 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+/**
+ * Internal Spring Data repository for {@link Item} persistence.
+ *
+ * <pre>{@code
+ * classDiagram
+ *     class SpringDataItemRepository
+ *     class JpaRepository~Item, UUID~
+ *     SpringDataItemRepository --|> JpaRepository~Item, UUID~
+ * }</pre>
+ *
+ * @see JpaItemRepositoryAdapter
+ * @see Item
+ */
 interface SpringDataItemRepository
         extends JpaRepository<Item, UUID> {
 

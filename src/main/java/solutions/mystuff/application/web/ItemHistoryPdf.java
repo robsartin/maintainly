@@ -19,6 +19,19 @@ import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
 import jakarta.servlet.http.HttpServletResponse;
 
+/**
+ * Generates a PDF report of an item's service history
+ * and active schedules using OpenPDF.
+ *
+ * <pre>{@code
+ * sequenceDiagram
+ *     ReportController->>ItemHistoryPdf: write(response, item, ...)
+ *     ItemHistoryPdf->>Document: org header, item info, tables
+ *     ItemHistoryPdf-->>Browser: PDF via HttpServletResponse
+ * }</pre>
+ *
+ * @see ReportController
+ */
 final class ItemHistoryPdf {
 
     private static final DateTimeFormatter FMT =
@@ -41,6 +54,7 @@ final class ItemHistoryPdf {
     private ItemHistoryPdf() {
     }
 
+    /** Writes the item history PDF to the HTTP response stream. */
     static void write(
             HttpServletResponse response,
             Item item,

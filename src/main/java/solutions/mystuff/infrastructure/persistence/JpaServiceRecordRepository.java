@@ -10,6 +10,21 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+/**
+ * Spring Data JPA adapter for the {@link ServiceRecordRepository} port.
+ *
+ * <pre>{@code
+ * classDiagram
+ *     class JpaServiceRecordRepository
+ *     class JpaRepository~ServiceRecord, UUID~
+ *     class ServiceRecordRepository
+ *     JpaServiceRecordRepository --|> JpaRepository~ServiceRecord, UUID~
+ *     JpaServiceRecordRepository --|> ServiceRecordRepository
+ * }</pre>
+ *
+ * @see ServiceRecordRepository
+ * @see ServiceRecord
+ */
 @Repository
 public interface JpaServiceRecordRepository
         extends JpaRepository<ServiceRecord, UUID>,

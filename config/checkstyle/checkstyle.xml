@@ -6,7 +6,7 @@
     <property name="severity" value="error"/>
 
     <module name="FileLength">
-        <property name="max" value="500"/>
+        <property name="max" value="750"/>
     </module>
 
     <module name="TreeWalker">

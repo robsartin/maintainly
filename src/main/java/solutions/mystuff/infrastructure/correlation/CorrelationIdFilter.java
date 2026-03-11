@@ -11,12 +11,33 @@ import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+/**
+ * Servlet filter that assigns a correlation ID to every request.
+ *
+ * <pre>{@code
+ * sequenceDiagram
+ *     participant C as Client
+ *     participant F as CorrelationIdFilter
+ *     participant S as FilterChain
+ *     C->>F: HTTP request
+ *     F->>F: generate or read X-Correlation-Id
+ *     F->>F: set MDC and CorrelationIdContext
+ *     F->>S: chain.doFilter
+ *     S-->>F: response
+ *     F->>C: add X-Correlation-Id header
+ *     F->>F: clear MDC and context
+ * }</pre>
+ *
+ * @see CorrelationIdContext
+ * @see OncePerRequestFilter
+ */
 @Component
 public class CorrelationIdFilter extends OncePerRequestFilter {
 
     private static final String HEADER = "X-Correlation-Id";
     private static final String MDC_KEY = "correlationId";
 
+    /** {@inheritDoc} */
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,

@@ -12,17 +12,34 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
+/**
+ * Adapts {@link SpringDataItemRepository} to the {@link ItemRepository} port.
+ *
+ * <pre>{@code
+ * classDiagram
+ *     class JpaItemRepositoryAdapter
+ *     class ItemRepository
+ *     class SpringDataItemRepository
+ *     JpaItemRepositoryAdapter --|> ItemRepository
+ *     JpaItemRepositoryAdapter --> SpringDataItemRepository
+ * }</pre>
+ *
+ * @see ItemRepository
+ * @see SpringDataItemRepository
+ */
 @Repository
 public class JpaItemRepositoryAdapter
         implements ItemRepository {
 
     private final SpringDataItemRepository delegate;
 
+    /** Creates an adapter backed by the given Spring Data repository. */
     public JpaItemRepositoryAdapter(
             SpringDataItemRepository delegate) {
         this.delegate = delegate;
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<Item> findByOrganizationId(
             UUID organizationId) {
@@ -30,6 +47,7 @@ public class JpaItemRepositoryAdapter
                 organizationId);
     }
 
+    /** {@inheritDoc} */
     @Override
     public PageResult<Item> findByOrganizationId(
             UUID organizationId, int page, int size) {
@@ -38,6 +56,7 @@ public class JpaItemRepositoryAdapter
         return toPageResult(p);
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<Item> searchByOrganizationId(
             UUID organizationId, String query) {
@@ -45,6 +64,7 @@ public class JpaItemRepositoryAdapter
                 organizationId, query);
     }
 
+    /** {@inheritDoc} */
     @Override
     public PageResult<Item> searchByOrganizationId(
             UUID organizationId, String query,
@@ -54,6 +74,7 @@ public class JpaItemRepositoryAdapter
         return toPageResult(p);
     }
 
+    /** {@inheritDoc} */
     @Override
     public Optional<Item> findByIdAndOrganizationId(
             UUID id, UUID organizationId) {
@@ -61,6 +82,7 @@ public class JpaItemRepositoryAdapter
                 id, organizationId);
     }
 
+    /** {@inheritDoc} */
     @Override
     public Item save(Item item) {
         return delegate.save(item);

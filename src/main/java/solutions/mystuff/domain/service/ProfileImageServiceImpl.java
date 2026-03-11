@@ -18,6 +18,24 @@ import solutions.mystuff.domain.port.out
         .OrganizationRepository;
 import org.springframework.stereotype.Service;
 
+/**
+ * Validates, resizes, and persists profile images for organizations and users.
+ *
+ * <p>Accepts PNG/JPEG uploads up to 512 KB and scales them to 128x128
+ * using bilinear interpolation before storing via the appropriate repository.
+ *
+ * <pre>{@code
+ * sequenceDiagram
+ *     Controller->>ProfileImageServiceImpl: saveOrganizationImage / saveUserImage
+ *     ProfileImageServiceImpl->>ProfileImageServiceImpl: validateType(contentType)
+ *     ProfileImageServiceImpl->>ProfileImageServiceImpl: resizeImage(imageData)
+ *     ProfileImageServiceImpl->>Repository: save(entity)
+ * }</pre>
+ *
+ * @see ProfileImageUpload
+ * @see OrganizationRepository
+ * @see AppUserRepository
+ */
 @Service
 public class ProfileImageServiceImpl
         implements ProfileImageUpload {
@@ -38,6 +56,7 @@ public class ProfileImageServiceImpl
         this.userRepo = userRepo;
     }
 
+    /** Validates, resizes, and saves a profile image for an organization. */
     @Override
     public void saveOrganizationImage(
             UUID orgId, byte[] imageData,
@@ -54,6 +73,7 @@ public class ProfileImageServiceImpl
         orgRepo.save(org);
     }
 
+    /** Validates, resizes, and saves a profile image for a user. */
     @Override
     public void saveUserImage(
             UUID userId, byte[] imageData,
@@ -70,6 +90,7 @@ public class ProfileImageServiceImpl
         userRepo.save(user);
     }
 
+    /** Validates content type and size, then resizes the image to 128x128. */
     @Override
     public byte[] resizeImage(
             byte[] imageData, String contentType) {

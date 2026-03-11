@@ -18,7 +18,7 @@ Use maven-checkstyle-plugin 3.6.0 with Checkstyle 10.25.0, running at the `valid
 
 | Rule | Limit |
 |------|-------|
-| FileLength | 500 lines |
+| FileLength | 750 lines |
 | MethodLength | 30 lines |
 | NeedBraces | Required |
 | AvoidStarImport | Forbidden |

@@ -32,6 +32,24 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation
         .RequestParam;
 
+/**
+ * Handles item CRUD and service operations at /items endpoints.
+ *
+ * <pre>{@code
+ * sequenceDiagram
+ *     Browser->>ItemController: GET/POST /items/**
+ *     ItemController->>ControllerHelper: resolveUser(principal)
+ *     ItemController->>VendorManagement: resolveVendor()
+ *     ItemController->>ScheduleLifecycle: createSchedule/complete/skip
+ *     ItemController->>RecordCreation: createRecord()
+ *     ItemController->>ItemRepository: save/find
+ *     ItemRepository-->>ItemController: Item/PageResult
+ *     ItemController-->>Browser: Thymeleaf view or redirect
+ * }</pre>
+ *
+ * @see ControllerHelper
+ * @see InputValidator
+ */
 @Controller
 public class ItemController {
 
@@ -66,11 +84,13 @@ public class ItemController {
         this.recordService = recordService;
     }
 
+    /** Redirects root to the schedules page. */
     @GetMapping("/")
     public String home() {
         return "redirect:/schedules";
     }
 
+    /** Lists items with optional search and pagination. */
     @GetMapping("/items")
     public String items(
             @RequestParam(required = false) String q,
@@ -94,6 +114,7 @@ public class ItemController {
         }
     }
 
+    /** Shows item detail with records and schedules. */
     @GetMapping("/items/detail")
     public String itemDetail(
             @RequestParam UUID itemId,
@@ -127,6 +148,7 @@ public class ItemController {
         }
     }
 
+    /** Creates a new item for the user's organization. */
     @PostMapping("/items/add")
     public String addItem(
             @RequestParam String name,
@@ -154,6 +176,7 @@ public class ItemController {
         }
     }
 
+    /** Logs an ad-hoc service record for an item. */
     @PostMapping("/items/log")
     public String logItemService(
             @RequestParam UUID itemId,
@@ -187,6 +210,7 @@ public class ItemController {
         }
     }
 
+    /** Creates a recurring service schedule for an item. */
     @PostMapping("/items/schedule")
     public String scheduleItemService(
             @RequestParam UUID itemId,
@@ -219,6 +243,7 @@ public class ItemController {
         }
     }
 
+    /** Marks a scheduled service as completed. */
     @PostMapping("/items/complete")
     public String completeSchedule(
             @RequestParam UUID scheduleId,
@@ -253,6 +278,7 @@ public class ItemController {
         }
     }
 
+    /** Skips the current occurrence and advances the due date. */
     @PostMapping("/items/skip")
     public String skipSchedule(
             @RequestParam UUID scheduleId,

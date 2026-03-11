@@ -3,11 +3,18 @@ package solutions.mystuff.application.web;
 import solutions.mystuff.domain.model.PageResult;
 import jakarta.servlet.http.HttpServletResponse;
 
+/**
+ * Adds RFC 8288 Link headers to HTTP responses for pagination.
+ *
+ * @see ItemController
+ * @see ScheduleController
+ */
 final class LinkHeaderBuilder {
 
     private LinkHeaderBuilder() {
     }
 
+    /** Builds and sets the Link header with first/last/prev/next rels. */
     static void addLinkHeader(
             HttpServletResponse response,
             String basePath,

@@ -22,6 +22,23 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation
         .RequestParam;
 
+/**
+ * Serves the reports page and generates PDF exports.
+ *
+ * <pre>{@code
+ * sequenceDiagram
+ *     Browser->>ReportController: GET /reports/**
+ *     ReportController->>ControllerHelper: resolveUser(principal)
+ *     ReportController->>ServiceScheduleRepository: query schedules
+ *     ReportController->>ServiceSummaryPdf: write(response)
+ *     ReportController->>ItemHistoryPdf: write(response)
+ *     ServiceSummaryPdf-->>Browser: PDF response
+ *     ItemHistoryPdf-->>Browser: PDF response
+ * }</pre>
+ *
+ * @see ServiceSummaryPdf
+ * @see ItemHistoryPdf
+ */
 @Controller
 public class ReportController {
 
@@ -41,6 +58,7 @@ public class ReportController {
         this.helper = helper;
     }
 
+    /** Renders the reports landing page. */
     @GetMapping("/reports")
     public String reports(
             Principal principal, Model model) {
@@ -63,6 +81,7 @@ public class ReportController {
         }
     }
 
+    /** Streams a PDF of schedules due within the cutoff window. */
     @GetMapping("/reports/service-summary")
     public void serviceSummary(
             Principal principal,
@@ -93,6 +112,7 @@ public class ReportController {
         }
     }
 
+    /** Streams a PDF of service history for a single item. */
     @GetMapping("/reports/item-history")
     public void itemHistory(
             @RequestParam UUID itemId,

@@ -3,11 +3,29 @@ package solutions.mystuff.application.web;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 
+/**
+ * Static validation utility for controller request parameters.
+ *
+ * <pre>{@code
+ * classDiagram
+ *     class InputValidator {
+ *         +requireNotBlank(String, String)$ String
+ *         +requireMaxLength(String, String, int)$ void
+ *         +requirePositive(int, String)$ void
+ *         +parseDate(String, String)$ LocalDate
+ *         +validateScheduleFields(String, int)$ void
+ *     }
+ * }</pre>
+ *
+ * @see ItemController
+ * @see ScheduleController
+ */
 public final class InputValidator {
 
     private InputValidator() {
     }
 
+    /** Validates that the value is not null or blank. */
     static String requireNotBlank(
             String value, String fieldName) {
         if (value == null || value.isBlank()) {
@@ -17,6 +35,7 @@ public final class InputValidator {
         return value.trim();
     }
 
+    /** Validates that the value does not exceed the maximum length. */
     static void requireMaxLength(
             String value, String fieldName,
             int maxLength) {
@@ -29,6 +48,7 @@ public final class InputValidator {
         }
     }
 
+    /** Validates that the integer value is at least 1. */
     static void requirePositive(
             int value, String fieldName) {
         if (value < 1) {
@@ -37,6 +57,7 @@ public final class InputValidator {
         }
     }
 
+    /** Parses an ISO date string, throwing on invalid input. */
     static LocalDate parseDate(
             String value, String fieldName) {
         requireNotBlank(value, fieldName);
@@ -50,6 +71,7 @@ public final class InputValidator {
         }
     }
 
+    /** Validates service type and frequency interval together. */
     static void validateScheduleFields(
             String serviceType,
             int frequencyInterval) {

@@ -26,6 +26,23 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation
         .RequestParam;
 
+/**
+ * Manages service schedule CRUD at /schedules endpoints.
+ *
+ * <pre>{@code
+ * sequenceDiagram
+ *     Browser->>ScheduleController: GET/POST /schedules/**
+ *     ScheduleController->>ControllerHelper: resolveUser(principal)
+ *     ScheduleController->>VendorManagement: resolveVendor()
+ *     ScheduleController->>ScheduleLifecycle: create/edit/complete/deactivate
+ *     ScheduleLifecycle->>ServiceScheduleRepository: persist
+ *     ServiceScheduleRepository-->>ScheduleController: result
+ *     ScheduleController-->>Browser: Thymeleaf view or redirect
+ * }</pre>
+ *
+ * @see ControllerHelper
+ * @see InputValidator
+ */
 @Controller
 public class ScheduleController {
 
@@ -52,6 +69,7 @@ public class ScheduleController {
         this.scheduleService = scheduleService;
     }
 
+    /** Lists active schedules with pagination. */
     @GetMapping("/schedules")
     public String schedules(
             @RequestParam(defaultValue = "0") int page,
@@ -74,6 +92,7 @@ public class ScheduleController {
         }
     }
 
+    /** Completes a schedule by logging a service record. */
     @PostMapping("/schedules/log")
     public String logScheduleService(
             @RequestParam UUID scheduleId,
@@ -106,6 +125,7 @@ public class ScheduleController {
         }
     }
 
+    /** Deactivates (soft-deletes) a schedule. */
     @PostMapping("/schedules/delete")
     public String deleteSchedule(
             @RequestParam UUID scheduleId,
@@ -122,6 +142,7 @@ public class ScheduleController {
         }
     }
 
+    /** Creates a new recurring service schedule. */
     @PostMapping("/schedules/create")
     public String createSchedule(
             @RequestParam UUID itemId,
@@ -154,6 +175,7 @@ public class ScheduleController {
         }
     }
 
+    /** Updates an existing schedule's fields. */
     @PostMapping("/schedules/edit")
     public String editSchedule(
             @RequestParam UUID scheduleId,

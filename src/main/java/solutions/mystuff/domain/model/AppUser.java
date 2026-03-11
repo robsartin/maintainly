@@ -8,6 +8,30 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+/**
+ * Authenticated user associated with an organization.
+ *
+ * <p>Holds the login username, an optional {@link Organization}
+ * membership, and an optional profile image with its MIME type.
+ *
+ * <pre>{@code
+ * classDiagram
+ *     class AppUser {
+ *         String username
+ *         byte[] profileImage
+ *         String profileImageType
+ *         +hasOrganization() boolean
+ *         +hasProfileImage() boolean
+ *     }
+ *     class Organization {
+ *         String name
+ *     }
+ *     AppUser "*" --> "0..1" Organization
+ * }</pre>
+ *
+ * @see Organization
+ * @see BaseEntity
+ */
 @Entity
 @Table(name = "app_users")
 public class AppUser extends BaseEntity {
@@ -42,6 +66,7 @@ public class AppUser extends BaseEntity {
         this.organization = organization;
     }
 
+    /** Return true if the user belongs to an organization. */
     public boolean hasOrganization() {
         return organization != null
                 && organization.getId() != null;
@@ -69,6 +94,7 @@ public class AppUser extends BaseEntity {
         this.profileImageType = profileImageType;
     }
 
+    /** Return true if a profile image has been uploaded. */
     public boolean hasProfileImage() {
         return profileImage != null
                 && profileImage.length > 0;

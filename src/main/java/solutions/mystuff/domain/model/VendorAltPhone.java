@@ -7,6 +7,28 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+/**
+ * Additional phone number belonging to a {@link Vendor}.
+ *
+ * <p>Each alternate phone carries an optional label (e.g. "mobile",
+ * "after-hours") and is cascade-managed by its parent vendor.
+ *
+ * <pre>{@code
+ * classDiagram
+ *     class Vendor {
+ *         String name
+ *         String phone
+ *     }
+ *     class VendorAltPhone {
+ *         String phone
+ *         String label
+ *     }
+ *     Vendor "1" --> "*" VendorAltPhone
+ * }</pre>
+ *
+ * @see Vendor
+ * @see OrgOwnedEntity
+ */
 @Entity
 @Table(name = "vendor_alt_phones")
 public class VendorAltPhone extends OrgOwnedEntity {

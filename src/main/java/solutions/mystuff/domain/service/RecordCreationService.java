@@ -14,6 +14,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+/**
+ * Validates input and creates service records for completed maintenance work.
+ *
+ * <p>Enforces a required summary (max 250 chars) and optional technician
+ * name (max 200 chars) before persisting via the repository.
+ *
+ * <pre>{@code
+ * sequenceDiagram
+ *     Controller->>RecordCreationService: createRecord(...)
+ *     RecordCreationService->>RecordCreationService: validateSummary / validateTechName
+ *     RecordCreationService->>ServiceRecordRepository: save(record)
+ * }</pre>
+ *
+ * @see RecordCreation
+ * @see ServiceRecordRepository
+ */
 @Service
 public class RecordCreationService
         implements RecordCreation {
@@ -31,6 +47,7 @@ public class RecordCreationService
         this.recordRepo = recordRepo;
     }
 
+    /** Validates inputs and persists a new service record. */
     @Override
     public void createRecord(
             UUID orgId, Item item,

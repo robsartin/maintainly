@@ -7,22 +7,47 @@ import java.util.UUID;
 import solutions.mystuff.domain.model.Item;
 import solutions.mystuff.domain.model.PageResult;
 
+/**
+ * Outbound port for querying and persisting items.
+ *
+ * <pre>{@code
+ * classDiagram
+ *     class ItemRepository {
+ *         <<interface>>
+ *         +findByOrganizationId(UUID) List~Item~
+ *         +findByOrganizationId(UUID, int, int) PageResult~Item~
+ *         +searchByOrganizationId(UUID, String) List~Item~
+ *         +searchByOrganizationId(UUID, String, int, int) PageResult~Item~
+ *         +findByIdAndOrganizationId(UUID, UUID) Optional~Item~
+ *         +save(Item) Item
+ *     }
+ *     JpaItemRepositoryAdapter ..|> ItemRepository
+ * }</pre>
+ *
+ * @see solutions.mystuff.domain.model.Item
+ */
 public interface ItemRepository {
 
+    /** Find all items belonging to an organization. */
     List<Item> findByOrganizationId(UUID organizationId);
 
+    /** Find a page of items belonging to an organization. */
     PageResult<Item> findByOrganizationId(
             UUID organizationId, int page, int size);
 
+    /** Search items by query within an organization. */
     List<Item> searchByOrganizationId(
             UUID organizationId, String query);
 
+    /** Search items by query with pagination. */
     PageResult<Item> searchByOrganizationId(
             UUID organizationId, String query,
             int page, int size);
 
+    /** Find a single item by ID scoped to an organization. */
     Optional<Item> findByIdAndOrganizationId(
             UUID id, UUID organizationId);
 
+    /** Persist a new or updated item. */
     Item save(Item item);
 }

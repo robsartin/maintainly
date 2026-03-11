@@ -21,6 +21,20 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Seeds the database with sample data on startup when absent.
+ *
+ * <pre>{@code
+ * flowchart TD
+ *     A[CommandLineRunner] --> B{org exists?}
+ *     B -->|yes| C[skip]
+ *     B -->|no| D[create Organization]
+ *     D --> E[create dev AppUser]
+ *     E --> F[create Items, Vendors, Schedules]
+ * }</pre>
+ *
+ * @see CommandLineRunner
+ */
 @Configuration
 public class SampleDataConfiguration {
 
@@ -30,6 +44,7 @@ public class SampleDataConfiguration {
             LoggerFactory.getLogger(
                     SampleDataConfiguration.class);
 
+    /** Returns a runner that seeds sample data if not already present. */
     @Bean
     public CommandLineRunner loadSampleData(
             OrganizationRepository orgRepo,

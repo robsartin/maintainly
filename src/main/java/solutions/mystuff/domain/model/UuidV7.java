@@ -3,6 +3,15 @@ package solutions.mystuff.domain.model;
 import java.security.SecureRandom;
 import java.util.UUID;
 
+/**
+ * Utility that generates time-ordered UUIDv7 identifiers.
+ *
+ * <p>The first 48 bits encode a Unix-epoch millisecond timestamp,
+ * producing naturally sortable keys. Remaining random bits come
+ * from {@link java.security.SecureRandom}.
+ *
+ * @see BaseEntity
+ */
 public final class UuidV7 {
 
     private static final SecureRandom RANDOM = new SecureRandom();
@@ -10,6 +19,7 @@ public final class UuidV7 {
     private UuidV7() {
     }
 
+    /** Generate a new time-ordered UUIDv7. */
     public static UUID generate() {
         long timestamp = System.currentTimeMillis();
         byte[] bytes = new byte[16];

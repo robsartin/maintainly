@@ -11,6 +11,19 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+/**
+ * Internal Spring Data repository for {@link ServiceSchedule} persistence.
+ *
+ * <pre>{@code
+ * classDiagram
+ *     class SpringDataScheduleRepository
+ *     class JpaRepository~ServiceSchedule, UUID~
+ *     SpringDataScheduleRepository --|> JpaRepository~ServiceSchedule, UUID~
+ * }</pre>
+ *
+ * @see JpaScheduleRepositoryAdapter
+ * @see ServiceSchedule
+ */
 interface SpringDataScheduleRepository
         extends JpaRepository<ServiceSchedule, UUID> {
 

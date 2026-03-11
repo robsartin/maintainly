@@ -9,6 +9,33 @@ import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 
+/**
+ * Abstract JPA superclass providing identity and audit timestamps.
+ *
+ * <p>Every persistent entity inherits a UUIDv7 primary key that is
+ * auto-generated on first persist, plus {@code createdAt} and
+ * {@code updatedAt} timestamps managed by JPA lifecycle callbacks.
+ *
+ * <pre>{@code
+ * classDiagram
+ *     class BaseEntity {
+ *         UUID id
+ *         Instant createdAt
+ *         Instant updatedAt
+ *         #onCreate()
+ *         #onUpdate()
+ *     }
+ *     class OrgOwnedEntity
+ *     class Organization
+ *     class AppUser
+ *     BaseEntity <|-- OrgOwnedEntity
+ *     BaseEntity <|-- Organization
+ *     BaseEntity <|-- AppUser
+ * }</pre>
+ *
+ * @see OrgOwnedEntity
+ * @see UuidV7
+ */
 @MappedSuperclass
 public abstract class BaseEntity {
 
@@ -23,6 +50,7 @@ public abstract class BaseEntity {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    /** Assign a UUIDv7 id and set audit timestamps on persist. */
     @PrePersist
     protected void onCreate() {
         if (id == null) {
@@ -33,6 +61,7 @@ public abstract class BaseEntity {
         this.updatedAt = now;
     }
 
+    /** Refresh the updatedAt timestamp before each update. */
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = Instant.now();

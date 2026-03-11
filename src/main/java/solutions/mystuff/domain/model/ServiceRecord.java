@@ -12,6 +12,31 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
+/**
+ * Completed service event recorded against an {@link Item}.
+ *
+ * <p>Links to the originating {@link ServiceSchedule} (if any) and
+ * the {@link Vendor} who performed the work. Captures a summary,
+ * full description, cost, and the date the service occurred.
+ *
+ * <pre>{@code
+ * classDiagram
+ *     class ServiceRecord {
+ *         String serviceType
+ *         LocalDate serviceDate
+ *         String summary
+ *         BigDecimal cost
+ *     }
+ *     ServiceRecord "*" --> "1" Item
+ *     ServiceRecord "*" --> "0..1" ServiceSchedule
+ *     ServiceRecord "*" --> "0..1" Vendor
+ * }</pre>
+ *
+ * @see Item
+ * @see ServiceSchedule
+ * @see Vendor
+ * @see OrgOwnedEntity
+ */
 @Entity
 @Table(name = "service_records")
 public class ServiceRecord extends OrgOwnedEntity {
@@ -47,6 +72,7 @@ public class ServiceRecord extends OrgOwnedEntity {
     @Column(precision = 12, scale = 2)
     private BigDecimal cost;
 
+    /** Set the data-entry timestamp and delegate to the base persist callback. */
     @Override
     @PrePersist
     protected void onCreate() {

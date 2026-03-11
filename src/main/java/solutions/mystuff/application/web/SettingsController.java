@@ -16,6 +16,22 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
+/**
+ * Manages user and organization settings including profile images.
+ *
+ * <pre>{@code
+ * sequenceDiagram
+ *     Browser->>SettingsController: GET/POST /settings/**
+ *     SettingsController->>ControllerHelper: resolveUser(principal)
+ *     SettingsController->>ProfileImageUpload: saveOrgImage/saveUserImage
+ *     ProfileImageUpload->>Repository: persist image bytes
+ *     Repository-->>SettingsController: result
+ *     SettingsController-->>Browser: Thymeleaf view or image bytes
+ * }</pre>
+ *
+ * @see ControllerHelper
+ * @see solutions.mystuff.domain.port.in.ProfileImageUpload
+ */
 @Controller
 public class SettingsController {
 
@@ -29,6 +45,7 @@ public class SettingsController {
         this.imageService = imageService;
     }
 
+    /** Renders the settings page for the current user. */
     @GetMapping("/settings")
     public String settings(
             Principal principal, Model model) {
@@ -38,6 +55,7 @@ public class SettingsController {
         return "settings";
     }
 
+    /** Uploads a profile image for the organization. */
     @PostMapping("/settings/org-image")
     public String uploadOrgImage(
             @RequestParam("file") MultipartFile file,
@@ -51,6 +69,7 @@ public class SettingsController {
         return "redirect:/settings";
     }
 
+    /** Uploads a profile image for the current user. */
     @PostMapping("/settings/user-image")
     public String uploadUserImage(
             @RequestParam("file") MultipartFile file,
@@ -64,6 +83,7 @@ public class SettingsController {
         return "redirect:/settings";
     }
 
+    /** Returns the organization's profile image bytes. */
     @GetMapping("/profile-image/org")
     public ResponseEntity<byte[]> orgImage(
             Principal principal) {
@@ -77,6 +97,7 @@ public class SettingsController {
                 org.getProfileImageType());
     }
 
+    /** Returns the current user's profile image bytes. */
     @GetMapping("/profile-image/user")
     public ResponseEntity<byte[]> userImage(
             Principal principal) {

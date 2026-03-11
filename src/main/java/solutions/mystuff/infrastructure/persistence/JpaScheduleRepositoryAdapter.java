@@ -12,17 +12,34 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
+/**
+ * Adapts {@link SpringDataScheduleRepository} to the {@link ServiceScheduleRepository} port.
+ *
+ * <pre>{@code
+ * classDiagram
+ *     class JpaScheduleRepositoryAdapter
+ *     class ServiceScheduleRepository
+ *     class SpringDataScheduleRepository
+ *     JpaScheduleRepositoryAdapter --|> ServiceScheduleRepository
+ *     JpaScheduleRepositoryAdapter --> SpringDataScheduleRepository
+ * }</pre>
+ *
+ * @see ServiceScheduleRepository
+ * @see SpringDataScheduleRepository
+ */
 @Repository
 public class JpaScheduleRepositoryAdapter
         implements ServiceScheduleRepository {
 
     private final SpringDataScheduleRepository delegate;
 
+    /** Creates an adapter backed by the given Spring Data repository. */
     public JpaScheduleRepositoryAdapter(
             SpringDataScheduleRepository delegate) {
         this.delegate = delegate;
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<ServiceSchedule>
             findByOrganizationIdOrderByNextDueDate(
@@ -31,6 +48,7 @@ public class JpaScheduleRepositoryAdapter
                 organizationId);
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<ServiceSchedule>
             findActiveByOrganizationId(
@@ -38,6 +56,7 @@ public class JpaScheduleRepositoryAdapter
         return delegate.findActiveByOrgId(organizationId);
     }
 
+    /** {@inheritDoc} */
     @Override
     public PageResult<ServiceSchedule>
             findActiveByOrganizationId(
@@ -50,6 +69,7 @@ public class JpaScheduleRepositoryAdapter
         return toPageResult(p);
     }
 
+    /** {@inheritDoc} */
     @Override
     public Optional<ServiceSchedule>
             findByIdAndOrganizationId(
@@ -58,6 +78,7 @@ public class JpaScheduleRepositoryAdapter
                 id, organizationId);
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<ServiceSchedule>
             findByItemIdAndOrganizationId(
@@ -66,6 +87,7 @@ public class JpaScheduleRepositoryAdapter
                 itemId, organizationId);
     }
 
+    /** {@inheritDoc} */
     @Override
     public ServiceSchedule save(
             ServiceSchedule schedule) {

@@ -8,6 +8,21 @@ import solutions.mystuff.domain.port.out.AppUserRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+/**
+ * Spring Data JPA adapter for the {@link AppUserRepository} port.
+ *
+ * <pre>{@code
+ * classDiagram
+ *     class JpaAppUserRepository
+ *     class JpaRepository~AppUser, UUID~
+ *     class AppUserRepository
+ *     JpaAppUserRepository --|> JpaRepository~AppUser, UUID~
+ *     JpaAppUserRepository --|> AppUserRepository
+ * }</pre>
+ *
+ * @see AppUserRepository
+ * @see AppUser
+ */
 @Repository
 public interface JpaAppUserRepository
         extends JpaRepository<AppUser, UUID>,

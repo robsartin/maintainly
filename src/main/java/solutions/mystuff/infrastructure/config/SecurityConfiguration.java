@@ -14,6 +14,20 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
+/**
+ * Configures Spring Security for production and development profiles.
+ *
+ * <pre>{@code
+ * flowchart TD
+ *     A[Profile check] -->|prod| B[OAuth2 SecurityFilterChain]
+ *     A -->|!prod| C[Form-login SecurityFilterChain]
+ *     A -->|!prod| D[InMemory UserDetailsService]
+ *     A --> E[BCrypt PasswordEncoder]
+ * }</pre>
+ *
+ * @see SecurityFilterChain
+ * @see PasswordEncoder
+ */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfiguration {
@@ -30,6 +44,7 @@ public class SecurityConfiguration {
         "/swagger-ui.html"
     };
 
+    /** Creates the OAuth2-based security filter chain for production. */
     @Bean
     @Profile("prod")
     public SecurityFilterChain prodFilterChain(
@@ -42,6 +57,7 @@ public class SecurityConfiguration {
         return http.build();
     }
 
+    /** Creates the form-login security filter chain for development. */
     @Bean
     @Profile("!prod")
     public SecurityFilterChain devFilterChain(
@@ -55,6 +71,7 @@ public class SecurityConfiguration {
         return http.build();
     }
 
+    /** Creates an in-memory user details service with a dev/dev account. */
     @Bean
     @Profile("!prod")
     public UserDetailsService devUserDetailsService(
@@ -67,6 +84,7 @@ public class SecurityConfiguration {
         return new InMemoryUserDetailsManager(devUser);
     }
 
+    /** Creates a BCrypt password encoder bean. */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

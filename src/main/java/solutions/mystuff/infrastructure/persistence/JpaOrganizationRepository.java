@@ -7,6 +7,21 @@ import solutions.mystuff.domain.port.out.OrganizationRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+/**
+ * Spring Data JPA adapter for the {@link OrganizationRepository} port.
+ *
+ * <pre>{@code
+ * classDiagram
+ *     class JpaOrganizationRepository
+ *     class JpaRepository~Organization, UUID~
+ *     class OrganizationRepository
+ *     JpaOrganizationRepository --|> JpaRepository~Organization, UUID~
+ *     JpaOrganizationRepository --|> OrganizationRepository
+ * }</pre>
+ *
+ * @see OrganizationRepository
+ * @see Organization
+ */
 @Repository
 public interface JpaOrganizationRepository
         extends JpaRepository<Organization, UUID>,

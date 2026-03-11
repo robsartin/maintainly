@@ -9,6 +9,35 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
+/**
+ * Service provider or contractor associated with an organization.
+ *
+ * <p>Stores contact information including a primary phone, email,
+ * full mailing address, and a list of alternate phone numbers.
+ *
+ * <pre>{@code
+ * classDiagram
+ *     class OrgOwnedEntity {
+ *         UUID organizationId
+ *     }
+ *     class Vendor {
+ *         String name
+ *         String phone
+ *         String email
+ *         String addressLine1
+ *         String city
+ *     }
+ *     class VendorAltPhone {
+ *         String phone
+ *         String label
+ *     }
+ *     OrgOwnedEntity <|-- Vendor
+ *     Vendor "1" --> "*" VendorAltPhone
+ * }</pre>
+ *
+ * @see VendorAltPhone
+ * @see OrgOwnedEntity
+ */
 @Entity
 @Table(name = "vendors")
 public class Vendor extends OrgOwnedEntity {

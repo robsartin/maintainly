@@ -10,6 +10,35 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
+/**
+ * Trackable asset or piece of equipment owned by an organization.
+ *
+ * <p>Captures identifying details (manufacturer, model, serial number)
+ * and links to its recurring {@link ServiceSchedule}s and completed
+ * {@link ServiceRecord}s.
+ *
+ * <pre>{@code
+ * classDiagram
+ *     class OrgOwnedEntity {
+ *         UUID organizationId
+ *     }
+ *     class Item {
+ *         String name
+ *         String location
+ *         String manufacturer
+ *         String modelName
+ *         Integer modelYear
+ *         String serialNumber
+ *     }
+ *     OrgOwnedEntity <|-- Item
+ *     Item "1" --> "*" ServiceSchedule
+ *     Item "1" --> "*" ServiceRecord
+ * }</pre>
+ *
+ * @see ServiceSchedule
+ * @see ServiceRecord
+ * @see OrgOwnedEntity
+ */
 @Entity
 @Table(name = "items")
 public class Item extends OrgOwnedEntity {

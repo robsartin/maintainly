@@ -4,6 +4,30 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
+/**
+ * Tenant organization that owns items, vendors, and schedules.
+ *
+ * <p>Stores branding details (name, logo URL) and an optional
+ * profile image stored as a byte array with its MIME type.
+ *
+ * <pre>{@code
+ * classDiagram
+ *     class Organization {
+ *         String name
+ *         String logoUrl
+ *         byte[] profileImage
+ *         String profileImageType
+ *         +hasProfileImage() boolean
+ *     }
+ *     class AppUser {
+ *         String username
+ *     }
+ *     AppUser "*" --> "1" Organization
+ * }</pre>
+ *
+ * @see AppUser
+ * @see BaseEntity
+ */
 @Entity
 @Table(name = "organizations")
 public class Organization extends BaseEntity {
@@ -55,6 +79,7 @@ public class Organization extends BaseEntity {
         this.profileImageType = profileImageType;
     }
 
+    /** Return true if a profile image has been uploaded. */
     public boolean hasProfileImage() {
         return profileImage != null
                 && profileImage.length > 0;

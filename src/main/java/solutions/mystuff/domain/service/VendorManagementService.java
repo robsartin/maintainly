@@ -7,6 +7,26 @@ import solutions.mystuff.domain.port.in.VendorManagement;
 import solutions.mystuff.domain.port.out.VendorRepository;
 import org.springframework.stereotype.Service;
 
+/**
+ * Resolves or creates vendors for use in service schedules and records.
+ *
+ * <p>When the sentinel value {@code "__new__"} is passed as the vendor ID,
+ * a new vendor is created after validating name (max 200) and phone
+ * (max 50) lengths. Otherwise the existing vendor is looked up by ID.
+ *
+ * <pre>{@code
+ * sequenceDiagram
+ *     Controller->>VendorManagementService: resolveVendor(...)
+ *     alt vendorId == "__new__"
+ *         VendorManagementService->>VendorRepository: save(newVendor)
+ *     else existing vendor
+ *         VendorManagementService->>VendorRepository: findByIdAndOrganizationId(...)
+ *     end
+ * }</pre>
+ *
+ * @see VendorManagement
+ * @see VendorRepository
+ */
 @Service
 public class VendorManagementService
         implements VendorManagement {
@@ -21,6 +41,7 @@ public class VendorManagementService
         this.vendorRepository = vendorRepository;
     }
 
+    /** Resolves an existing vendor by ID or creates a new one. */
     @Override
     public Vendor resolveVendor(
             UUID orgId, String vendorId,

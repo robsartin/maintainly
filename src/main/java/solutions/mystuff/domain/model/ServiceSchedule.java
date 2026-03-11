@@ -11,6 +11,30 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+/**
+ * Recurring maintenance schedule attached to an {@link Item}.
+ *
+ * <p>Defines a service type, recurrence frequency, and tracks the
+ * next due date. Optionally references a preferred {@link Vendor}.
+ *
+ * <pre>{@code
+ * classDiagram
+ *     class ServiceSchedule {
+ *         String serviceType
+ *         Integer frequencyInterval
+ *         FrequencyUnit frequencyUnit
+ *         LocalDate nextDueDate
+ *         boolean active
+ *     }
+ *     ServiceSchedule "*" --> "1" Item
+ *     ServiceSchedule "*" --> "0..1" Vendor
+ * }</pre>
+ *
+ * @see Item
+ * @see Vendor
+ * @see FrequencyUnit
+ * @see OrgOwnedEntity
+ */
 @Entity
 @Table(name = "service_schedules")
 public class ServiceSchedule extends OrgOwnedEntity {
@@ -133,6 +157,7 @@ public class ServiceSchedule extends OrgOwnedEntity {
         this.notes = notes;
     }
 
+    /** Advance the next due date based on the completed date and frequency. */
     public void advanceNextDueDate(
             LocalDate completedDate) {
         this.lastCompletedDate = completedDate;

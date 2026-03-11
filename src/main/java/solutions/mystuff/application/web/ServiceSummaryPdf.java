@@ -17,6 +17,19 @@ import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
 import jakarta.servlet.http.HttpServletResponse;
 
+/**
+ * Generates a PDF report of service schedules due soon
+ * using OpenPDF.
+ *
+ * <pre>{@code
+ * sequenceDiagram
+ *     ReportController->>ServiceSummaryPdf: write(response, schedules, cutoff, ...)
+ *     ServiceSummaryPdf->>Document: org header, cutoff title, schedule table
+ *     ServiceSummaryPdf-->>Browser: PDF via HttpServletResponse
+ * }</pre>
+ *
+ * @see ReportController
+ */
 final class ServiceSummaryPdf {
 
     private static final DateTimeFormatter FMT =
@@ -36,6 +49,7 @@ final class ServiceSummaryPdf {
     private ServiceSummaryPdf() {
     }
 
+    /** Writes the service summary PDF to the HTTP response stream. */
     static void write(
             HttpServletResponse response,
             List<ServiceSchedule> schedules,

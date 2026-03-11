@@ -18,6 +18,25 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation
         .Transactional;
 
+/**
+ * Manages the full lifecycle of service schedules within a transaction.
+ *
+ * <p>Supports creating, completing, skipping, editing, and deactivating
+ * schedules. On completion, delegates to {@link RecordCreation} to persist
+ * a service record and advances the next due date.
+ *
+ * <pre>{@code
+ * sequenceDiagram
+ *     Controller->>ScheduleLifecycleService: completeSchedule(...)
+ *     ScheduleLifecycleService->>ScheduleLifecycleService: validate / findSchedule
+ *     ScheduleLifecycleService->>RecordCreation: createRecord(...)
+ *     ScheduleLifecycleService->>ServiceScheduleRepository: save(schedule)
+ * }</pre>
+ *
+ * @see ScheduleLifecycle
+ * @see RecordCreation
+ * @see ServiceScheduleRepository
+ */
 @Service
 public class ScheduleLifecycleService
         implements ScheduleLifecycle {
@@ -40,6 +59,7 @@ public class ScheduleLifecycleService
         this.recordCreation = recordCreation;
     }
 
+    /** Creates a new service schedule for the given item. */
     @Override
     @Transactional
     public ServiceSchedule createSchedule(
@@ -67,6 +87,7 @@ public class ScheduleLifecycleService
         return saved;
     }
 
+    /** Records completion, creates a service record, and advances the due date. */
     @Override
     @Transactional
     public ServiceSchedule completeSchedule(
@@ -87,6 +108,7 @@ public class ScheduleLifecycleService
         return saved;
     }
 
+    /** Skips the current occurrence and advances the due date. */
     @Override
     @Transactional
     public ServiceSchedule skipSchedule(
@@ -105,6 +127,7 @@ public class ScheduleLifecycleService
         return saved;
     }
 
+    /** Updates the schedule's service type, frequency, due date, and vendor. */
     @Override
     @Transactional
     public ServiceSchedule editSchedule(
@@ -128,6 +151,7 @@ public class ScheduleLifecycleService
         return saved;
     }
 
+    /** Marks a schedule as inactive so it no longer generates due dates. */
     @Override
     @Transactional
     public void deactivateSchedule(

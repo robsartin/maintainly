@@ -12,6 +12,22 @@ import org.springframework.security.oauth2.core.user
 import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
 
+/**
+ * Shared helper used by all controllers for user resolution and MDC.
+ *
+ * <pre>{@code
+ * classDiagram
+ *     class ControllerHelper {
+ *         +resolveUser(Principal) AppUser
+ *         +addUserAttrs(AppUser, Model) void
+ *         +setOrgMdc(AppUser) void
+ *         +clearOrgMdc() void
+ *         +clampSize(int) int
+ *     }
+ * }</pre>
+ *
+ * @see solutions.mystuff.domain.port.in.UserResolver
+ */
 @Component
 public class ControllerHelper {
 
@@ -25,6 +41,7 @@ public class ControllerHelper {
         this.userResolver = userResolver;
     }
 
+    /** Resolves the authenticated principal to an AppUser. */
     AppUser resolveUser(Principal principal) {
         return userResolver.resolveOrCreate(
                 extractUsername(principal));
@@ -42,6 +59,7 @@ public class ControllerHelper {
         return principal.getName();
     }
 
+    /** Adds username and organization attributes to the model. */
     void addUserAttrs(AppUser user, Model model) {
         model.addAttribute("username",
                 user.getUsername());
@@ -50,6 +68,7 @@ public class ControllerHelper {
         model.addAttribute("currentUser", user);
     }
 
+    /** Sets the organization ID in the MDC for log correlation. */
     void setOrgMdc(AppUser user) {
         if (user.hasOrganization()) {
             MDC.put(MDC_ORG_ID,
@@ -58,10 +77,12 @@ public class ControllerHelper {
         }
     }
 
+    /** Removes the organization ID from the MDC. */
     void clearOrgMdc() {
         MDC.remove(MDC_ORG_ID);
     }
 
+    /** Clamps page size between 1 and the configured maximum. */
     int clampSize(int size) {
         return Math.max(1, Math.min(size, MAX_PAGE_SIZE));
     }
