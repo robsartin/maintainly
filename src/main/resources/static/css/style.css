@@ -127,6 +127,26 @@ button:hover {
     vertical-align: middle;
 }
 
+td.actions .btn-icon {
+    background: transparent;
+    color: #333;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+td.actions .btn-icon:hover {
+    background: rgba(0,0,0,0.08);
+    color: #000;
+}
+
+tr:hover > td.actions .btn-icon {
+    opacity: 1;
+}
+
+td.actions form {
+    display: inline;
+}
+
 .btn-log {
     background: #43a047;
 }
