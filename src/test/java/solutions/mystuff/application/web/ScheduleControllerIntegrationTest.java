@@ -221,6 +221,61 @@ class ScheduleControllerIntegrationTest {
                         "noOrganization", true));
     }
 
+    @Test
+    @DisplayName("should reject blank service type"
+            + " on edit")
+    void shouldRejectBlankServiceTypeOnEdit()
+            throws Exception {
+        String scheduleId = getFirstScheduleId();
+        mockMvc.perform(post("/schedules/edit")
+                        .param("scheduleId", scheduleId)
+                        .param("serviceType", "  ")
+                        .param("nextDueDate", "2026-12-15")
+                        .param("frequencyInterval", "1")
+                        .param("frequencyUnit", "months")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists(
+                        "error"));
+    }
+
+    @Test
+    @DisplayName("should reject zero interval on edit")
+    void shouldRejectZeroIntervalOnEdit()
+            throws Exception {
+        String scheduleId = getFirstScheduleId();
+        mockMvc.perform(post("/schedules/edit")
+                        .param("scheduleId", scheduleId)
+                        .param("serviceType", "Test")
+                        .param("nextDueDate", "2026-12-15")
+                        .param("frequencyInterval", "0")
+                        .param("frequencyUnit", "months")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists(
+                        "error"));
+    }
+
+    @Test
+    @DisplayName("should reject invalid date on create")
+    void shouldRejectInvalidDateOnCreate()
+            throws Exception {
+        String itemId = getFirstItemId();
+        mockMvc.perform(post("/schedules/create")
+                        .param("itemId", itemId)
+                        .param("serviceType", "Test")
+                        .param("nextDueDate", "bad-date")
+                        .param("frequencyInterval", "1")
+                        .param("frequencyUnit", "months")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists(
+                        "error"));
+    }
+
     @SuppressWarnings("unchecked")
     private String getFirstScheduleId()
             throws Exception {

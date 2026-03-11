@@ -93,6 +93,46 @@ public class ControllerHelper {
         return Math.max(1, Math.min(size, MAX_PAGE_SIZE));
     }
 
+    static void requireNotBlank(
+            String value, String fieldName) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(
+                    fieldName + " is required");
+        }
+    }
+
+    static void requireMaxLength(
+            String value, String fieldName,
+            int maxLength) {
+        if (value != null
+                && value.trim().length() > maxLength) {
+            throw new IllegalArgumentException(
+                    fieldName + " exceeds maximum length of "
+                            + maxLength);
+        }
+    }
+
+    static void requirePositive(
+            int value, String fieldName) {
+        if (value < 1) {
+            throw new IllegalArgumentException(
+                    fieldName + " must be at least 1");
+        }
+    }
+
+    static LocalDate parseDate(
+            String value, String fieldName) {
+        requireNotBlank(value, fieldName);
+        try {
+            return LocalDate.parse(value.trim());
+        } catch (java.time.format.DateTimeParseException e) {
+            throw new IllegalArgumentException(
+                    fieldName
+                            + " must be a valid date"
+                            + " (yyyy-MM-dd)");
+        }
+    }
+
     void saveRecord(
             UUID orgId, Item item,
             String serviceType,
@@ -100,7 +140,11 @@ public class ControllerHelper {
             Vendor vendor,
             String summary, String serviceDate,
             String techName) {
-        LocalDate date = LocalDate.parse(serviceDate);
+        requireNotBlank(summary, "Summary");
+        requireMaxLength(summary, "Summary", 250);
+        requireMaxLength(techName, "Technician", 200);
+        LocalDate date = parseDate(
+                serviceDate, "Service date");
         ServiceRecord record = new ServiceRecord();
         record.setOrganizationId(orgId);
         record.setItem(item);
@@ -108,7 +152,7 @@ public class ControllerHelper {
         record.setServiceSchedule(schedule);
         record.setVendor(vendor);
         record.setServiceDate(date);
-        record.setSummary(summary);
+        record.setSummary(summary.trim());
         if (techName != null && !techName.isBlank()) {
             record.setDescription(
                     "Technician: " + techName.trim());
@@ -144,12 +188,18 @@ public class ControllerHelper {
             String nextDueDate,
             int frequencyInterval,
             FrequencyUnit frequencyUnit) {
-        LocalDate due = LocalDate.parse(nextDueDate);
+        requireNotBlank(serviceType, "Service type");
+        requireMaxLength(
+                serviceType, "Service type", 150);
+        requirePositive(
+                frequencyInterval, "Frequency interval");
+        LocalDate due = parseDate(
+                nextDueDate, "Next due date");
         ServiceSchedule newSched =
                 new ServiceSchedule();
         newSched.setOrganizationId(orgId);
         newSched.setItem(item);
-        newSched.setServiceType(serviceType);
+        newSched.setServiceType(serviceType.trim());
         newSched.setPreferredVendor(vendor);
         newSched.setFrequencyUnit(frequencyUnit);
         newSched.setFrequencyInterval(frequencyInterval);
@@ -162,10 +212,9 @@ public class ControllerHelper {
 
     private Vendor createVendor(
             UUID orgId, String name, String phone) {
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException(
-                    "Vendor name is required");
-        }
+        requireNotBlank(name, "Vendor name");
+        requireMaxLength(name, "Vendor name", 200);
+        requireMaxLength(phone, "Vendor phone", 50);
         Vendor vendor = new Vendor();
         vendor.setOrganizationId(orgId);
         vendor.setName(name.trim());

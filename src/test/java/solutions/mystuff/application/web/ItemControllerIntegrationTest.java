@@ -420,6 +420,98 @@ class ItemControllerIntegrationTest {
                         "noOrganization", true));
     }
 
+    @Test
+    @DisplayName("should reject blank item name")
+    void shouldRejectBlankItemName() throws Exception {
+        mockMvc.perform(post("/items/add")
+                        .param("name", "  ")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists(
+                        "error"));
+    }
+
+    @Test
+    @DisplayName("should reject item name exceeding"
+            + " max length")
+    void shouldRejectLongItemName() throws Exception {
+        String longName = "x".repeat(201);
+        mockMvc.perform(post("/items/add")
+                        .param("name", longName)
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists(
+                        "error"));
+    }
+
+    @Test
+    @DisplayName("should reject blank summary on log")
+    void shouldRejectBlankSummary() throws Exception {
+        String itemId = getFirstItemId();
+        mockMvc.perform(post("/items/log")
+                        .param("itemId", itemId)
+                        .param("summary", "  ")
+                        .param("serviceDate", "2026-03-10")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists(
+                        "error"));
+    }
+
+    @Test
+    @DisplayName("should reject invalid service date")
+    void shouldRejectInvalidDate() throws Exception {
+        String itemId = getFirstItemId();
+        mockMvc.perform(post("/items/log")
+                        .param("itemId", itemId)
+                        .param("summary", "Test")
+                        .param("serviceDate", "not-valid")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists(
+                        "error"));
+    }
+
+    @Test
+    @DisplayName("should reject zero frequency interval")
+    void shouldRejectZeroInterval() throws Exception {
+        String itemId = getFirstItemId();
+        mockMvc.perform(post("/items/schedule")
+                        .param("itemId", itemId)
+                        .param("serviceType", "Test")
+                        .param("nextDueDate", "2026-06-01")
+                        .param("frequencyInterval", "0")
+                        .param("frequencyUnit", "months")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists(
+                        "error"));
+    }
+
+    @Test
+    @DisplayName("should reject blank service type"
+            + " on schedule")
+    void shouldRejectBlankServiceType()
+            throws Exception {
+        String itemId = getFirstItemId();
+        mockMvc.perform(post("/items/schedule")
+                        .param("itemId", itemId)
+                        .param("serviceType", "  ")
+                        .param("nextDueDate", "2026-06-01")
+                        .param("frequencyInterval", "1")
+                        .param("frequencyUnit", "months")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists(
+                        "error"));
+    }
+
     @SuppressWarnings("unchecked")
     private String getFirstItemId() throws Exception {
         return ((List<Item>) getModel("items"))

@@ -128,23 +128,9 @@ public class ItemController {
         helper.setOrgMdc(user);
         try {
             UUID orgId = user.getOrganization().getId();
-            Item item = new Item();
-            item.setOrganizationId(orgId);
-            item.setName(name.trim());
-            if (location != null && !location.isBlank()) {
-                item.setLocation(location.trim());
-            }
-            if (manufacturer != null
-                    && !manufacturer.isBlank()) {
-                item.setManufacturer(manufacturer.trim());
-            }
-            if (modelName != null && !modelName.isBlank()) {
-                item.setModelName(modelName.trim());
-            }
-            if (serialNumber != null
-                    && !serialNumber.isBlank()) {
-                item.setSerialNumber(serialNumber.trim());
-            }
+            Item item = buildItem(orgId, name,
+                    location, manufacturer,
+                    modelName, serialNumber);
             itemRepository.save(item);
             log.info("Created item {}", item.getName());
             return "redirect:/items";
@@ -319,6 +305,42 @@ public class ItemController {
                         .findByOrganizationId(orgId));
         model.addAttribute("frequencyUnits",
                 FrequencyUnit.values());
+    }
+
+    private Item buildItem(
+            UUID orgId, String name, String location,
+            String manufacturer, String modelName,
+            String serialNumber) {
+        ControllerHelper.requireNotBlank(
+                name, "Item name");
+        ControllerHelper.requireMaxLength(
+                name, "Item name", 200);
+        ControllerHelper.requireMaxLength(
+                location, "Location", 200);
+        ControllerHelper.requireMaxLength(
+                manufacturer, "Manufacturer", 200);
+        ControllerHelper.requireMaxLength(
+                modelName, "Model name", 200);
+        ControllerHelper.requireMaxLength(
+                serialNumber, "Serial number", 200);
+        Item item = new Item();
+        item.setOrganizationId(orgId);
+        item.setName(name.trim());
+        setIfPresent(item::setLocation, location);
+        setIfPresent(item::setManufacturer,
+                manufacturer);
+        setIfPresent(item::setModelName, modelName);
+        setIfPresent(item::setSerialNumber,
+                serialNumber);
+        return item;
+    }
+
+    private void setIfPresent(
+            java.util.function.Consumer<String> setter,
+            String value) {
+        if (value != null && !value.isBlank()) {
+            setter.accept(value.trim());
+        }
     }
 
     private Item findItem(UUID itemId, UUID orgId) {

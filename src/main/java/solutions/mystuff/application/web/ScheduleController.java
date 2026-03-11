@@ -184,15 +184,11 @@ public class ScheduleController {
             UUID orgId = user.getOrganization().getId();
             ServiceSchedule sched = findSchedule(
                     scheduleId, orgId);
-            sched.setServiceType(serviceType.trim());
-            sched.setNextDueDate(
-                    LocalDate.parse(nextDueDate));
-            sched.setFrequencyInterval(frequencyInterval);
-            sched.setFrequencyUnit(frequencyUnit);
-            Vendor vendor = helper.resolveVendor(orgId,
+            applyScheduleEdits(sched, orgId,
+                    serviceType, nextDueDate,
+                    frequencyInterval, frequencyUnit,
                     vendorId, newVendorName,
                     newVendorPhone);
-            sched.setPreferredVendor(vendor);
             scheduleRepo.save(sched);
             log.info("Updated schedule {}",
                     scheduleId);
@@ -200,6 +196,32 @@ public class ScheduleController {
         } finally {
             helper.clearOrgMdc();
         }
+    }
+
+    private void applyScheduleEdits(
+            ServiceSchedule sched, UUID orgId,
+            String serviceType, String nextDueDate,
+            int frequencyInterval,
+            FrequencyUnit frequencyUnit,
+            String vendorId, String newVendorName,
+            String newVendorPhone) {
+        ControllerHelper.requireNotBlank(
+                serviceType, "Service type");
+        ControllerHelper.requireMaxLength(
+                serviceType, "Service type", 150);
+        ControllerHelper.requirePositive(
+                frequencyInterval,
+                "Frequency interval");
+        LocalDate due = ControllerHelper.parseDate(
+                nextDueDate, "Next due date");
+        sched.setServiceType(serviceType.trim());
+        sched.setNextDueDate(due);
+        sched.setFrequencyInterval(frequencyInterval);
+        sched.setFrequencyUnit(frequencyUnit);
+        Vendor vendor = helper.resolveVendor(orgId,
+                vendorId, newVendorName,
+                newVendorPhone);
+        sched.setPreferredVendor(vendor);
     }
 
     private String handleNoOrg(
