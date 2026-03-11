@@ -4,6 +4,7 @@ import java.security.Principal;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import solutions.mystuff.domain.model.AppUser;
 import solutions.mystuff.domain.model.FrequencyUnit;
@@ -193,7 +194,7 @@ public class ItemController {
                     vendorId, newVendorName,
                     newVendorPhone);
             helper.createSchedule(orgId, item,
-                    serviceType.trim(), vendor,
+                    serviceType, vendor,
                     nextDueDate, frequencyInterval,
                     frequencyUnit);
             return "redirect:/items";
@@ -222,8 +223,6 @@ public class ItemController {
             UUID orgId = user.getOrganization().getId();
             ServiceSchedule sched =
                     findSchedule(scheduleId, orgId);
-            LocalDate completed =
-                    LocalDate.parse(serviceDate);
             Vendor vendor = helper.resolveVendor(orgId,
                     vendorId, newVendorName,
                     newVendorPhone);
@@ -231,6 +230,9 @@ public class ItemController {
                     sched.getServiceType(), sched,
                     vendor, summary, serviceDate,
                     techName);
+            LocalDate completed =
+                    ControllerHelper.parseDate(
+                            serviceDate, "Service date");
             sched.advanceNextDueDate(completed);
             scheduleRepo.save(sched);
             log.info("Completed schedule {}",
@@ -336,8 +338,7 @@ public class ItemController {
     }
 
     private void setIfPresent(
-            java.util.function.Consumer<String> setter,
-            String value) {
+            Consumer<String> setter, String value) {
         if (value != null && !value.isBlank()) {
             setter.accept(value.trim());
         }

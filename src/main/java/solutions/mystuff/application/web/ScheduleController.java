@@ -90,8 +90,6 @@ public class ScheduleController {
             UUID orgId = user.getOrganization().getId();
             ServiceSchedule sched = findSchedule(
                     scheduleId, orgId);
-            LocalDate completed =
-                    LocalDate.parse(serviceDate);
             Vendor vendor = helper.resolveVendor(orgId,
                     vendorId, newVendorName,
                     newVendorPhone);
@@ -99,6 +97,9 @@ public class ScheduleController {
                     sched.getServiceType(), sched,
                     vendor, summary, serviceDate,
                     techName);
+            LocalDate completed =
+                    ControllerHelper.parseDate(
+                            serviceDate, "Service date");
             sched.advanceNextDueDate(completed);
             scheduleRepo.save(sched);
             return "redirect:/schedules";
@@ -155,7 +156,7 @@ public class ScheduleController {
                     vendorId, newVendorName,
                     newVendorPhone);
             helper.createSchedule(orgId, item,
-                    serviceType.trim(), vendor,
+                    serviceType, vendor,
                     nextDueDate, frequencyInterval,
                     frequencyUnit);
             return "redirect:/schedules";
@@ -205,13 +206,9 @@ public class ScheduleController {
             FrequencyUnit frequencyUnit,
             String vendorId, String newVendorName,
             String newVendorPhone) {
-        ControllerHelper.requireNotBlank(
-                serviceType, "Service type");
-        ControllerHelper.requireMaxLength(
-                serviceType, "Service type", 150);
-        ControllerHelper.requirePositive(
-                frequencyInterval,
-                "Frequency interval");
+        ControllerHelper.validateScheduleFields(
+                serviceType, frequencyInterval,
+                nextDueDate);
         LocalDate due = ControllerHelper.parseDate(
                 nextDueDate, "Next due date");
         sched.setServiceType(serviceType.trim());

@@ -2,6 +2,7 @@ package solutions.mystuff.application.web;
 
 import java.security.Principal;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.AppUser;
@@ -93,12 +94,13 @@ public class ControllerHelper {
         return Math.max(1, Math.min(size, MAX_PAGE_SIZE));
     }
 
-    static void requireNotBlank(
+    static String requireNotBlank(
             String value, String fieldName) {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException(
                     fieldName + " is required");
         }
+        return value.trim();
     }
 
     static void requireMaxLength(
@@ -125,12 +127,23 @@ public class ControllerHelper {
         requireNotBlank(value, fieldName);
         try {
             return LocalDate.parse(value.trim());
-        } catch (java.time.format.DateTimeParseException e) {
+        } catch (DateTimeParseException e) {
             throw new IllegalArgumentException(
                     fieldName
                             + " must be a valid date"
                             + " (yyyy-MM-dd)");
         }
+    }
+
+    static void validateScheduleFields(
+            String serviceType,
+            int frequencyInterval,
+            String nextDueDate) {
+        requireNotBlank(serviceType, "Service type");
+        requireMaxLength(
+                serviceType, "Service type", 150);
+        requirePositive(
+                frequencyInterval, "Frequency interval");
     }
 
     void saveRecord(
@@ -140,7 +153,8 @@ public class ControllerHelper {
             Vendor vendor,
             String summary, String serviceDate,
             String techName) {
-        requireNotBlank(summary, "Summary");
+        String trimSummary =
+                requireNotBlank(summary, "Summary");
         requireMaxLength(summary, "Summary", 250);
         requireMaxLength(techName, "Technician", 200);
         LocalDate date = parseDate(
@@ -152,7 +166,7 @@ public class ControllerHelper {
         record.setServiceSchedule(schedule);
         record.setVendor(vendor);
         record.setServiceDate(date);
-        record.setSummary(summary.trim());
+        record.setSummary(trimSummary);
         if (techName != null && !techName.isBlank()) {
             record.setDescription(
                     "Technician: " + techName.trim());
@@ -188,11 +202,8 @@ public class ControllerHelper {
             String nextDueDate,
             int frequencyInterval,
             FrequencyUnit frequencyUnit) {
-        requireNotBlank(serviceType, "Service type");
-        requireMaxLength(
-                serviceType, "Service type", 150);
-        requirePositive(
-                frequencyInterval, "Frequency interval");
+        validateScheduleFields(serviceType,
+                frequencyInterval, nextDueDate);
         LocalDate due = parseDate(
                 nextDueDate, "Next due date");
         ServiceSchedule newSched =
@@ -212,12 +223,13 @@ public class ControllerHelper {
 
     private Vendor createVendor(
             UUID orgId, String name, String phone) {
-        requireNotBlank(name, "Vendor name");
+        String trimName =
+                requireNotBlank(name, "Vendor name");
         requireMaxLength(name, "Vendor name", 200);
         requireMaxLength(phone, "Vendor phone", 50);
         Vendor vendor = new Vendor();
         vendor.setOrganizationId(orgId);
-        vendor.setName(name.trim());
+        vendor.setName(trimName);
         if (phone != null && !phone.isBlank()) {
             vendor.setPhone(phone.trim());
         }

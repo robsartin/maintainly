@@ -144,10 +144,12 @@ class ControllerHelperTest {
     }
 
     @Test
-    @DisplayName("should accept non-blank required field")
-    void shouldAcceptNonBlank() {
-        ControllerHelper.requireNotBlank(
-                "valid", "Name");
+    @DisplayName("should return trimmed value for"
+            + " non-blank field")
+    void shouldReturnTrimmedNonBlank() {
+        String result = ControllerHelper
+                .requireNotBlank("  valid  ", "Name");
+        assertThat(result).isEqualTo("valid");
     }
 
     @Test
