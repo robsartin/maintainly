@@ -13,7 +13,6 @@ import solutions.mystuff.domain.model.Vendor;
  * <div class="mermaid">
  * classDiagram
  *     class RecordCreation {
- *         <<interface>>
  *         +createRecord(UUID, Item, String, ServiceSchedule, Vendor, String, LocalDate, String) void
  *     }
  *     RecordCreationService ..|> RecordCreation

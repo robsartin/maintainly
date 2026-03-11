@@ -31,7 +31,7 @@ import jakarta.persistence.Table;
  *         String phone
  *         String label
  *     }
- *     OrgOwnedEntity <|-- Vendor
+ *     Vendor --|> OrgOwnedEntity
  *     Vendor "1" --> "*" VendorAltPhone
  * </div>
  *

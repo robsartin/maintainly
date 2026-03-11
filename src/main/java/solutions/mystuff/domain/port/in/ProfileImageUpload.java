@@ -8,7 +8,6 @@ import java.util.UUID;
  * <div class="mermaid">
  * classDiagram
  *     class ProfileImageUpload {
- *         <<interface>>
  *         +saveOrganizationImage(UUID, byte[], String) void
  *         +saveUserImage(UUID, byte[], String) void
  *         +resizeImage(byte[], String) byte[]

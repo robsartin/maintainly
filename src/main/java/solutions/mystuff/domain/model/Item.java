@@ -30,7 +30,7 @@ import jakarta.persistence.Table;
  *         Integer modelYear
  *         String serialNumber
  *     }
- *     OrgOwnedEntity <|-- Item
+ *     Item --|> OrgOwnedEntity
  *     Item "1" --> "*" ServiceSchedule
  *     Item "1" --> "*" ServiceRecord
  * </div>

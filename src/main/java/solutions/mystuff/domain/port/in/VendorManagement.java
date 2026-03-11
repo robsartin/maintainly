@@ -10,7 +10,6 @@ import solutions.mystuff.domain.model.Vendor;
  * <div class="mermaid">
  * classDiagram
  *     class VendorManagement {
- *         <<interface>>
  *         +resolveVendor(UUID, String, String, String) Vendor
  *     }
  *     VendorManagementService ..|> VendorManagement

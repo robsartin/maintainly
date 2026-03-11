@@ -12,7 +12,6 @@ import solutions.mystuff.domain.model.Vendor;
  * <div class="mermaid">
  * classDiagram
  *     class VendorRepository {
- *         <<interface>>
  *         +findByOrganizationId(UUID) List~Vendor~
  *         +findByIdAndOrganizationId(UUID, UUID) Optional~Vendor~
  *         +save(Vendor) Vendor

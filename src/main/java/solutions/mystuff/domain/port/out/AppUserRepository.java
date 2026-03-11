@@ -11,7 +11,6 @@ import solutions.mystuff.domain.model.AppUser;
  * <div class="mermaid">
  * classDiagram
  *     class AppUserRepository {
- *         <<interface>>
  *         +findByUsername(String) Optional~AppUser~
  *         +findById(UUID) Optional~AppUser~
  *         +save(AppUser) AppUser

@@ -11,7 +11,6 @@ import solutions.mystuff.domain.model.ServiceRecord;
  * <div class="mermaid">
  * classDiagram
  *     class ServiceRecordRepository {
- *         <<interface>>
  *         +findByItemIdAndOrganizationId(UUID, UUID) List~ServiceRecord~
  *         +findByOrganizationId(UUID) List~ServiceRecord~
  *         +save(ServiceRecord) ServiceRecord

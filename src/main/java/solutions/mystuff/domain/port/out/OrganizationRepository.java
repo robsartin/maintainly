@@ -11,7 +11,6 @@ import solutions.mystuff.domain.model.Organization;
  * <div class="mermaid">
  * classDiagram
  *     class OrganizationRepository {
- *         <<interface>>
  *         +findById(UUID) Optional~Organization~
  *         +save(Organization) Organization
  *     }

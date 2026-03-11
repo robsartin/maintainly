@@ -28,9 +28,9 @@ import jakarta.persistence.PreUpdate;
  *     class OrgOwnedEntity
  *     class Organization
  *     class AppUser
- *     BaseEntity <|-- OrgOwnedEntity
- *     BaseEntity <|-- Organization
- *     BaseEntity <|-- AppUser
+ *     OrgOwnedEntity --|> BaseEntity
+ *     Organization --|> BaseEntity
+ *     AppUser --|> BaseEntity
  * </div>
  *
  * @see OrgOwnedEntity

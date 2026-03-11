@@ -13,7 +13,6 @@ import solutions.mystuff.domain.model.Vendor;
  * <div class="mermaid">
  * classDiagram
  *     class ScheduleLifecycle {
- *         <<interface>>
  *         +createSchedule(UUID, UUID, String, Vendor, LocalDate, int, FrequencyUnit) ServiceSchedule
  *         +completeSchedule(UUID, UUID, Vendor, String, LocalDate, String) ServiceSchedule
  *         +skipSchedule(UUID, UUID) ServiceSchedule

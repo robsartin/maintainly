@@ -8,7 +8,6 @@ import solutions.mystuff.domain.model.AppUser;
  * <div class="mermaid">
  * classDiagram
  *     class UserResolver {
- *         <<interface>>
  *         +resolveOrCreate(String) AppUser
  *     }
  *     UserResolverConfiguration ..|> UserResolver

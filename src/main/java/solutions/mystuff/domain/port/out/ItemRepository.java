@@ -13,7 +13,6 @@ import solutions.mystuff.domain.model.PageResult;
  * <div class="mermaid">
  * classDiagram
  *     class ItemRepository {
- *         <<interface>>
  *         +findByOrganizationId(UUID) List~Item~
  *         +findByOrganizationId(UUID, int, int) PageResult~Item~
  *         +searchByOrganizationId(UUID, String) List~Item~

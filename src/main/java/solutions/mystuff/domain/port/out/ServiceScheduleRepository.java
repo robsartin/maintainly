@@ -13,7 +13,6 @@ import solutions.mystuff.domain.model.ServiceSchedule;
  * <div class="mermaid">
  * classDiagram
  *     class ServiceScheduleRepository {
- *         <<interface>>
  *         +findByOrganizationIdOrderByNextDueDate(UUID) List~ServiceSchedule~
  *         +findActiveByOrganizationId(UUID) List~ServiceSchedule~
  *         +findActiveByOrganizationId(UUID, int, int) PageResult~ServiceSchedule~
