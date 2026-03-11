@@ -14,12 +14,12 @@ import org.springframework.data.repository.query.Param;
 /**
  * Internal Spring Data repository for {@link ServiceSchedule} persistence.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * classDiagram
  *     class SpringDataScheduleRepository
  *     class JpaRepository~ServiceSchedule, UUID~
  *     SpringDataScheduleRepository --|> JpaRepository~ServiceSchedule, UUID~
- * }</pre>
+ * </div>
  *
  * @see JpaScheduleRepositoryAdapter
  * @see ServiceSchedule

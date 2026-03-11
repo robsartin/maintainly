@@ -13,7 +13,7 @@ import jakarta.persistence.Table;
  * <p>Each alternate phone carries an optional label (e.g. "mobile",
  * "after-hours") and is cascade-managed by its parent vendor.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * classDiagram
  *     class Vendor {
  *         String name
@@ -24,7 +24,7 @@ import jakarta.persistence.Table;
  *         String label
  *     }
  *     Vendor "1" --> "*" VendorAltPhone
- * }</pre>
+ * </div>
  *
  * @see Vendor
  * @see OrgOwnedEntity

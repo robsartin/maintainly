@@ -12,14 +12,14 @@ import org.springframework.stereotype.Repository;
 /**
  * Spring Data JPA adapter for the {@link VendorRepository} port.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * classDiagram
  *     class JpaVendorRepository
  *     class JpaRepository~Vendor, UUID~
  *     class VendorRepository
  *     JpaVendorRepository --|> JpaRepository~Vendor, UUID~
  *     JpaVendorRepository --|> VendorRepository
- * }</pre>
+ * </div>
  *
  * @see VendorRepository
  * @see Vendor

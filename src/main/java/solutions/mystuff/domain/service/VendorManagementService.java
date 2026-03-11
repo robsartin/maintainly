@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
  * a new vendor is created after validating name (max 200) and phone
  * (max 50) lengths. Otherwise the existing vendor is looked up by ID.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * sequenceDiagram
  *     Controller->>VendorManagementService: resolveVendor(...)
  *     alt vendorId == "__new__"
@@ -22,7 +22,7 @@ import org.springframework.stereotype.Service;
  *     else existing vendor
  *         VendorManagementService->>VendorRepository: findByIdAndOrganizationId(...)
  *     end
- * }</pre>
+ * </div>
  *
  * @see VendorManagement
  * @see VendorRepository

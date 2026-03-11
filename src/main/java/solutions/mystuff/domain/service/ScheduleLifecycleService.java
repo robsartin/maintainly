@@ -25,13 +25,13 @@ import org.springframework.transaction.annotation
  * schedules. On completion, delegates to {@link RecordCreation} to persist
  * a service record and advances the next due date.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * sequenceDiagram
  *     Controller->>ScheduleLifecycleService: completeSchedule(...)
  *     ScheduleLifecycleService->>ScheduleLifecycleService: validate / findSchedule
  *     ScheduleLifecycleService->>RecordCreation: createRecord(...)
  *     ScheduleLifecycleService->>ServiceScheduleRepository: save(schedule)
- * }</pre>
+ * </div>
  *
  * @see ScheduleLifecycle
  * @see RecordCreation

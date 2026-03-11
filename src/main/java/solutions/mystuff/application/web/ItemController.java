@@ -35,7 +35,7 @@ import org.springframework.web.bind.annotation
 /**
  * Handles item CRUD and service operations at /items endpoints.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * sequenceDiagram
  *     Browser->>ItemController: GET/POST /items/**
  *     ItemController->>ControllerHelper: resolveUser(principal)
@@ -45,7 +45,7 @@ import org.springframework.web.bind.annotation
  *     ItemController->>ItemRepository: save/find
  *     ItemRepository-->>ItemController: Item/PageResult
  *     ItemController-->>Browser: Thymeleaf view or redirect
- * }</pre>
+ * </div>
  *
  * @see ControllerHelper
  * @see InputValidator

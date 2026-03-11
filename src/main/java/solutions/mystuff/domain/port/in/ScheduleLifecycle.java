@@ -10,7 +10,7 @@ import solutions.mystuff.domain.model.Vendor;
 /**
  * Inbound port for managing the full lifecycle of service schedules.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * classDiagram
  *     class ScheduleLifecycle {
  *         <<interface>>
@@ -21,7 +21,7 @@ import solutions.mystuff.domain.model.Vendor;
  *         +deactivateSchedule(UUID, UUID) void
  *     }
  *     ScheduleLifecycleService ..|> ScheduleLifecycle
- * }</pre>
+ * </div>
  *
  * @see solutions.mystuff.domain.model.ServiceSchedule
  */

@@ -5,14 +5,14 @@ import solutions.mystuff.domain.model.AppUser;
 /**
  * Inbound port for resolving or creating application users.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * classDiagram
  *     class UserResolver {
  *         <<interface>>
  *         +resolveOrCreate(String) AppUser
  *     }
  *     UserResolverConfiguration ..|> UserResolver
- * }</pre>
+ * </div>
  *
  * @see solutions.mystuff.domain.model.AppUser
  */

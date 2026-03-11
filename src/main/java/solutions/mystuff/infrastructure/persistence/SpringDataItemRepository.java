@@ -14,12 +14,12 @@ import org.springframework.data.repository.query.Param;
 /**
  * Internal Spring Data repository for {@link Item} persistence.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * classDiagram
  *     class SpringDataItemRepository
  *     class JpaRepository~Item, UUID~
  *     SpringDataItemRepository --|> JpaRepository~Item, UUID~
- * }</pre>
+ * </div>
  *
  * @see JpaItemRepositoryAdapter
  * @see Item

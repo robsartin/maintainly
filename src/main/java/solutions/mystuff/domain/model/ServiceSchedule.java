@@ -17,7 +17,7 @@ import jakarta.persistence.Table;
  * <p>Defines a service type, recurrence frequency, and tracks the
  * next due date. Optionally references a preferred {@link Vendor}.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * classDiagram
  *     class ServiceSchedule {
  *         String serviceType
@@ -28,7 +28,7 @@ import jakarta.persistence.Table;
  *     }
  *     ServiceSchedule "*" --> "1" Item
  *     ServiceSchedule "*" --> "0..1" Vendor
- * }</pre>
+ * </div>
  *
  * @see Item
  * @see Vendor

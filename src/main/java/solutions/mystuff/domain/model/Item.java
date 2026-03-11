@@ -17,7 +17,7 @@ import jakarta.persistence.Table;
  * and links to its recurring {@link ServiceSchedule}s and completed
  * {@link ServiceRecord}s.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * classDiagram
  *     class OrgOwnedEntity {
  *         UUID organizationId
@@ -33,7 +33,7 @@ import jakarta.persistence.Table;
  *     OrgOwnedEntity <|-- Item
  *     Item "1" --> "*" ServiceSchedule
  *     Item "1" --> "*" ServiceRecord
- * }</pre>
+ * </div>
  *
  * @see ServiceSchedule
  * @see ServiceRecord

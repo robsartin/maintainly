@@ -19,7 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * Manages user and organization settings including profile images.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * sequenceDiagram
  *     Browser->>SettingsController: GET/POST /settings/**
  *     SettingsController->>ControllerHelper: resolveUser(principal)
@@ -27,7 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
  *     ProfileImageUpload->>Repository: persist image bytes
  *     Repository-->>SettingsController: result
  *     SettingsController-->>Browser: Thymeleaf view or image bytes
- * }</pre>
+ * </div>
  *
  * @see ControllerHelper
  * @see solutions.mystuff.domain.port.in.ProfileImageUpload

@@ -16,7 +16,7 @@ import jakarta.persistence.PreUpdate;
  * auto-generated on first persist, plus {@code createdAt} and
  * {@code updatedAt} timestamps managed by JPA lifecycle callbacks.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * classDiagram
  *     class BaseEntity {
  *         UUID id
@@ -31,7 +31,7 @@ import jakarta.persistence.PreUpdate;
  *     BaseEntity <|-- OrgOwnedEntity
  *     BaseEntity <|-- Organization
  *     BaseEntity <|-- AppUser
- * }</pre>
+ * </div>
  *
  * @see OrgOwnedEntity
  * @see UuidV7

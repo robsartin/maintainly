@@ -10,7 +10,7 @@ import solutions.mystuff.domain.model.ServiceSchedule;
 /**
  * Outbound port for querying and persisting service schedules.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * classDiagram
  *     class ServiceScheduleRepository {
  *         <<interface>>
@@ -22,7 +22,7 @@ import solutions.mystuff.domain.model.ServiceSchedule;
  *         +save(ServiceSchedule) ServiceSchedule
  *     }
  *     JpaScheduleRepositoryAdapter ..|> ServiceScheduleRepository
- * }</pre>
+ * </div>
  *
  * @see solutions.mystuff.domain.model.ServiceSchedule
  */

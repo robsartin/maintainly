@@ -11,14 +11,14 @@ import org.springframework.stereotype.Repository;
 /**
  * Spring Data JPA adapter for the {@link AppUserRepository} port.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * classDiagram
  *     class JpaAppUserRepository
  *     class JpaRepository~AppUser, UUID~
  *     class AppUserRepository
  *     JpaAppUserRepository --|> JpaRepository~AppUser, UUID~
  *     JpaAppUserRepository --|> AppUserRepository
- * }</pre>
+ * </div>
  *
  * @see AppUserRepository
  * @see AppUser

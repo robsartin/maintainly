@@ -15,14 +15,14 @@ import org.springframework.stereotype.Repository;
 /**
  * Adapts {@link SpringDataScheduleRepository} to the {@link ServiceScheduleRepository} port.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * classDiagram
  *     class JpaScheduleRepositoryAdapter
  *     class ServiceScheduleRepository
  *     class SpringDataScheduleRepository
  *     JpaScheduleRepositoryAdapter --|> ServiceScheduleRepository
  *     JpaScheduleRepositoryAdapter --> SpringDataScheduleRepository
- * }</pre>
+ * </div>
  *
  * @see ServiceScheduleRepository
  * @see SpringDataScheduleRepository

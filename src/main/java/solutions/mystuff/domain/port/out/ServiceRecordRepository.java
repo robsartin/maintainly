@@ -8,7 +8,7 @@ import solutions.mystuff.domain.model.ServiceRecord;
 /**
  * Outbound port for persisting and retrieving service records.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * classDiagram
  *     class ServiceRecordRepository {
  *         <<interface>>
@@ -17,7 +17,7 @@ import solutions.mystuff.domain.model.ServiceRecord;
  *         +save(ServiceRecord) ServiceRecord
  *     }
  *     JpaServiceRecordRepository ..|> ServiceRecordRepository
- * }</pre>
+ * </div>
  *
  * @see solutions.mystuff.domain.model.ServiceRecord
  */

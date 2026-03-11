@@ -24,14 +24,14 @@ import org.springframework.context.annotation.Configuration;
 /**
  * Seeds the database with sample data on startup when absent.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * flowchart TD
  *     A[CommandLineRunner] --> B{org exists?}
  *     B -->|yes| C[skip]
  *     B -->|no| D[create Organization]
  *     D --> E[create dev AppUser]
  *     E --> F[create Items, Vendors, Schedules]
- * }</pre>
+ * </div>
  *
  * @see CommandLineRunner
  */

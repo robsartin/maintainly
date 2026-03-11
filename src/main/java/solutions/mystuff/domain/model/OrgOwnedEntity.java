@@ -11,7 +11,7 @@ import jakarta.persistence.MappedSuperclass;
  * <p>Every organization-scoped entity carries an {@code organizationId}
  * foreign key so that queries can be filtered by tenant.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * classDiagram
  *     class BaseEntity {
  *         UUID id
@@ -32,7 +32,7 @@ import jakarta.persistence.MappedSuperclass;
  *     OrgOwnedEntity <|-- ServiceSchedule
  *     OrgOwnedEntity <|-- ServiceRecord
  *     OrgOwnedEntity <|-- VendorAltPhone
- * }</pre>
+ * </div>
  *
  * @see BaseEntity
  */

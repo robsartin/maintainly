@@ -21,12 +21,12 @@ import jakarta.servlet.http.HttpServletResponse;
  * Generates a PDF report of service schedules due soon
  * using OpenPDF.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * sequenceDiagram
  *     ReportController->>ServiceSummaryPdf: write(response, schedules, cutoff, ...)
  *     ServiceSummaryPdf->>Document: org header, cutoff title, schedule table
  *     ServiceSummaryPdf-->>Browser: PDF via HttpServletResponse
- * }</pre>
+ * </div>
  *
  * @see ReportController
  */

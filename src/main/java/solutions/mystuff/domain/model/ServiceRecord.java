@@ -19,7 +19,7 @@ import jakarta.persistence.Table;
  * the {@link Vendor} who performed the work. Captures a summary,
  * full description, cost, and the date the service occurred.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * classDiagram
  *     class ServiceRecord {
  *         String serviceType
@@ -30,7 +30,7 @@ import jakarta.persistence.Table;
  *     ServiceRecord "*" --> "1" Item
  *     ServiceRecord "*" --> "0..1" ServiceSchedule
  *     ServiceRecord "*" --> "0..1" Vendor
- * }</pre>
+ * </div>
  *
  * @see Item
  * @see ServiceSchedule

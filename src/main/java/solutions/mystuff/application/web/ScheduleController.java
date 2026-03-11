@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation
 /**
  * Manages service schedule CRUD at /schedules endpoints.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * sequenceDiagram
  *     Browser->>ScheduleController: GET/POST /schedules/**
  *     ScheduleController->>ControllerHelper: resolveUser(principal)
@@ -38,7 +38,7 @@ import org.springframework.web.bind.annotation
  *     ScheduleLifecycle->>ServiceScheduleRepository: persist
  *     ServiceScheduleRepository-->>ScheduleController: result
  *     ScheduleController-->>Browser: Thymeleaf view or redirect
- * }</pre>
+ * </div>
  *
  * @see ControllerHelper
  * @see InputValidator

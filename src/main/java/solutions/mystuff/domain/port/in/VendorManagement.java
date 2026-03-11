@@ -7,14 +7,14 @@ import solutions.mystuff.domain.model.Vendor;
 /**
  * Inbound port for resolving or creating vendors.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * classDiagram
  *     class VendorManagement {
  *         <<interface>>
  *         +resolveVendor(UUID, String, String, String) Vendor
  *     }
  *     VendorManagementService ..|> VendorManagement
- * }</pre>
+ * </div>
  *
  * @see solutions.mystuff.domain.model.Vendor
  */

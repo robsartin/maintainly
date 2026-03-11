@@ -10,14 +10,14 @@ import org.springframework.stereotype.Repository;
 /**
  * Spring Data JPA adapter for the {@link OrganizationRepository} port.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * classDiagram
  *     class JpaOrganizationRepository
  *     class JpaRepository~Organization, UUID~
  *     class OrganizationRepository
  *     JpaOrganizationRepository --|> JpaRepository~Organization, UUID~
  *     JpaOrganizationRepository --|> OrganizationRepository
- * }</pre>
+ * </div>
  *
  * @see OrganizationRepository
  * @see Organization

@@ -6,7 +6,7 @@ import java.time.format.DateTimeParseException;
 /**
  * Static validation utility for controller request parameters.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * classDiagram
  *     class InputValidator {
  *         +requireNotBlank(String, String)$ String
@@ -15,7 +15,7 @@ import java.time.format.DateTimeParseException;
  *         +parseDate(String, String)$ LocalDate
  *         +validateScheduleFields(String, int)$ void
  *     }
- * }</pre>
+ * </div>
  *
  * @see ItemController
  * @see ScheduleController

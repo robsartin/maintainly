@@ -23,12 +23,12 @@ import jakarta.servlet.http.HttpServletResponse;
  * Generates a PDF report of an item's service history
  * and active schedules using OpenPDF.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * sequenceDiagram
  *     ReportController->>ItemHistoryPdf: write(response, item, ...)
  *     ItemHistoryPdf->>Document: org header, item info, tables
  *     ItemHistoryPdf-->>Browser: PDF via HttpServletResponse
- * }</pre>
+ * </div>
  *
  * @see ReportController
  */

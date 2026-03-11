@@ -11,13 +11,13 @@ import org.springframework.stereotype.Component;
 /**
  * Resolves or creates an {@link AppUser} by username.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * flowchart TD
  *     A[resolveOrCreate] --> B[findByUsername]
  *     B -->|found| C[return user]
  *     B -->|not found| D[create new AppUser]
  *     D --> E[save] --> C
- * }</pre>
+ * </div>
  *
  * @see UserResolver
  * @see AppUserRepository

@@ -15,14 +15,14 @@ import org.springframework.stereotype.Repository;
 /**
  * Adapts {@link SpringDataItemRepository} to the {@link ItemRepository} port.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * classDiagram
  *     class JpaItemRepositoryAdapter
  *     class ItemRepository
  *     class SpringDataItemRepository
  *     JpaItemRepositoryAdapter --|> ItemRepository
  *     JpaItemRepositoryAdapter --> SpringDataItemRepository
- * }</pre>
+ * </div>
  *
  * @see ItemRepository
  * @see SpringDataItemRepository

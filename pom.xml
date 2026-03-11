@@ -232,6 +232,12 @@
                 <configuration>
                     <doclint>none</doclint>
                     <quiet>true</quiet>
+                    <javadocDirectory>
+                        ${project.basedir}/src/main/javadoc
+                    </javadocDirectory>
+                    <additionalOptions>
+                        --add-script ${project.basedir}/src/main/javadoc/mermaid-init.js
+                    </additionalOptions>
                 </configuration>
             </plugin>
         </plugins>

@@ -15,7 +15,7 @@ import jakarta.persistence.Table;
  * <p>Stores contact information including a primary phone, email,
  * full mailing address, and a list of alternate phone numbers.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * classDiagram
  *     class OrgOwnedEntity {
  *         UUID organizationId
@@ -33,7 +33,7 @@ import jakarta.persistence.Table;
  *     }
  *     OrgOwnedEntity <|-- Vendor
  *     Vendor "1" --> "*" VendorAltPhone
- * }</pre>
+ * </div>
  *
  * @see VendorAltPhone
  * @see OrgOwnedEntity

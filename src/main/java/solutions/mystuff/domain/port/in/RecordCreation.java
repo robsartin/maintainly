@@ -10,14 +10,14 @@ import solutions.mystuff.domain.model.Vendor;
 /**
  * Inbound port for creating service records.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * classDiagram
  *     class RecordCreation {
  *         <<interface>>
  *         +createRecord(UUID, Item, String, ServiceSchedule, Vendor, String, LocalDate, String) void
  *     }
  *     RecordCreationService ..|> RecordCreation
- * }</pre>
+ * </div>
  *
  * @see solutions.mystuff.domain.model.ServiceRecord
  */

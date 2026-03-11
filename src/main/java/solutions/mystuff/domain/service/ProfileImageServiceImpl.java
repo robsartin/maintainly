@@ -24,13 +24,13 @@ import org.springframework.stereotype.Service;
  * <p>Accepts PNG/JPEG uploads up to 512 KB and scales them to 128x128
  * using bilinear interpolation before storing via the appropriate repository.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * sequenceDiagram
  *     Controller->>ProfileImageServiceImpl: saveOrganizationImage / saveUserImage
  *     ProfileImageServiceImpl->>ProfileImageServiceImpl: validateType(contentType)
  *     ProfileImageServiceImpl->>ProfileImageServiceImpl: resizeImage(imageData)
  *     ProfileImageServiceImpl->>Repository: save(entity)
- * }</pre>
+ * </div>
  *
  * @see ProfileImageUpload
  * @see OrganizationRepository

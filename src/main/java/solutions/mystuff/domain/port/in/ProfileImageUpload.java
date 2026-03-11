@@ -5,7 +5,7 @@ import java.util.UUID;
 /**
  * Inbound port for uploading and resizing profile images.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * classDiagram
  *     class ProfileImageUpload {
  *         <<interface>>
@@ -14,7 +14,7 @@ import java.util.UUID;
  *         +resizeImage(byte[], String) byte[]
  *     }
  *     ProfileImageServiceImpl ..|> ProfileImageUpload
- * }</pre>
+ * </div>
  *
  * @see solutions.mystuff.domain.model.Organization
  * @see solutions.mystuff.domain.model.AppUser

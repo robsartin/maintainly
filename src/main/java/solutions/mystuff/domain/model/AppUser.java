@@ -14,7 +14,7 @@ import jakarta.persistence.Table;
  * <p>Holds the login username, an optional {@link Organization}
  * membership, and an optional profile image with its MIME type.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * classDiagram
  *     class AppUser {
  *         String username
@@ -27,7 +27,7 @@ import jakarta.persistence.Table;
  *         String name
  *     }
  *     AppUser "*" --> "0..1" Organization
- * }</pre>
+ * </div>
  *
  * @see Organization
  * @see BaseEntity

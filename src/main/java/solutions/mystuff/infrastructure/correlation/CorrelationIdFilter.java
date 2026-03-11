@@ -14,7 +14,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 /**
  * Servlet filter that assigns a correlation ID to every request.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * sequenceDiagram
  *     participant C as Client
  *     participant F as CorrelationIdFilter
@@ -26,7 +26,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
  *     S-->>F: response
  *     F->>C: add X-Correlation-Id header
  *     F->>F: clear MDC and context
- * }</pre>
+ * </div>
  *
  * @see CorrelationIdContext
  * @see OncePerRequestFilter

@@ -15,7 +15,7 @@ import org.springframework.ui.Model;
 /**
  * Shared helper used by all controllers for user resolution and MDC.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * classDiagram
  *     class ControllerHelper {
  *         +resolveUser(Principal) AppUser
@@ -24,7 +24,7 @@ import org.springframework.ui.Model;
  *         +clearOrgMdc() void
  *         +clampSize(int) int
  *     }
- * }</pre>
+ * </div>
  *
  * @see solutions.mystuff.domain.port.in.UserResolver
  */

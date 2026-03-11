@@ -20,12 +20,12 @@ import org.springframework.stereotype.Service;
  * <p>Enforces a required summary (max 250 chars) and optional technician
  * name (max 200 chars) before persisting via the repository.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * sequenceDiagram
  *     Controller->>RecordCreationService: createRecord(...)
  *     RecordCreationService->>RecordCreationService: validateSummary / validateTechName
  *     RecordCreationService->>ServiceRecordRepository: save(record)
- * }</pre>
+ * </div>
  *
  * @see RecordCreation
  * @see ServiceRecordRepository

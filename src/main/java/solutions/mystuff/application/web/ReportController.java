@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation
 /**
  * Serves the reports page and generates PDF exports.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * sequenceDiagram
  *     Browser->>ReportController: GET /reports/**
  *     ReportController->>ControllerHelper: resolveUser(principal)
@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation
  *     ReportController->>ItemHistoryPdf: write(response)
  *     ServiceSummaryPdf-->>Browser: PDF response
  *     ItemHistoryPdf-->>Browser: PDF response
- * }</pre>
+ * </div>
  *
  * @see ServiceSummaryPdf
  * @see ItemHistoryPdf

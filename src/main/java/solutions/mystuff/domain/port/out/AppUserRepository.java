@@ -8,7 +8,7 @@ import solutions.mystuff.domain.model.AppUser;
 /**
  * Outbound port for persisting and retrieving application users.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * classDiagram
  *     class AppUserRepository {
  *         <<interface>>
@@ -17,7 +17,7 @@ import solutions.mystuff.domain.model.AppUser;
  *         +save(AppUser) AppUser
  *     }
  *     JpaAppUserRepository ..|> AppUserRepository
- * }</pre>
+ * </div>
  *
  * @see solutions.mystuff.domain.model.AppUser
  */

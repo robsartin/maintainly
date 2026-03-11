@@ -10,7 +10,7 @@ import jakarta.persistence.Table;
  * <p>Stores branding details (name, logo URL) and an optional
  * profile image stored as a byte array with its MIME type.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * classDiagram
  *     class Organization {
  *         String name
@@ -23,7 +23,7 @@ import jakarta.persistence.Table;
  *         String username
  *     }
  *     AppUser "*" --> "1" Organization
- * }</pre>
+ * </div>
  *
  * @see AppUser
  * @see BaseEntity

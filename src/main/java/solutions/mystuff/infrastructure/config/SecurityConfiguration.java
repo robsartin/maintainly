@@ -17,13 +17,13 @@ import org.springframework.security.web.SecurityFilterChain;
 /**
  * Configures Spring Security for production and development profiles.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * flowchart TD
  *     A[Profile check] -->|prod| B[OAuth2 SecurityFilterChain]
  *     A -->|!prod| C[Form-login SecurityFilterChain]
  *     A -->|!prod| D[InMemory UserDetailsService]
  *     A --> E[BCrypt PasswordEncoder]
- * }</pre>
+ * </div>
  *
  * @see SecurityFilterChain
  * @see PasswordEncoder

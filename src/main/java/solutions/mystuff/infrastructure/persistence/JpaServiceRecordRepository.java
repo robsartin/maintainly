@@ -13,14 +13,14 @@ import org.springframework.stereotype.Repository;
 /**
  * Spring Data JPA adapter for the {@link ServiceRecordRepository} port.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * classDiagram
  *     class JpaServiceRecordRepository
  *     class JpaRepository~ServiceRecord, UUID~
  *     class ServiceRecordRepository
  *     JpaServiceRecordRepository --|> JpaRepository~ServiceRecord, UUID~
  *     JpaServiceRecordRepository --|> ServiceRecordRepository
- * }</pre>
+ * </div>
  *
  * @see ServiceRecordRepository
  * @see ServiceRecord

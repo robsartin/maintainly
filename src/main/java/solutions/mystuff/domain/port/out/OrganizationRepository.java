@@ -8,7 +8,7 @@ import solutions.mystuff.domain.model.Organization;
 /**
  * Outbound port for persisting and retrieving organizations.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * classDiagram
  *     class OrganizationRepository {
  *         <<interface>>
@@ -16,7 +16,7 @@ import solutions.mystuff.domain.model.Organization;
  *         +save(Organization) Organization
  *     }
  *     JpaOrganizationRepository ..|> OrganizationRepository
- * }</pre>
+ * </div>
  *
  * @see solutions.mystuff.domain.model.Organization
  */

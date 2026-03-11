@@ -9,7 +9,7 @@ import solutions.mystuff.domain.model.Vendor;
 /**
  * Outbound port for persisting and retrieving vendors.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * classDiagram
  *     class VendorRepository {
  *         <<interface>>
@@ -18,7 +18,7 @@ import solutions.mystuff.domain.model.Vendor;
  *         +save(Vendor) Vendor
  *     }
  *     JpaVendorRepository ..|> VendorRepository
- * }</pre>
+ * </div>
  *
  * @see solutions.mystuff.domain.model.Vendor
  */

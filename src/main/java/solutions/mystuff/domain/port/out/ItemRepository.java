@@ -10,7 +10,7 @@ import solutions.mystuff.domain.model.PageResult;
 /**
  * Outbound port for querying and persisting items.
  *
- * <pre>{@code
+ * <div class="mermaid">
  * classDiagram
  *     class ItemRepository {
  *         <<interface>>
@@ -22,7 +22,7 @@ import solutions.mystuff.domain.model.PageResult;
  *         +save(Item) Item
  *     }
  *     JpaItemRepositoryAdapter ..|> ItemRepository
- * }</pre>
+ * </div>
  *
  * @see solutions.mystuff.domain.model.Item
  */
