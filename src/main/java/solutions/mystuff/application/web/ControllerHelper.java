@@ -47,6 +47,7 @@ public class ControllerHelper {
                 user.getUsername());
         model.addAttribute("organization",
                 user.getOrganization());
+        model.addAttribute("currentUser", user);
     }
 
     void setOrgMdc(AppUser user) {
