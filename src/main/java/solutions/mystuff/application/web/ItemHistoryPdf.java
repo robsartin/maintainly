@@ -46,7 +46,8 @@ final class ItemHistoryPdf {
             Item item,
             List<ServiceRecord> records,
             List<ServiceSchedule> schedules,
-            String orgName) throws Exception {
+            String orgName,
+            String username) throws Exception {
         response.setContentType("application/pdf");
         response.setHeader("Content-Disposition",
                 "inline; filename=item-history.pdf");
@@ -55,11 +56,26 @@ final class ItemHistoryPdf {
         PdfWriter.getInstance(doc,
                 response.getOutputStream());
         doc.open();
+        addOrgHeader(doc, orgName, username);
         addTitle(doc, orgName, item);
         addItemDetails(doc, item);
         addScheduleSection(doc, schedules);
         addHistorySection(doc, records);
         doc.close();
+    }
+
+    private static void addOrgHeader(
+            Document doc, String orgName,
+            String username) throws Exception {
+        Paragraph org = new Paragraph(
+                orgName, LABEL_FONT);
+        org.setAlignment(Element.ALIGN_LEFT);
+        doc.add(org);
+        Paragraph user = new Paragraph(
+                username, BODY_FONT);
+        user.setAlignment(Element.ALIGN_LEFT);
+        user.setSpacingAfter(8);
+        doc.add(user);
     }
 
     private static void addTitle(

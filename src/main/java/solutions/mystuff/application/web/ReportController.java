@@ -1,6 +1,8 @@
 package solutions.mystuff.application.web;
 
 import java.security.Principal;
+import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.UUID;
 
@@ -70,14 +72,22 @@ public class ReportController {
         helper.setOrgMdc(user);
         try {
             UUID orgId = user.getOrganization().getId();
+            LocalDate cutoff = dueSoonCutoff();
             List<ServiceSchedule> schedules =
                     scheduleRepo
                             .findActiveByOrganizationId(
-                                    orgId);
+                                    orgId)
+                            .stream()
+                            .filter(s ->
+                                    s.getNextDueDate() != null
+                                    && !s.getNextDueDate()
+                                            .isAfter(cutoff))
+                            .toList();
             String orgName = user.getOrganization()
                     .getName();
             ServiceSummaryPdf.write(
-                    response, schedules, orgName);
+                    response, schedules, cutoff,
+                    orgName, user.getUsername());
         } finally {
             helper.clearOrgMdc();
         }
@@ -110,9 +120,20 @@ public class ReportController {
             String orgName = user.getOrganization()
                     .getName();
             ItemHistoryPdf.write(response, item,
-                    records, schedules, orgName);
+                    records, schedules, orgName,
+                    user.getUsername());
         } finally {
             helper.clearOrgMdc();
         }
+    }
+
+    private LocalDate dueSoonCutoff() {
+        LocalDate today = LocalDate.now();
+        YearMonth target =
+                today.getDayOfMonth() > 14
+                        ? YearMonth.from(today)
+                                .plusMonths(1)
+                        : YearMonth.from(today);
+        return target.atEndOfMonth();
     }
 }

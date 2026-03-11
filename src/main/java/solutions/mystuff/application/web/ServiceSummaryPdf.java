@@ -39,31 +39,49 @@ final class ServiceSummaryPdf {
     static void write(
             HttpServletResponse response,
             List<ServiceSchedule> schedules,
-            String orgName) throws Exception {
+            LocalDate cutoff,
+            String orgName,
+            String username) throws Exception {
         response.setContentType("application/pdf");
         response.setHeader("Content-Disposition",
-                "inline; filename=service-summary.pdf");
+                "inline; filename=service-due.pdf");
         Document doc = new Document(
                 PageSize.LETTER.rotate());
         PdfWriter.getInstance(doc,
                 response.getOutputStream());
         doc.open();
-        addTitle(doc, orgName);
+        addOrgHeader(doc, orgName, username);
+        addTitle(doc, orgName, cutoff);
         if (schedules.isEmpty()) {
             doc.add(new Paragraph(
-                    "No active schedules.", BODY_FONT));
+                    "No service due.", BODY_FONT));
         } else {
             doc.add(buildTable(schedules));
         }
         doc.close();
     }
 
+    private static void addOrgHeader(
+            Document doc, String orgName,
+            String username) throws Exception {
+        Paragraph org = new Paragraph(
+                orgName, HEADER_FONT);
+        org.setAlignment(Element.ALIGN_LEFT);
+        doc.add(org);
+        Paragraph user = new Paragraph(
+                username, BODY_FONT);
+        user.setAlignment(Element.ALIGN_LEFT);
+        user.setSpacingAfter(8);
+        doc.add(user);
+    }
+
     private static void addTitle(
-            Document doc, String orgName)
-            throws Exception {
+            Document doc, String orgName,
+            LocalDate cutoff) throws Exception {
         Paragraph title = new Paragraph(
                 orgName
-                        + " — Upcoming Scheduled Service",
+                        + " — Service Due Through "
+                        + cutoff.format(FMT),
                 TITLE_FONT);
         title.setAlignment(Element.ALIGN_CENTER);
         title.setSpacingAfter(4);
