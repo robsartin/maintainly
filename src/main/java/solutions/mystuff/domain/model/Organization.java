@@ -32,4 +32,31 @@ public class Organization extends BaseEntity {
     public void setLogoUrl(String logoUrl) {
         this.logoUrl = logoUrl;
     }
+
+    @Column(name = "profile_image")
+    private byte[] profileImage;
+
+    @Column(name = "profile_image_type", length = 50)
+    private String profileImageType;
+
+    public byte[] getProfileImage() {
+        return profileImage;
+    }
+
+    public void setProfileImage(byte[] profileImage) {
+        this.profileImage = profileImage;
+    }
+
+    public String getProfileImageType() {
+        return profileImageType;
+    }
+
+    public void setProfileImageType(String profileImageType) {
+        this.profileImageType = profileImageType;
+    }
+
+    public boolean hasProfileImage() {
+        return profileImage != null
+                && profileImage.length > 0;
+    }
 }
