@@ -12,6 +12,9 @@ import solutions.mystuff.domain.model.Item;
 import solutions.mystuff.domain.model.PageResult;
 import solutions.mystuff.domain.model.ServiceSchedule;
 import solutions.mystuff.domain.model.Vendor;
+import solutions.mystuff.domain.port.in.ScheduleLifecycle;
+import solutions.mystuff.domain.port.in.RecordCreation;
+import solutions.mystuff.domain.port.in.VendorManagement;
 import solutions.mystuff.domain.port.out.ItemRepository;
 import solutions.mystuff.domain.port.out
         .ServiceRecordRepository;
@@ -26,7 +29,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation
+        .RequestParam;
 
 @Controller
 public class ItemController {
@@ -39,18 +43,27 @@ public class ItemController {
     private final ServiceRecordRepository recordRepo;
     private final VendorRepository vendorRepository;
     private final ControllerHelper helper;
+    private final VendorManagement vendorService;
+    private final ScheduleLifecycle scheduleService;
+    private final RecordCreation recordService;
 
     public ItemController(
             ItemRepository itemRepository,
             ServiceScheduleRepository scheduleRepo,
             ServiceRecordRepository recordRepo,
             VendorRepository vendorRepository,
-            ControllerHelper helper) {
+            ControllerHelper helper,
+            VendorManagement vendorService,
+            ScheduleLifecycle scheduleService,
+            RecordCreation recordService) {
         this.itemRepository = itemRepository;
         this.scheduleRepo = scheduleRepo;
         this.recordRepo = recordRepo;
         this.vendorRepository = vendorRepository;
         this.helper = helper;
+        this.vendorService = vendorService;
+        this.scheduleService = scheduleService;
+        this.recordService = recordService;
     }
 
     @GetMapping("/")
@@ -117,7 +130,8 @@ public class ItemController {
     @PostMapping("/items/add")
     public String addItem(
             @RequestParam String name,
-            @RequestParam(required = false) String location,
+            @RequestParam(required = false)
+                    String location,
             @RequestParam(required = false)
                     String manufacturer,
             @RequestParam(required = false)
@@ -159,12 +173,14 @@ public class ItemController {
         try {
             UUID orgId = user.getOrganization().getId();
             Item item = findItem(itemId, orgId);
-            Vendor vendor = helper.resolveVendor(orgId,
-                    vendorId, newVendorName,
+            Vendor vendor = vendorService.resolveVendor(
+                    orgId, vendorId, newVendorName,
                     newVendorPhone);
-            helper.saveRecord(orgId, item, null, null,
-                    vendor, summary, serviceDate,
-                    techName);
+            LocalDate date = InputValidator.parseDate(
+                    serviceDate, "Service date");
+            recordService.createRecord(orgId, item,
+                    null, null, vendor, summary,
+                    date, techName);
             return "redirect:/items";
         } finally {
             helper.clearOrgMdc();
@@ -189,14 +205,14 @@ public class ItemController {
         helper.setOrgMdc(user);
         try {
             UUID orgId = user.getOrganization().getId();
-            Item item = findItem(itemId, orgId);
-            Vendor vendor = helper.resolveVendor(orgId,
-                    vendorId, newVendorName,
+            Vendor vendor = vendorService.resolveVendor(
+                    orgId, vendorId, newVendorName,
                     newVendorPhone);
-            helper.createSchedule(orgId, item,
-                    serviceType, vendor,
-                    nextDueDate, frequencyInterval,
-                    frequencyUnit);
+            LocalDate due = InputValidator.parseDate(
+                    nextDueDate, "Next due date");
+            scheduleService.createSchedule(orgId,
+                    itemId, serviceType, vendor, due,
+                    frequencyInterval, frequencyUnit);
             return "redirect:/items";
         } finally {
             helper.clearOrgMdc();
@@ -221,22 +237,15 @@ public class ItemController {
         helper.setOrgMdc(user);
         try {
             UUID orgId = user.getOrganization().getId();
-            ServiceSchedule sched =
-                    findSchedule(scheduleId, orgId);
-            Vendor vendor = helper.resolveVendor(orgId,
-                    vendorId, newVendorName,
+            Vendor vendor = vendorService.resolveVendor(
+                    orgId, vendorId, newVendorName,
                     newVendorPhone);
-            helper.saveRecord(orgId, sched.getItem(),
-                    sched.getServiceType(), sched,
-                    vendor, summary, serviceDate,
-                    techName);
-            LocalDate completed =
-                    ControllerHelper.parseDate(
-                            serviceDate, "Service date");
-            sched.advanceNextDueDate(completed);
-            scheduleRepo.save(sched);
-            log.info("Completed schedule {}",
-                    scheduleId);
+            LocalDate date = InputValidator.parseDate(
+                    serviceDate, "Service date");
+            ServiceSchedule sched =
+                    scheduleService.completeSchedule(
+                            scheduleId, orgId, vendor,
+                            summary, date, techName);
             return "redirect:/items/detail?itemId="
                     + sched.getItem().getId();
         } finally {
@@ -253,16 +262,8 @@ public class ItemController {
         try {
             UUID orgId = user.getOrganization().getId();
             ServiceSchedule sched =
-                    findSchedule(scheduleId, orgId);
-            LocalDate current = sched.getNextDueDate();
-            if (current == null) {
-                current = LocalDate.now();
-            }
-            sched.advanceNextDueDate(current);
-            sched.setLastCompletedDate(null);
-            scheduleRepo.save(sched);
-            log.info("Skipped schedule {}",
-                    scheduleId);
+                    scheduleService.skipSchedule(
+                            scheduleId, orgId);
             return "redirect:/items/detail?itemId="
                     + sched.getItem().getId();
         } finally {
@@ -313,21 +314,21 @@ public class ItemController {
             UUID orgId, String name, String location,
             String manufacturer, String modelName,
             String serialNumber) {
-        ControllerHelper.requireNotBlank(
-                name, "Item name");
-        ControllerHelper.requireMaxLength(
+        String trimName = InputValidator
+                .requireNotBlank(name, "Item name");
+        InputValidator.requireMaxLength(
                 name, "Item name", 200);
-        ControllerHelper.requireMaxLength(
+        InputValidator.requireMaxLength(
                 location, "Location", 200);
-        ControllerHelper.requireMaxLength(
+        InputValidator.requireMaxLength(
                 manufacturer, "Manufacturer", 200);
-        ControllerHelper.requireMaxLength(
+        InputValidator.requireMaxLength(
                 modelName, "Model name", 200);
-        ControllerHelper.requireMaxLength(
+        InputValidator.requireMaxLength(
                 serialNumber, "Serial number", 200);
         Item item = new Item();
         item.setOrganizationId(orgId);
-        item.setName(name.trim());
+        item.setName(trimName);
         setIfPresent(item::setLocation, location);
         setIfPresent(item::setManufacturer,
                 manufacturer);
@@ -350,15 +351,5 @@ public class ItemController {
                 .orElseThrow(() ->
                         new IllegalArgumentException(
                                 "Item not found"));
-    }
-
-    private ServiceSchedule findSchedule(
-            UUID scheduleId, UUID orgId) {
-        return scheduleRepo
-                .findByIdAndOrganizationId(
-                        scheduleId, orgId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException(
-                                "Schedule not found"));
     }
 }
