@@ -10,7 +10,7 @@ import solutions.mystuff.domain.model.AppUser;
  *     class UserResolver {
  *         +resolveOrCreate(String) AppUser
  *     }
- *     UserResolverConfiguration ..|> UserResolver
+ *     UserResolverService ..|> UserResolver
  * </div>
  *
  * @see solutions.mystuff.domain.model.AppUser

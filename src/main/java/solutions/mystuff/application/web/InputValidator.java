@@ -71,14 +71,4 @@ public final class InputValidator {
         }
     }
 
-    /** Validates service type and frequency interval together. */
-    static void validateScheduleFields(
-            String serviceType,
-            int frequencyInterval) {
-        requireNotBlank(serviceType, "Service type");
-        requireMaxLength(
-                serviceType, "Service type", 150);
-        requirePositive(
-                frequencyInterval, "Frequency interval");
-    }
 }

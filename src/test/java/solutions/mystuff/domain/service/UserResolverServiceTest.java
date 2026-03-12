@@ -1,4 +1,4 @@
-package solutions.mystuff.infrastructure.config;
+package solutions.mystuff.domain.service;
 
 import java.util.Optional;
 
@@ -15,13 +15,13 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@DisplayName("UserResolverConfiguration")
-class UserResolverConfigurationTest {
+@DisplayName("UserResolverService")
+class UserResolverServiceTest {
 
     private final AppUserRepository userRepo =
             mock(AppUserRepository.class);
-    private final UserResolverConfiguration resolver =
-            new UserResolverConfiguration(userRepo);
+    private final UserResolverService resolver =
+            new UserResolverService(userRepo);
 
     @Test
     @DisplayName("should return existing user")

@@ -91,8 +91,7 @@ public class ProfileImageServiceImpl
     }
 
     /** Validates content type and size, then resizes the image to 128x128. */
-    @Override
-    public byte[] resizeImage(
+    byte[] resizeImage(
             byte[] imageData, String contentType) {
         validateType(contentType);
         if (imageData.length > MAX_BYTES) {

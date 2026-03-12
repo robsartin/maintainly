@@ -61,6 +61,7 @@ public class SettingsController {
             @RequestParam("file") MultipartFile file,
             Principal principal) {
         AppUser user = helper.resolveUser(principal);
+        requireOrganization(user);
         validateFile(file);
         imageService.saveOrganizationImage(
                 user.getOrganization().getId(),
@@ -108,6 +109,13 @@ public class SettingsController {
         return imageResponse(
                 user.getProfileImage(),
                 user.getProfileImageType());
+    }
+
+    private void requireOrganization(AppUser user) {
+        if (!user.hasOrganization()) {
+            throw new IllegalArgumentException(
+                    "No organization assigned");
+        }
     }
 
     private void validateFile(MultipartFile file) {

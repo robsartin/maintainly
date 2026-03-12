@@ -1,4 +1,8 @@
 spring:
+  servlet:
+    multipart:
+      max-file-size: 512KB
+      max-request-size: 512KB
   datasource:
     url: jdbc:postgresql://localhost:5434/mystuffdb
     username: postgres

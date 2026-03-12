@@ -1,4 +1,8 @@
 spring:
+  servlet:
+    multipart:
+      max-file-size: 512KB
+      max-request-size: 512KB
   security:
     oauth2:
       client:

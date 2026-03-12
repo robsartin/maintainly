@@ -10,12 +10,10 @@ import solutions.mystuff.domain.model.FrequencyUnit;
 import solutions.mystuff.domain.model.PageResult;
 import solutions.mystuff.domain.model.ServiceSchedule;
 import solutions.mystuff.domain.model.Vendor;
+import solutions.mystuff.domain.port.in.ItemQuery;
 import solutions.mystuff.domain.port.in.ScheduleLifecycle;
+import solutions.mystuff.domain.port.in.ScheduleQuery;
 import solutions.mystuff.domain.port.in.VendorManagement;
-import solutions.mystuff.domain.port.out
-        .ServiceScheduleRepository;
-import solutions.mystuff.domain.port.out
-        .VendorRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,10 +31,9 @@ import org.springframework.web.bind.annotation
  * sequenceDiagram
  *     Browser->>ScheduleController: GET/POST /schedules/**
  *     ScheduleController->>ControllerHelper: resolveUser(principal)
+ *     ScheduleController->>ScheduleQuery: findActiveByOrganization()
  *     ScheduleController->>VendorManagement: resolveVendor()
  *     ScheduleController->>ScheduleLifecycle: create/edit/complete/deactivate
- *     ScheduleLifecycle->>ServiceScheduleRepository: persist
- *     ServiceScheduleRepository-->>ScheduleController: result
  *     ScheduleController-->>Browser: Thymeleaf view or redirect
  * </div>
  *
@@ -50,21 +47,21 @@ public class ScheduleController {
             LoggerFactory.getLogger(
                     ScheduleController.class);
 
-    private final ServiceScheduleRepository scheduleRepo;
-    private final VendorRepository vendorRepository;
     private final ControllerHelper helper;
+    private final ItemQuery itemQuery;
+    private final ScheduleQuery scheduleQuery;
     private final VendorManagement vendorService;
     private final ScheduleLifecycle scheduleService;
 
     public ScheduleController(
-            ServiceScheduleRepository scheduleRepo,
-            VendorRepository vendorRepository,
             ControllerHelper helper,
+            ItemQuery itemQuery,
+            ScheduleQuery scheduleQuery,
             VendorManagement vendorService,
             ScheduleLifecycle scheduleService) {
-        this.scheduleRepo = scheduleRepo;
-        this.vendorRepository = vendorRepository;
         this.helper = helper;
+        this.itemQuery = itemQuery;
+        this.scheduleQuery = scheduleQuery;
         this.vendorService = vendorService;
         this.scheduleService = scheduleService;
     }
@@ -225,7 +222,7 @@ public class ScheduleController {
         int safeSize = helper.clampSize(size);
         int safePage = Math.max(0, page);
         PageResult<ServiceSchedule> result =
-                scheduleRepo.findActiveByOrganizationId(
+                scheduleQuery.findActiveByOrganization(
                         orgId, safePage, safeSize);
         model.addAttribute("schedules",
                 result.content());
@@ -233,8 +230,8 @@ public class ScheduleController {
         LinkHeaderBuilder.addLinkHeader(
                 response, "/schedules", result, null);
         model.addAttribute("vendors",
-                vendorRepository
-                        .findByOrganizationId(orgId));
+                itemQuery.findVendorsByOrganization(
+                        orgId));
         model.addAttribute("frequencyUnits",
                 FrequencyUnit.values());
         LocalDate today = LocalDate.now();

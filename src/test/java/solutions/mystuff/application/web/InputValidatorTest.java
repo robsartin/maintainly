@@ -104,33 +104,4 @@ class InputValidatorTest {
                 .hasMessage("Date is required");
     }
 
-    @Test
-    @DisplayName("should validate schedule fields")
-    void shouldValidateScheduleFields() {
-        InputValidator.validateScheduleFields(
-                "Filter Change", 3);
-    }
-
-    @Test
-    @DisplayName("should reject blank service type")
-    void shouldRejectBlankServiceType() {
-        assertThatThrownBy(() ->
-                InputValidator.validateScheduleFields(
-                        "  ", 1))
-                .isInstanceOf(
-                        IllegalArgumentException.class)
-                .hasMessage(
-                        "Service type is required");
-    }
-
-    @Test
-    @DisplayName("should reject zero frequency")
-    void shouldRejectZeroFrequency() {
-        assertThatThrownBy(() ->
-                InputValidator.validateScheduleFields(
-                        "Test", 0))
-                .isInstanceOf(
-                        IllegalArgumentException.class)
-                .hasMessageContaining("at least 1");
-    }
 }

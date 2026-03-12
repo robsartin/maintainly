@@ -4,7 +4,6 @@ import java.security.Principal;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.UUID;
-import java.util.function.Consumer;
 
 import solutions.mystuff.domain.model.AppUser;
 import solutions.mystuff.domain.model.FrequencyUnit;
@@ -13,16 +12,11 @@ import solutions.mystuff.domain.model.LogSanitizer;
 import solutions.mystuff.domain.model.PageResult;
 import solutions.mystuff.domain.model.ServiceSchedule;
 import solutions.mystuff.domain.model.Vendor;
+import solutions.mystuff.domain.port.in.ItemManagement;
+import solutions.mystuff.domain.port.in.ItemQuery;
 import solutions.mystuff.domain.port.in.ScheduleLifecycle;
 import solutions.mystuff.domain.port.in.RecordCreation;
 import solutions.mystuff.domain.port.in.VendorManagement;
-import solutions.mystuff.domain.port.out.ItemRepository;
-import solutions.mystuff.domain.port.out
-        .ServiceRecordRepository;
-import solutions.mystuff.domain.port.out
-        .ServiceScheduleRepository;
-import solutions.mystuff.domain.port.out
-        .VendorRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,11 +34,10 @@ import org.springframework.web.bind.annotation
  * sequenceDiagram
  *     Browser->>ItemController: GET/POST /items/**
  *     ItemController->>ControllerHelper: resolveUser(principal)
- *     ItemController->>VendorManagement: resolveVendor()
+ *     ItemController->>ItemManagement: createItem()
+ *     ItemController->>ItemQuery: findByOrganization()
  *     ItemController->>ScheduleLifecycle: createSchedule/complete/skip
  *     ItemController->>RecordCreation: createRecord()
- *     ItemController->>ItemRepository: save/find
- *     ItemRepository-->>ItemController: Item/PageResult
  *     ItemController-->>Browser: Thymeleaf view or redirect
  * </div>
  *
@@ -57,29 +50,23 @@ public class ItemController {
     private static final Logger log =
             LoggerFactory.getLogger(ItemController.class);
 
-    private final ItemRepository itemRepository;
-    private final ServiceScheduleRepository scheduleRepo;
-    private final ServiceRecordRepository recordRepo;
-    private final VendorRepository vendorRepository;
     private final ControllerHelper helper;
+    private final ItemManagement itemService;
+    private final ItemQuery itemQuery;
     private final VendorManagement vendorService;
     private final ScheduleLifecycle scheduleService;
     private final RecordCreation recordService;
 
     public ItemController(
-            ItemRepository itemRepository,
-            ServiceScheduleRepository scheduleRepo,
-            ServiceRecordRepository recordRepo,
-            VendorRepository vendorRepository,
             ControllerHelper helper,
+            ItemManagement itemService,
+            ItemQuery itemQuery,
             VendorManagement vendorService,
             ScheduleLifecycle scheduleService,
             RecordCreation recordService) {
-        this.itemRepository = itemRepository;
-        this.scheduleRepo = scheduleRepo;
-        this.recordRepo = recordRepo;
-        this.vendorRepository = vendorRepository;
         this.helper = helper;
+        this.itemService = itemService;
+        this.itemQuery = itemQuery;
         this.vendorService = vendorService;
         this.scheduleService = scheduleService;
         this.recordService = recordService;
@@ -133,16 +120,7 @@ public class ItemController {
             loadItems(null, orgId, page, size,
                     model, response);
             helper.addUserAttrs(user, model);
-            model.addAttribute("selectedItemId",
-                    itemId);
-            model.addAttribute("itemRecords",
-                    recordRepo
-                            .findByItemIdAndOrganizationId(
-                                    itemId, orgId));
-            model.addAttribute("itemSchedules",
-                    scheduleRepo
-                            .findByItemIdAndOrganizationId(
-                                    itemId, orgId));
+            addDetailAttrs(model, itemId, orgId);
             return "items";
         } finally {
             helper.clearOrgMdc();
@@ -166,11 +144,9 @@ public class ItemController {
         helper.setOrgMdc(user);
         try {
             UUID orgId = user.getOrganization().getId();
-            Item item = buildItem(orgId, name,
+            itemService.createItem(orgId, name,
                     location, manufacturer,
                     modelName, serialNumber);
-            itemRepository.save(item);
-            log.info("Created item {}", item.getName());
             return "redirect:/items";
         } finally {
             helper.clearOrgMdc();
@@ -308,6 +284,17 @@ public class ItemController {
         return "items";
     }
 
+    private void addDetailAttrs(
+            Model model, UUID itemId, UUID orgId) {
+        model.addAttribute("selectedItemId", itemId);
+        model.addAttribute("itemRecords",
+                itemQuery.findRecordsByItem(
+                        itemId, orgId));
+        model.addAttribute("itemSchedules",
+                itemQuery.findSchedulesByItem(
+                        itemId, orgId));
+    }
+
     private void loadItems(
             String q, UUID orgId, int page, int size,
             Model model, HttpServletResponse response) {
@@ -317,65 +304,28 @@ public class ItemController {
         if (q != null && !q.isBlank()) {
             log.info("Searching items query={}",
                     LogSanitizer.sanitize(q));
-            result = itemRepository
-                    .searchByOrganizationId(
-                            orgId, q, safePage, safeSize);
+            result = itemQuery.searchByOrganization(
+                    orgId, q, safePage, safeSize);
             model.addAttribute("q", q);
         } else {
             log.info("Listing items page={}", safePage);
-            result = itemRepository
-                    .findByOrganizationId(
-                            orgId, safePage, safeSize);
+            result = itemQuery.findByOrganization(
+                    orgId, safePage, safeSize);
         }
         model.addAttribute("items", result.content());
         model.addAttribute("itemPage", result);
         LinkHeaderBuilder.addLinkHeader(
                 response, "/items", result, q);
         model.addAttribute("vendors",
-                vendorRepository
-                        .findByOrganizationId(orgId));
+                itemQuery.findVendorsByOrganization(
+                        orgId));
         model.addAttribute("frequencyUnits",
                 FrequencyUnit.values());
     }
 
-    private Item buildItem(
-            UUID orgId, String name, String location,
-            String manufacturer, String modelName,
-            String serialNumber) {
-        String trimName = InputValidator
-                .requireNotBlank(name, "Item name");
-        InputValidator.requireMaxLength(
-                name, "Item name", 200);
-        InputValidator.requireMaxLength(
-                location, "Location", 200);
-        InputValidator.requireMaxLength(
-                manufacturer, "Manufacturer", 200);
-        InputValidator.requireMaxLength(
-                modelName, "Model name", 200);
-        InputValidator.requireMaxLength(
-                serialNumber, "Serial number", 200);
-        Item item = new Item();
-        item.setOrganizationId(orgId);
-        item.setName(trimName);
-        setIfPresent(item::setLocation, location);
-        setIfPresent(item::setManufacturer,
-                manufacturer);
-        setIfPresent(item::setModelName, modelName);
-        setIfPresent(item::setSerialNumber,
-                serialNumber);
-        return item;
-    }
-
-    private void setIfPresent(
-            Consumer<String> setter, String value) {
-        if (value != null && !value.isBlank()) {
-            setter.accept(value.trim());
-        }
-    }
-
     private Item findItem(UUID itemId, UUID orgId) {
-        return itemRepository
-                .findByIdAndOrganizationId(itemId, orgId)
+        return itemQuery
+                .findByIdAndOrganization(itemId, orgId)
                 .orElseThrow(() ->
                         new IllegalArgumentException(
                                 "Item not found"));

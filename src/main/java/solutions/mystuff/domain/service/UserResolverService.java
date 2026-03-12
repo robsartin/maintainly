@@ -1,4 +1,4 @@
-package solutions.mystuff.infrastructure.config;
+package solutions.mystuff.domain.service;
 
 import solutions.mystuff.domain.model.AppUser;
 import solutions.mystuff.domain.model.UuidV7;
@@ -6,7 +6,7 @@ import solutions.mystuff.domain.port.in.UserResolver;
 import solutions.mystuff.domain.port.out.AppUserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 /**
  * Resolves or creates an {@link AppUser} by username.
@@ -22,22 +22,23 @@ import org.springframework.stereotype.Component;
  * @see UserResolver
  * @see AppUserRepository
  */
-@Component
-public class UserResolverConfiguration implements UserResolver {
+@Service
+public class UserResolverService
+        implements UserResolver {
 
     private static final Logger log =
             LoggerFactory.getLogger(
-                    UserResolverConfiguration.class);
+                    UserResolverService.class);
 
     private final AppUserRepository appUserRepository;
 
-    /** Creates the resolver with the given user repository. */
-    public UserResolverConfiguration(
+    public UserResolverService(
             AppUserRepository appUserRepository) {
         this.appUserRepository = appUserRepository;
     }
 
     /** Finds an existing user by username or creates a new one. */
+    @Override
     public AppUser resolveOrCreate(String username) {
         return appUserRepository.findByUsername(username)
                 .orElseGet(() -> {

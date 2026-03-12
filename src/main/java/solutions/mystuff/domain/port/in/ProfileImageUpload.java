@@ -3,14 +3,13 @@ package solutions.mystuff.domain.port.in;
 import java.util.UUID;
 
 /**
- * Inbound port for uploading and resizing profile images.
+ * Inbound port for uploading profile images.
  *
  * <div class="mermaid">
  * classDiagram
  *     class ProfileImageUpload {
  *         +saveOrganizationImage(UUID, byte[], String) void
  *         +saveUserImage(UUID, byte[], String) void
- *         +resizeImage(byte[], String) byte[]
  *     }
  *     ProfileImageServiceImpl ..|> ProfileImageUpload
  * </div>
@@ -29,8 +28,4 @@ public interface ProfileImageUpload {
     void saveUserImage(
             UUID userId, byte[] imageData,
             String contentType);
-
-    /** Resize an image to standard profile dimensions. */
-    byte[] resizeImage(
-            byte[] imageData, String contentType);
 }
