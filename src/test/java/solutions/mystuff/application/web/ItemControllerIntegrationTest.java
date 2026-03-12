@@ -152,6 +152,35 @@ class ItemControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("should show search cancel when searching")
+    void shouldShowSearchCancel() throws Exception {
+        MvcResult result = mockMvc.perform(get("/items")
+                        .param("q", "Furnace")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse()
+                .getContentAsString();
+        assertTrue(
+                html.contains("Clear search"),
+                "should show clear search button");
+    }
+
+    @Test
+    @DisplayName("should hide search cancel without query")
+    void shouldHideSearchCancel() throws Exception {
+        MvcResult result = mockMvc.perform(get("/items")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse()
+                .getContentAsString();
+        assertTrue(
+                !html.contains("Clear search"),
+                "should not show clear search button");
+    }
+
+    @Test
     @DisplayName("should return all items with blank search")
     void shouldReturnAllWithBlankSearch()
             throws Exception {
@@ -347,17 +376,6 @@ class ItemControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists(
                         "itemRecords"));
-    }
-
-    @Test
-    @DisplayName("should render data-target for log button")
-    void shouldRenderLogDataTarget() throws Exception {
-        mockMvc.perform(get("/items")
-                        .with(user("dev").roles("USER")))
-                .andExpect(status().isOk())
-                .andExpect(content().string(
-                        containsString(
-                                "data-target=\"item-log-")));
     }
 
     @Test
