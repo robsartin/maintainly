@@ -91,6 +91,37 @@ class SecurityConfigurationTest {
     }
 
     @Test
+    @DisplayName("CSP should not allow unsafe-inline scripts")
+    void cspShouldBlockInlineScripts()
+            throws Exception {
+        String csp = mockMvc.perform(get("/items")
+                        .with(user("dev").roles("USER")))
+                .andReturn().getResponse()
+                .getHeader("Content-Security-Policy");
+        if (csp.contains("'unsafe-inline'")
+                && csp.indexOf("'unsafe-inline'")
+                < csp.indexOf("style-src")) {
+            throw new AssertionError(
+                    "CSP should not allow"
+                    + " unsafe-inline scripts");
+        }
+    }
+
+    @Test
+    @DisplayName("CSP should allow unpkg.com for HTMX")
+    void cspShouldAllowHtmxCdn() throws Exception {
+        String csp = mockMvc.perform(get("/items")
+                        .with(user("dev").roles("USER")))
+                .andReturn().getResponse()
+                .getHeader("Content-Security-Policy");
+        if (!csp.contains("https://unpkg.com")) {
+            throw new AssertionError(
+                    "CSP script-src should allow"
+                    + " https://unpkg.com for HTMX");
+        }
+    }
+
+    @Test
     @DisplayName("should set Referrer-Policy")
     void shouldSetReferrerPolicy() throws Exception {
         mockMvc.perform(get("/items")

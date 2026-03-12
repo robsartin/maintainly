@@ -14,7 +14,7 @@
         <h2>Vendors</h2>
         <div>
             <button type="button" class="btn-icon btn-add" title="Add vendor"
-                    onclick="toggleForm('add-vendor-form')">
+                    data-toggle-form="add-vendor-form">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                      fill="none" stroke="currentColor" stroke-width="2"
                      stroke-linecap="round" stroke-linejoin="round">
@@ -33,7 +33,7 @@
                 </svg>
             </a>
             <button type="button" class="btn-icon btn-log" title="Import vendors"
-                    onclick="toggleForm('import-vendor-form')">
+                    data-toggle-form="import-vendor-form">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                      fill="none" stroke="currentColor" stroke-width="2"
                      stroke-linecap="round" stroke-linejoin="round">
@@ -109,8 +109,7 @@
                 <td th:text="${vendor.website}"></td>
                 <td class="actions">
                     <button type="button" class="btn-icon" title="Edit vendor"
-                            th:data-edit-id="${vendor.id}"
-                            onclick="toggleForm('edit-' + this.getAttribute('data-edit-id'))">
+                            th:data-toggle-form="'edit-' + ${vendor.id}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
                              viewBox="0 0 24 24" fill="none" stroke="currentColor"
                              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -133,7 +132,7 @@
                                th:value="${_csrf.token}"/>
                         <input type="hidden" name="vendorId" th:value="${vendor.id}"/>
                         <button type="submit" class="btn-icon btn-delete" title="Delete vendor"
-                                onclick="return confirm('Delete this vendor?')">
+                                data-confirm-submit="Delete this vendor?">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
                                  viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

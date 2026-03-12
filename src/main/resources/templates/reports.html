@@ -54,7 +54,7 @@
                         schedules for one item</td>
                     <td>
                         <form class="inline-form"
-                              onsubmit="return openItemHistory(this)">
+                              data-open-window="/reports/item-history">
                             <select name="itemId" required>
                                 <option value="">
                                     Select item...</option>
@@ -90,14 +90,5 @@
         </section>
     </div>
 </main>
-<script>
-function openItemHistory(form) {
-    var itemId = form.itemId.value;
-    if (!itemId) return false;
-    window.open('/reports/item-history?itemId=' + itemId,
-        '_blank');
-    return false;
-}
-</script>
 </body>
 </html>

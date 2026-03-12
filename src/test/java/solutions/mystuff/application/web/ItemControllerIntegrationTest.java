@@ -15,6 +15,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.jupiter.api.Assertions
+        .assertTrue;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -351,11 +353,8 @@ class ItemControllerIntegrationTest {
                         .with(user("dev").roles("USER")))
                 .andExpect(status().isOk())
                 .andExpect(content().string(
-                        containsString("data-target=\"item-log-")))
-                .andExpect(content().string(
                         containsString(
-                                "toggleForm(this.getAttribute("
-                                        + "'data-target'))")));
+                                "data-target=\"item-log-")));
     }
 
     @Test
@@ -368,6 +367,26 @@ class ItemControllerIntegrationTest {
                 .andExpect(content().string(
                         containsString(
                                 "data-target=\"item-sched-")));
+    }
+
+    @Test
+    @DisplayName("should use external JS not inline handlers")
+    void shouldUseExternalJs() throws Exception {
+        MvcResult result = mockMvc.perform(get("/items")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse()
+                .getContentAsString();
+        assertTrue(html.contains("/js/app.js"),
+                "should include external app.js");
+        assertTrue(!html.contains("onclick="),
+                "should have no inline onclick");
+        assertTrue(!html.contains("onchange="),
+                "should have no inline onchange");
+        assertTrue(html.contains(
+                "data-toggle-form=\"add-item-form\""),
+                "should have data-toggle-form");
     }
 
     @Test

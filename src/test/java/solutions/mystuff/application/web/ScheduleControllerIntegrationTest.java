@@ -13,6 +13,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.jupiter.api.Assertions
+        .assertTrue;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -142,11 +144,7 @@ class ScheduleControllerIntegrationTest {
                         .with(user("dev").roles("USER")))
                 .andExpect(status().isOk())
                 .andExpect(content().string(
-                        containsString("data-target=\"edit-")))
-                .andExpect(content().string(
-                        containsString(
-                                "toggleForm(this.getAttribute("
-                                        + "'data-target'))")));
+                        containsString("data-target=\"edit-")));
     }
 
     @Test
@@ -168,6 +166,28 @@ class ScheduleControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(
                         containsString("data-target=\"sched-")));
+    }
+
+    @Test
+    @DisplayName("should use external JS not inline handlers")
+    void shouldUseExternalJs() throws Exception {
+        MvcResult result = mockMvc.perform(
+                        get("/schedules")
+                                .with(user("dev")
+                                        .roles("USER")))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse()
+                .getContentAsString();
+        assertTrue(html.contains("/js/app.js"),
+                "should include external app.js");
+        assertTrue(!html.contains("onclick="),
+                "should have no inline onclick");
+        assertTrue(!html.contains("onchange="),
+                "should have no inline onchange");
+        assertTrue(
+                html.contains("data-confirm-submit="),
+                "should have data-confirm-submit");
     }
 
     @Test

@@ -40,7 +40,7 @@ public class SecurityConfiguration {
 
     private static final String CSP_POLICY =
             "default-src 'self'; "
-            + "script-src 'self'; "
+            + "script-src 'self' https://unpkg.com; "
             + "style-src 'self' 'unsafe-inline'; "
             + "img-src 'self' data:; "
             + "font-src 'self'";

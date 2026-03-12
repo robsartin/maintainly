@@ -32,7 +32,7 @@
             <div class="section-header">
                 <h2>Items</h2>
                 <button type="button" class="btn-icon btn-add"
-                        onclick="toggleForm('add-item-form')">
+                        data-toggle-form="add-item-form">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                          fill="none" stroke="currentColor" stroke-width="2"
                          stroke-linecap="round" stroke-linejoin="round">
@@ -84,16 +84,15 @@
                 <th:block th:each="item : ${items}">
                 <tr class="item-row"
                     th:classappend="${selectedItemId != null and selectedItemId.equals(item.id)} ? ' selected'"
-                    th:attr="onclick='window.location.href=\'/items/detail?itemId=' + ${item.id} + '\''">
+                    th:data-navigate="@{/items/detail(itemId=${item.id})}">
                     <td th:text="${item.name}"></td>
                     <td th:text="${item.location}"></td>
                     <td th:text="${item.manufacturer}"></td>
                     <td th:text="${item.modelName}"></td>
                     <td th:text="${item.serialNumber}"></td>
-                    <td class="actions" onclick="event.stopPropagation()">
+                    <td class="actions">
                         <button type="button" class="btn-icon btn-log" title="Log service"
-                                th:data-target="'item-log-' + ${item.id}"
-                                onclick="toggleForm(this.getAttribute('data-target'))">
+                                th:data-target="'item-log-' + ${item.id}">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                                  fill="none" stroke="currentColor" stroke-width="2"
                                  stroke-linecap="round" stroke-linejoin="round">
@@ -104,8 +103,7 @@
                             </svg>
                         </button>
                         <button type="button" class="btn-icon btn-schedule" title="Create schedule"
-                                th:data-target="'item-sched-' + ${item.id}"
-                                onclick="toggleForm(this.getAttribute('data-target'))">
+                                th:data-target="'item-sched-' + ${item.id}">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                                  fill="none" stroke="currentColor" stroke-width="2"
                                  stroke-linecap="round" stroke-linejoin="round">
@@ -128,7 +126,7 @@
                             <label>Summary <input type="text" name="summary" required
                                                   placeholder="What was done"/></label>
                             <label>Vendor
-                                <select name="vendorId" onchange="onVendorChange(this)">
+                                <select name="vendorId" data-vendor-change="true">
                                     <option value="">None</option>
                                     <option th:each="v : ${vendors}"
                                             th:value="${v.id}" th:text="${v.name}"></option>
@@ -164,7 +162,7 @@
                                     placeholder="e.g. HVAC Inspection"/>
                             </label>
                             <label>Vendor
-                                <select name="vendorId" onchange="onVendorChange(this)">
+                                <select name="vendorId" data-vendor-change="true">
                                     <option value="">None</option>
                                     <option th:each="v : ${vendors}"
                                             th:value="${v.id}" th:text="${v.name}"></option>
@@ -241,8 +239,7 @@
                                         <td class="actions">
                                             <button type="button" class="btn-icon btn-log"
                                                     title="Complete service"
-                                                    th:data-target="'complete-' + ${is.id}"
-                                                    onclick="toggleForm(this.getAttribute('data-target'))">
+                                                    th:data-target="'complete-' + ${is.id}">
                                                 <svg xmlns="http://www.w3.org/2000/svg"
                                                      width="16" height="16" viewBox="0 0 24 24"
                                                      fill="none" stroke="currentColor"
@@ -261,8 +258,7 @@
                                                 <button type="submit"
                                                         class="btn-icon btn-skip"
                                                         title="Skip to next occurrence"
-                                                        onclick="return confirm(
-                                                            'Skip this occurrence?')">
+                                                        data-confirm-submit="Skip this occurrence?">
                                                     <svg xmlns="http://www.w3.org/2000/svg"
                                                          width="16" height="16"
                                                          viewBox="0 0 24 24" fill="none"
@@ -294,7 +290,7 @@
                                                     placeholder="What was done"/></label>
                                                 <label>Vendor
                                                     <select name="vendorId"
-                                                            onchange="onVendorChange(this)">
+                                                            data-vendor-change="true">
                                                         <option value="">None</option>
                                                         <option th:each="v : ${vendors}"
                                                                 th:value="${v.id}"
@@ -355,7 +351,7 @@
                 <a th:if="${itemPage.hasNext()}"
                    th:href="@{/items(page=${itemPage.page() + 1},size=${itemPage.size()},q=${q})}">Next</a>
                 <label class="page-size-label">Show
-                    <select onchange="window.location.href='/items?size=' + this.value">
+                    <select data-page-size="/items">
                         <option value="10" th:selected="${itemPage.size() == 10}">10</option>
                         <option value="25" th:selected="${itemPage.size() == 25}">25</option>
                         <option value="50" th:selected="${itemPage.size() == 50}">50</option>

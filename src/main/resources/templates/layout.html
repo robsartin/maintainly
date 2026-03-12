@@ -7,29 +7,7 @@
     <title>MyStuff</title>
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
-    <script>
-    function toggleForm(id) {
-        var row = document.getElementById(id);
-        if (row) {
-            var showing = row.style.display === 'none';
-            row.style.display = showing ? '' : 'none';
-            if (showing) {
-                var dateInput = row.querySelector('input[type="date"]');
-                if (dateInput && !dateInput.value) {
-                    dateInput.value = new Date().toISOString().slice(0, 10);
-                }
-            }
-        }
-    }
-    function onVendorChange(select) {
-        var row = select.closest('tr');
-        var fields = row.querySelector('.new-vendor-fields');
-        fields.style.display = select.value === '__new__' ? '' : 'none';
-        if (select.value !== '__new__') {
-            fields.querySelectorAll('input').forEach(function(i) { i.value = ''; });
-        }
-    }
-    </script>
+    <script th:src="@{/js/app.js}"></script>
 </head>
 <body>
 <header th:fragment="header">

@@ -161,7 +161,7 @@ class VendorControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("should render data-edit-id for edit button")
+    @DisplayName("should render data-toggle-form for edit")
     void shouldRenderEditDataAttribute()
             throws Exception {
         mockMvc.perform(post("/vendors/add")
@@ -169,16 +169,21 @@ class VendorControllerIntegrationTest {
                 .with(user("dev").roles("USER"))
                 .with(csrf()));
 
-        mockMvc.perform(get("/vendors")
-                        .with(user("dev").roles("USER")))
+        MvcResult result = mockMvc.perform(
+                        get("/vendors")
+                                .with(user("dev")
+                                        .roles("USER")))
                 .andExpect(status().isOk())
-                .andExpect(content().string(
-                        containsString("data-edit-id=")))
-                .andExpect(content().string(
-                        containsString(
-                                "this.getAttribute("
-                                        + "'data-edit-id"
-                                        + "')")));
+                .andReturn();
+        String html = result.getResponse()
+                .getContentAsString();
+        assertTrue(
+                html.contains("data-toggle-form=\"edit-"),
+                "should have data-toggle-form for edit");
+        assertTrue(html.contains("/js/app.js"),
+                "should include external app.js");
+        assertTrue(!html.contains("onclick="),
+                "should have no inline onclick");
     }
 
     private String findVendorId(String name)
