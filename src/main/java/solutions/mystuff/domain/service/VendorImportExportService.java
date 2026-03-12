@@ -11,6 +11,7 @@ import solutions.mystuff.domain.model.VendorAltPhone;
 import solutions.mystuff.domain.port.in.VendorImportExport;
 import solutions.mystuff.domain.port.out.VendorRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Imports and exports vendors using vCard 4.0 format.
@@ -34,18 +35,6 @@ import org.springframework.stereotype.Service;
 public class VendorImportExportService
         implements VendorImportExport {
 
-    private static final int MAX_NAME = 200;
-    private static final int MAX_PHONE = 50;
-    private static final int MAX_EMAIL = 320;
-    private static final int MAX_ADDR = 200;
-    private static final int MAX_CITY = 100;
-    private static final int MAX_STATE = 100;
-    private static final int MAX_POSTAL = 30;
-    private static final int MAX_COUNTRY = 100;
-    private static final int MAX_URL = 2000;
-    private static final int MAX_NOTES = 2000;
-    private static final int MAX_LABEL = 50;
-
     private final VendorRepository vendorRepository;
 
     public VendorImportExportService(
@@ -54,6 +43,7 @@ public class VendorImportExportService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public String exportVendor(
             UUID orgId, UUID vendorId) {
         Vendor vendor = vendorRepository
@@ -66,6 +56,7 @@ public class VendorImportExportService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public String exportAllVendors(UUID orgId) {
         List<Vendor> vendors =
                 vendorRepository
@@ -111,9 +102,11 @@ public class VendorImportExportService
             VendorAltPhone altPhone =
                     new VendorAltPhone();
             altPhone.setPhone(sanitize(
-                    alt.get("phone"), MAX_PHONE));
+                    alt.get("phone"),
+                    VendorFieldLimits.MAX_PHONE));
             altPhone.setLabel(sanitize(
-                    alt.get("label"), MAX_LABEL));
+                    alt.get("label"),
+                    VendorFieldLimits.MAX_LABEL));
             altPhone.setOrganizationId(orgId);
             altPhone.setVendor(vendor);
             vendor.getAltPhones().add(altPhone);
@@ -124,32 +117,46 @@ public class VendorImportExportService
             UUID orgId, Map<String, Object> card) {
         Vendor v = new Vendor();
         v.setOrganizationId(orgId);
-        v.setName(sanitize(
-                str(card, "name"), MAX_NAME));
-        v.setPhone(sanitize(
-                str(card, "phone"), MAX_PHONE));
-        v.setEmail(sanitize(
-                str(card, "email"), MAX_EMAIL));
-        v.setAddressLine1(sanitize(
-                str(card, "addressLine1"), MAX_ADDR));
-        v.setAddressLine2(sanitize(
-                str(card, "addressLine2"), MAX_ADDR));
-        v.setCity(sanitize(
-                str(card, "city"), MAX_CITY));
-        v.setStateProvince(sanitize(
-                str(card, "stateProvince"),
-                MAX_STATE));
-        v.setPostalCode(sanitize(
-                str(card, "postalCode"),
-                MAX_POSTAL));
-        v.setCountry(sanitize(
-                str(card, "country"), MAX_COUNTRY));
+        mapContactFields(v, card);
+        mapAddressFields(v, card);
         v.setWebsite(sanitize(
-                str(card, "website"), MAX_URL));
-        v.setNotes(sanitize(
-                str(card, "notes"), MAX_NOTES));
+                str(card, "website"),
+                VendorFieldLimits.MAX_URL));
+        v.setNotes(sanitize(str(card, "notes"),
+                VendorFieldLimits.MAX_NOTES));
         v.setAltPhones(new ArrayList<>());
         return v;
+    }
+
+    private void mapContactFields(
+            Vendor v, Map<String, Object> card) {
+        v.setName(sanitize(str(card, "name"),
+                VendorFieldLimits.MAX_NAME));
+        v.setPhone(sanitize(str(card, "phone"),
+                VendorFieldLimits.MAX_PHONE));
+        v.setEmail(sanitize(str(card, "email"),
+                VendorFieldLimits.MAX_EMAIL));
+    }
+
+    private void mapAddressFields(
+            Vendor v, Map<String, Object> card) {
+        v.setAddressLine1(sanitize(
+                str(card, "addressLine1"),
+                VendorFieldLimits.MAX_ADDR));
+        v.setAddressLine2(sanitize(
+                str(card, "addressLine2"),
+                VendorFieldLimits.MAX_ADDR));
+        v.setCity(sanitize(str(card, "city"),
+                VendorFieldLimits.MAX_CITY));
+        v.setStateProvince(sanitize(
+                str(card, "stateProvince"),
+                VendorFieldLimits.MAX_STATE));
+        v.setPostalCode(sanitize(
+                str(card, "postalCode"),
+                VendorFieldLimits.MAX_POSTAL));
+        v.setCountry(sanitize(
+                str(card, "country"),
+                VendorFieldLimits.MAX_COUNTRY));
     }
 
     private String str(

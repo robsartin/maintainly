@@ -1,5 +1,7 @@
 package solutions.mystuff.domain.service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -105,5 +107,140 @@ class VendorManagementServiceTest {
                 .isInstanceOf(
                         IllegalArgumentException.class)
                 .hasMessage("Vendor not found");
+    }
+
+    @Test
+    @DisplayName("should update all vendor fields")
+    void shouldUpdateAllFields() {
+        UUID vendorId = UUID.randomUUID();
+        Vendor existing = existingVendor(vendorId);
+        when(repo.findByIdAndOrganizationId(
+                vendorId, orgId))
+                .thenReturn(Optional.of(existing));
+        when(repo.save(any(Vendor.class)))
+                .thenAnswer(i -> i.getArgument(0));
+
+        Vendor result = service.updateVendor(
+                orgId, vendorId, "Updated", "555-9999",
+                "new@test.com", "456 Oak", "Apt 2",
+                "Chicago", "IL", "60601", "US",
+                "https://updated.com", "Great vendor");
+
+        assertThat(result.getName())
+                .isEqualTo("Updated");
+        assertThat(result.getPhone())
+                .isEqualTo("555-9999");
+        assertThat(result.getEmail())
+                .isEqualTo("new@test.com");
+        assertThat(result.getAddressLine1())
+                .isEqualTo("456 Oak");
+        assertThat(result.getWebsite())
+                .isEqualTo("https://updated.com");
+        assertThat(result.getNotes())
+                .isEqualTo("Great vendor");
+        verify(repo).save(existing);
+    }
+
+    @Test
+    @DisplayName("should create vendor with all fields")
+    void shouldCreateWithAllFields() {
+        when(repo.save(any(Vendor.class)))
+                .thenAnswer(i -> i.getArgument(0));
+
+        Vendor result = service.updateVendor(
+                orgId, null, "New Corp", "555-1111",
+                "info@new.com", "789 Pine", null,
+                "Boston", "MA", "02101", "US",
+                "https://new.com", "Notes here");
+
+        assertThat(result.getName())
+                .isEqualTo("New Corp");
+        assertThat(result.getOrganizationId())
+                .isEqualTo(orgId);
+        assertThat(result.getCity())
+                .isEqualTo("Boston");
+    }
+
+    @Test
+    @DisplayName("should reject blank name on update")
+    void shouldRejectBlankNameOnUpdate() {
+        UUID vendorId = UUID.randomUUID();
+        assertThatThrownBy(() ->
+                service.updateVendor(
+                        orgId, vendorId, "  ", null,
+                        null, null, null, null,
+                        null, null, null, null, null))
+                .isInstanceOf(
+                        IllegalArgumentException.class)
+                .hasMessageContaining("required");
+    }
+
+    @Test
+    @DisplayName("should throw on update when not found")
+    void shouldThrowOnUpdateNotFound() {
+        UUID vendorId = UUID.randomUUID();
+        when(repo.findByIdAndOrganizationId(
+                vendorId, orgId))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() ->
+                service.updateVendor(
+                        orgId, vendorId, "Name", null,
+                        null, null, null, null,
+                        null, null, null, null, null))
+                .isInstanceOf(
+                        IllegalArgumentException.class)
+                .hasMessage("Vendor not found");
+    }
+
+    @Test
+    @DisplayName("should delete vendor")
+    void shouldDeleteVendor() {
+        UUID vendorId = UUID.randomUUID();
+        when(repo.findByIdAndOrganizationId(
+                vendorId, orgId))
+                .thenReturn(Optional.of(new Vendor()));
+
+        service.deleteVendor(orgId, vendorId);
+
+        verify(repo).deleteByIdAndOrganizationId(
+                vendorId, orgId);
+    }
+
+    @Test
+    @DisplayName("should throw on delete when not found")
+    void shouldThrowOnDeleteNotFound() {
+        UUID vendorId = UUID.randomUUID();
+        when(repo.findByIdAndOrganizationId(
+                vendorId, orgId))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() ->
+                service.deleteVendor(orgId, vendorId))
+                .isInstanceOf(
+                        IllegalArgumentException.class)
+                .hasMessage("Vendor not found");
+    }
+
+    @Test
+    @DisplayName("should find all vendors")
+    void shouldFindAllVendors() {
+        List<Vendor> vendors =
+                List.of(new Vendor(), new Vendor());
+        when(repo.findByOrganizationId(orgId))
+                .thenReturn(vendors);
+
+        List<Vendor> result =
+                service.findAllVendors(orgId);
+
+        assertThat(result).hasSize(2);
+    }
+
+    private Vendor existingVendor(UUID vendorId) {
+        Vendor v = new Vendor();
+        v.setName("Old Name");
+        v.setOrganizationId(orgId);
+        v.setAltPhones(new ArrayList<>());
+        return v;
     }
 }

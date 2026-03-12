@@ -100,7 +100,7 @@ class ControllerErrorAdviceTest {
     }
 
     @Test
-    @DisplayName("should route vendor errors to settings redirect")
+    @DisplayName("should route vendor errors to vendors redirect")
     void shouldRouteVendorErrors() {
         IllegalArgumentException ex =
                 new IllegalArgumentException("bad input");
@@ -108,7 +108,7 @@ class ControllerErrorAdviceTest {
         String view = advice.handleIllegalArgument(
                 ex, model,
                 requestForPath("/vendors/import"));
-        assertEquals("redirect:/settings", view);
+        assertEquals("redirect:/vendors", view);
     }
 
     @Test

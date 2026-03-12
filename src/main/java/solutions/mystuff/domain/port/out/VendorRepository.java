@@ -33,4 +33,8 @@ public interface VendorRepository {
 
     /** Persist a new or updated vendor. */
     Vendor save(Vendor vendor);
+
+    /** Delete a vendor by ID scoped to an organization. */
+    void deleteByIdAndOrganizationId(
+            UUID id, UUID organizationId);
 }

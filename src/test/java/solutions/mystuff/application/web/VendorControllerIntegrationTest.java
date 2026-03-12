@@ -1,0 +1,183 @@
+package solutions.mystuff.application.web;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure
+        .AutoConfigureMockMvc;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+
+import static org.springframework.security.test.web
+        .servlet.request
+        .SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web
+        .servlet.request
+        .SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet
+        .request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet
+        .request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet
+        .request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet
+        .result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet
+        .result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet
+        .result.MockMvcResultMatchers.model;
+import static org.springframework.test.web.servlet
+        .result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet
+        .result.MockMvcResultMatchers.status;
+import static org.junit.jupiter.api.Assertions
+        .assertTrue;
+
+@SpringBootTest
+@AutoConfigureMockMvc
+@DisplayName("Vendor Controller Integration")
+class VendorControllerIntegrationTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Test
+    @DisplayName("should show vendors page")
+    void shouldShowVendorsPage() throws Exception {
+        mockMvc.perform(get("/vendors")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(model()
+                        .attributeExists("vendors"));
+    }
+
+    @Test
+    @DisplayName("should add vendor")
+    void shouldAddVendor() throws Exception {
+        mockMvc.perform(post("/vendors/add")
+                        .param("name", "Integration Corp")
+                        .param("phone", "555-0001")
+                        .param("email", "test@int.com")
+                        .param("city", "TestCity")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/vendors"));
+    }
+
+    @Test
+    @DisplayName("should reject blank name on add")
+    void shouldRejectBlankName() throws Exception {
+        mockMvc.perform(post("/vendors/add")
+                        .param("name", "  ")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/vendors"));
+    }
+
+    @Test
+    @DisplayName("should edit vendor")
+    void shouldEditVendor() throws Exception {
+        mockMvc.perform(post("/vendors/add")
+                .param("name", "EditMe Corp")
+                .with(user("dev").roles("USER"))
+                .with(csrf()));
+
+        String vendorId = findVendorId("EditMe Corp");
+
+        mockMvc.perform(post("/vendors/edit")
+                        .param("vendorId", vendorId)
+                        .param("name", "Edited Corp")
+                        .param("phone", "555-9999")
+                        .param("website",
+                                "https://edited.com")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/vendors"));
+    }
+
+    @Test
+    @DisplayName("should delete vendor")
+    void shouldDeleteVendor() throws Exception {
+        mockMvc.perform(post("/vendors/add")
+                .param("name", "DeleteMe Corp")
+                .with(user("dev").roles("USER"))
+                .with(csrf()));
+
+        String vendorId =
+                findVendorId("DeleteMe Corp");
+
+        mockMvc.perform(post("/vendors/delete")
+                        .param("vendorId", vendorId)
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/vendors"));
+    }
+
+    @Test
+    @DisplayName("should export all vendors")
+    void shouldExportAll() throws Exception {
+        mockMvc.perform(post("/vendors/add")
+                .param("name", "ExportTest Corp")
+                .with(user("dev").roles("USER"))
+                .with(csrf()));
+
+        mockMvc.perform(get("/vendors/export")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(header().string(
+                        "Content-Type",
+                        "text/vcard; charset=utf-8"))
+                .andExpect(header().string(
+                        "Content-Disposition",
+                        "attachment; filename="
+                                + "\"vendors.vcf\""));
+    }
+
+    @Test
+    @DisplayName("should import vendors from vcf")
+    void shouldImportVendors() throws Exception {
+        String vcf = "BEGIN:VCARD\r\n"
+                + "VERSION:4.0\r\n"
+                + "FN:Imported Corp\r\n"
+                + "TEL;TYPE=work:555-0002\r\n"
+                + "END:VCARD\r\n";
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "contacts.vcf",
+                "text/vcard",
+                vcf.getBytes());
+        mockMvc.perform(multipart("/vendors/import")
+                        .file(file)
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/vendors"));
+    }
+
+    private String findVendorId(String name)
+            throws Exception {
+        MvcResult result = mockMvc.perform(
+                        get("/vendors")
+                                .with(user("dev")
+                                        .roles("USER")))
+                .andReturn();
+        String html = result.getResponse()
+                .getContentAsString();
+        int nameIdx = html.indexOf(name);
+        assertTrue(nameIdx > 0,
+                "Vendor not found: " + name);
+        String marker = "name=\"vendorId\" value=\"";
+        int start = html.indexOf(marker, nameIdx);
+        if (start < 0) {
+            start = html.lastIndexOf(marker, nameIdx);
+        }
+        start += marker.length();
+        int end = html.indexOf("\"", start);
+        return html.substring(start, end);
+    }
+}

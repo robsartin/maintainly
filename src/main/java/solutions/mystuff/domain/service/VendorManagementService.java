@@ -1,5 +1,6 @@
 package solutions.mystuff.domain.service;
 
+import java.util.List;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.Vendor;
@@ -8,11 +9,7 @@ import solutions.mystuff.domain.port.out.VendorRepository;
 import org.springframework.stereotype.Service;
 
 /**
- * Resolves or creates vendors for use in service schedules and records.
- *
- * <p>When the sentinel value {@code "__new__"} is passed as the vendor ID,
- * a new vendor is created after validating name (max 200) and phone
- * (max 50) lengths. Otherwise the existing vendor is looked up by ID.
+ * Resolves, creates, updates, and deletes vendors.
  *
  * <div class="mermaid">
  * sequenceDiagram
@@ -31,9 +28,6 @@ import org.springframework.stereotype.Service;
 public class VendorManagementService
         implements VendorManagement {
 
-    private static final int MAX_NAME_LENGTH = 200;
-    private static final int MAX_PHONE_LENGTH = 50;
-
     private final VendorRepository vendorRepository;
 
     public VendorManagementService(
@@ -41,7 +35,6 @@ public class VendorManagementService
         this.vendorRepository = vendorRepository;
     }
 
-    /** Resolves an existing vendor by ID or creates a new one. */
     @Override
     public Vendor resolveVendor(
             UUID orgId, String vendorId,
@@ -52,35 +45,78 @@ public class VendorManagementService
                     newVendorName, newVendorPhone);
         }
         if (vendorId != null && !vendorId.isBlank()) {
-            return vendorRepository
-                    .findByIdAndOrganizationId(
-                            UUID.fromString(vendorId),
-                            orgId)
-                    .orElseThrow(() ->
-                            new IllegalArgumentException(
-                                    "Vendor not found"));
+            return findVendor(orgId,
+                    UUID.fromString(vendorId));
         }
         return null;
     }
 
+    @Override
+    public Vendor updateVendor(
+            UUID orgId, UUID vendorId,
+            String name, String phone, String email,
+            String addressLine1, String addressLine2,
+            String city, String stateProvince,
+            String postalCode, String country,
+            String website, String notes) {
+        requireName(name);
+        Vendor vendor = vendorId != null
+                ? findVendor(orgId, vendorId)
+                : newVendor(orgId);
+        applyFields(vendor, name, phone, email,
+                addressLine1, addressLine2, city,
+                stateProvince, postalCode, country,
+                website, notes);
+        return vendorRepository.save(vendor);
+    }
+
+    private Vendor newVendor(UUID orgId) {
+        Vendor v = new Vendor();
+        v.setOrganizationId(orgId);
+        return v;
+    }
+
+    private void applyFields(
+            Vendor v, String name, String phone,
+            String email, String addressLine1,
+            String addressLine2, String city,
+            String stateProvince, String postalCode,
+            String country, String website,
+            String notes) {
+        v.setName(name.trim());
+        v.setPhone(trimOrNull(phone));
+        v.setEmail(trimOrNull(email));
+        v.setAddressLine1(trimOrNull(addressLine1));
+        v.setAddressLine2(trimOrNull(addressLine2));
+        v.setCity(trimOrNull(city));
+        v.setStateProvince(trimOrNull(stateProvince));
+        v.setPostalCode(trimOrNull(postalCode));
+        v.setCountry(trimOrNull(country));
+        v.setWebsite(trimOrNull(website));
+        v.setNotes(trimOrNull(notes));
+    }
+
+    @Override
+    public void deleteVendor(
+            UUID orgId, UUID vendorId) {
+        findVendor(orgId, vendorId);
+        vendorRepository.deleteByIdAndOrganizationId(
+                vendorId, orgId);
+    }
+
+    @Override
+    public List<Vendor> findAllVendors(UUID orgId) {
+        return vendorRepository
+                .findByOrganizationId(orgId);
+    }
+
     private Vendor createVendor(
             UUID orgId, String name, String phone) {
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException(
-                    "Vendor name is required");
-        }
-        if (name.trim().length() > MAX_NAME_LENGTH) {
-            throw new IllegalArgumentException(
-                    "Vendor name exceeds maximum length"
-                            + " of " + MAX_NAME_LENGTH);
-        }
-        if (phone != null
-                && phone.trim().length()
-                        > MAX_PHONE_LENGTH) {
-            throw new IllegalArgumentException(
-                    "Vendor phone exceeds maximum length"
-                            + " of " + MAX_PHONE_LENGTH);
-        }
+        requireName(name);
+        requireMaxLength(name, "Vendor name",
+                VendorFieldLimits.MAX_NAME);
+        requireMaxLength(phone, "Vendor phone",
+                VendorFieldLimits.MAX_PHONE);
         Vendor vendor = new Vendor();
         vendor.setOrganizationId(orgId);
         vendor.setName(name.trim());
@@ -88,5 +124,39 @@ public class VendorManagementService
             vendor.setPhone(phone.trim());
         }
         return vendorRepository.save(vendor);
+    }
+
+    private Vendor findVendor(
+            UUID orgId, UUID vendorId) {
+        return vendorRepository
+                .findByIdAndOrganizationId(
+                        vendorId, orgId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Vendor not found"));
+    }
+
+    private void requireName(String name) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException(
+                    "Vendor name is required");
+        }
+    }
+
+    private void requireMaxLength(
+            String value, String field, int max) {
+        if (value != null
+                && value.trim().length() > max) {
+            throw new IllegalArgumentException(
+                    field + " exceeds maximum length"
+                            + " of " + max);
+        }
+    }
+
+    private String trimOrNull(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim();
     }
 }

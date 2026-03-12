@@ -36,4 +36,8 @@ public interface JpaVendorRepository
     @Override
     Optional<Vendor> findByIdAndOrganizationId(
             UUID id, UUID organizationId);
+
+    @Override
+    void deleteByIdAndOrganizationId(
+            UUID id, UUID organizationId);
 }
