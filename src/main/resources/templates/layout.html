@@ -38,9 +38,11 @@
              th:src="@{/profile-image/org}"
              alt="Organization logo" class="org-logo"/>
         <div>
-            <h1>MyStuff</h1>
+            <h1 th:if="${organization != null}"
+                th:text="${organization.name}">Organization</h1>
+            <h1 th:unless="${organization != null}">MyStuff</h1>
             <span th:if="${organization != null}"
-                  class="org-name" th:text="${organization.name}"></span>
+                  class="app-name">MyStuff</span>
         </div>
     </div>
     <nav>
