@@ -1,5 +1,6 @@
 package solutions.mystuff.application.web;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -15,6 +16,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.jupiter.api.Assertions
+        .assertEquals;
 import static org.junit.jupiter.api.Assertions
         .assertTrue;
 import static org.hamcrest.Matchers.hasSize;
@@ -613,22 +616,50 @@ class ItemControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("should log one-off service for item")
+    @DisplayName("should log one-off without advancing"
+            + " schedule")
     void shouldLogOneOffService() throws Exception {
         String itemId = getFirstItemId();
+        LocalDate dueBefore =
+                getNextDueDateForItem(itemId);
         mockMvc.perform(post("/items/log")
                         .param("itemId", itemId)
                         .param("summary", "One-off repair")
                         .param("serviceDate", "2026-05-01")
+                        .param("oneOff", "true")
                         .param("techName", "Mike")
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/items"));
+        LocalDate dueAfter =
+                getNextDueDateForItem(itemId);
+        assertEquals(dueBefore, dueAfter,
+                "one-off should not advance schedule");
     }
 
     @Test
-    @DisplayName("one-off form should post to items/log")
+    @DisplayName("should advance schedule on log service")
+    void shouldAdvanceScheduleOnLog() throws Exception {
+        String itemId = getFirstItemId();
+        LocalDate dueBefore =
+                getNextDueDateForItem(itemId);
+        mockMvc.perform(post("/items/log")
+                        .param("itemId", itemId)
+                        .param("summary", "Routine service")
+                        .param("serviceDate", "2026-06-01")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/items"));
+        LocalDate dueAfter =
+                getNextDueDateForItem(itemId);
+        assertTrue(dueAfter.isAfter(dueBefore),
+                "log should advance next due date");
+    }
+
+    @Test
+    @DisplayName("one-off form should include oneOff param")
     void shouldRenderOneOffFormAction() throws Exception {
         MvcResult result = mockMvc.perform(get("/items")
                         .with(user("dev").roles("USER")))
@@ -642,6 +673,10 @@ class ItemControllerIntegrationTest {
         assertTrue(
                 html.contains("One-off service"),
                 "should have one-off service title");
+        assertTrue(
+                html.contains(
+                        "name=\"oneOff\" value=\"true\""),
+                "one-off form should have oneOff param");
     }
 
     @Test
@@ -689,6 +724,26 @@ class ItemControllerIntegrationTest {
         return ((List<Vendor>)
                 getModel("vendors"))
                 .get(0).getId().toString();
+    }
+
+    @SuppressWarnings("unchecked")
+    private LocalDate getNextDueDateForItem(
+            String itemId) throws Exception {
+        MvcResult result = mockMvc.perform(
+                get("/items/detail")
+                        .param("itemId", itemId)
+                        .with(user("dev").roles("USER")))
+                .andReturn();
+        List<ServiceSchedule> schedules =
+                (List<ServiceSchedule>)
+                        result.getModelAndView()
+                                .getModel()
+                                .get("itemSchedules");
+        return schedules.stream()
+                .filter(ServiceSchedule::isActive)
+                .map(ServiceSchedule::getNextDueDate)
+                .min(LocalDate::compareTo)
+                .orElse(null);
     }
 
     private Object getModel(String attr)

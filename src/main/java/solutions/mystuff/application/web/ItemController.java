@@ -3,6 +3,8 @@ package solutions.mystuff.application.web;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.AppUser;
@@ -153,7 +155,7 @@ public class ItemController {
         }
     }
 
-    /** Logs an ad-hoc service record for an item. */
+    /** Logs a service record for an item, advancing schedule if not one-off. */
     @PostMapping("/items/log")
     public String logItemService(
             @RequestParam UUID itemId,
@@ -167,6 +169,9 @@ public class ItemController {
                     String newVendorPhone,
             @RequestParam(required = false)
                     String techName,
+            @RequestParam(required = false,
+                    defaultValue = "false")
+                    boolean oneOff,
             Principal principal) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
@@ -178,12 +183,42 @@ public class ItemController {
                     newVendorPhone);
             LocalDate date = InputValidator.parseDate(
                     serviceDate, "Service date");
-            recordService.createRecord(orgId, item,
-                    null, null, vendor, summary,
-                    date, techName);
+            if (oneOff) {
+                recordService.createRecord(orgId, item,
+                        null, null, vendor, summary,
+                        date, techName);
+            } else {
+                completeNextSchedule(orgId, item,
+                        vendor, summary, date, techName);
+            }
             return "redirect:/items";
         } finally {
             helper.clearOrgMdc();
+        }
+    }
+
+    private void completeNextSchedule(
+            UUID orgId, Item item, Vendor vendor,
+            String summary, LocalDate date,
+            String techName) {
+        List<ServiceSchedule> schedules =
+                itemQuery.findSchedulesByItem(
+                        item.getId(), orgId);
+        ServiceSchedule next = schedules.stream()
+                .filter(ServiceSchedule::isActive)
+                .min(Comparator.comparing(
+                        s -> s.getNextDueDate() != null
+                                ? s.getNextDueDate()
+                                : LocalDate.MAX))
+                .orElse(null);
+        if (next != null) {
+            scheduleService.completeSchedule(
+                    next.getId(), orgId, vendor,
+                    summary, date, techName);
+        } else {
+            recordService.createRecord(orgId, item,
+                    null, null, vendor, summary,
+                    date, techName);
         }
     }
 
