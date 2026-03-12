@@ -172,40 +172,6 @@ public class ScheduleController {
         }
     }
 
-    /** Updates an existing schedule's fields. */
-    @PostMapping("/schedules/edit")
-    public String editSchedule(
-            @RequestParam UUID scheduleId,
-            @RequestParam String serviceType,
-            @RequestParam String nextDueDate,
-            @RequestParam int frequencyInterval,
-            @RequestParam FrequencyUnit frequencyUnit,
-            @RequestParam(required = false)
-                    String vendorId,
-            @RequestParam(required = false)
-                    String newVendorName,
-            @RequestParam(required = false)
-                    String newVendorPhone,
-            Principal principal) {
-        AppUser user = helper.resolveUser(principal);
-        helper.setOrgMdc(user);
-        try {
-            UUID orgId = user.getOrganization().getId();
-            Vendor vendor = vendorService.resolveVendor(
-                    orgId, vendorId, newVendorName,
-                    newVendorPhone);
-            LocalDate due = InputValidator.parseDate(
-                    nextDueDate, "Next due date");
-            scheduleService.editSchedule(scheduleId,
-                    orgId, serviceType, due,
-                    frequencyInterval, frequencyUnit,
-                    vendor);
-            return "redirect:/schedules";
-        } finally {
-            helper.clearOrgMdc();
-        }
-    }
-
     private String handleNoOrg(
             AppUser user, Model model) {
         log.warn("User {} has no organization",

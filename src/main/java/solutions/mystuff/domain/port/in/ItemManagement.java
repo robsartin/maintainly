@@ -23,4 +23,5 @@ public interface ItemManagement {
     Item createItem(UUID orgId, String name,
             String location, String manufacturer,
             String modelName, String serialNumber);
+
 }

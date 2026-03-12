@@ -138,16 +138,6 @@ class ScheduleControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("should render data-target for edit button")
-    void shouldRenderEditDataTarget() throws Exception {
-        mockMvc.perform(get("/schedules")
-                        .with(user("dev").roles("USER")))
-                .andExpect(status().isOk())
-                .andExpect(content().string(
-                        containsString("data-target=\"edit-")));
-    }
-
-    @Test
     @DisplayName("should render data-target for log button")
     void shouldRenderLogDataTarget() throws Exception {
         mockMvc.perform(get("/schedules")
@@ -253,41 +243,6 @@ class ScheduleControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("should edit a schedule")
-    void shouldEditSchedule() throws Exception {
-        String scheduleId = getFirstScheduleId();
-        mockMvc.perform(post("/schedules/edit")
-                        .param("scheduleId", scheduleId)
-                        .param("serviceType",
-                                "Updated Type")
-                        .param("nextDueDate", "2026-12-15")
-                        .param("frequencyInterval", "3")
-                        .param("frequencyUnit", "months")
-                        .with(user("dev").roles("USER"))
-                        .with(csrf()))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/schedules"));
-    }
-
-    @Test
-    @DisplayName("should handle invalid schedule on edit")
-    void shouldHandleInvalidScheduleEdit()
-            throws Exception {
-        UUID fakeId = UUID.randomUUID();
-        mockMvc.perform(post("/schedules/edit")
-                        .param("scheduleId",
-                                fakeId.toString())
-                        .param("serviceType", "Test")
-                        .param("nextDueDate", "2026-12-15")
-                        .param("frequencyInterval", "1")
-                        .param("frequencyUnit", "months")
-                        .with(user("dev").roles("USER"))
-                        .with(csrf()))
-                .andExpect(status().isOk())
-                .andExpect(model().attributeExists("error"));
-    }
-
-    @Test
     @DisplayName("should show no-org for new user")
     void shouldShowNoOrgForNewUser() throws Exception {
         mockMvc.perform(get("/schedules")
@@ -295,43 +250,6 @@ class ScheduleControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(model().attribute(
                         "noOrganization", true));
-    }
-
-    @Test
-    @DisplayName("should reject blank service type"
-            + " on edit")
-    void shouldRejectBlankServiceTypeOnEdit()
-            throws Exception {
-        String scheduleId = getFirstScheduleId();
-        mockMvc.perform(post("/schedules/edit")
-                        .param("scheduleId", scheduleId)
-                        .param("serviceType", "  ")
-                        .param("nextDueDate", "2026-12-15")
-                        .param("frequencyInterval", "1")
-                        .param("frequencyUnit", "months")
-                        .with(user("dev").roles("USER"))
-                        .with(csrf()))
-                .andExpect(status().isOk())
-                .andExpect(model().attributeExists(
-                        "error"));
-    }
-
-    @Test
-    @DisplayName("should reject zero interval on edit")
-    void shouldRejectZeroIntervalOnEdit()
-            throws Exception {
-        String scheduleId = getFirstScheduleId();
-        mockMvc.perform(post("/schedules/edit")
-                        .param("scheduleId", scheduleId)
-                        .param("serviceType", "Test")
-                        .param("nextDueDate", "2026-12-15")
-                        .param("frequencyInterval", "0")
-                        .param("frequencyUnit", "months")
-                        .with(user("dev").roles("USER"))
-                        .with(csrf()))
-                .andExpect(status().isOk())
-                .andExpect(model().attributeExists(
-                        "error"));
     }
 
     @Test
@@ -350,6 +268,24 @@ class ScheduleControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists(
                         "error"));
+    }
+
+    @Test
+    @DisplayName("should render cancel buttons on forms")
+    void shouldRenderCancelButtons() throws Exception {
+        MvcResult result = mockMvc.perform(
+                        get("/schedules")
+                                .with(user("dev")
+                                        .roles("USER")))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse()
+                .getContentAsString();
+        assertTrue(html.contains("btn-cancel"),
+                "should have btn-cancel class");
+        assertTrue(
+                html.contains("data-toggle-form="),
+                "should have data-toggle-form cancel");
     }
 
     @SuppressWarnings("unchecked")

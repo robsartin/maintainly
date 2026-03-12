@@ -600,6 +600,66 @@ class ItemControllerIntegrationTest {
                         "error"));
     }
 
+    @Test
+    @DisplayName("should render one-off service button")
+    void shouldRenderOneOffServiceButton()
+            throws Exception {
+        mockMvc.perform(get("/items")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(
+                        containsString(
+                                "data-target=\"item-oneoff-")));
+    }
+
+    @Test
+    @DisplayName("should log one-off service for item")
+    void shouldLogOneOffService() throws Exception {
+        String itemId = getFirstItemId();
+        mockMvc.perform(post("/items/log")
+                        .param("itemId", itemId)
+                        .param("summary", "One-off repair")
+                        .param("serviceDate", "2026-05-01")
+                        .param("techName", "Mike")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/items"));
+    }
+
+    @Test
+    @DisplayName("one-off form should post to items/log")
+    void shouldRenderOneOffFormAction() throws Exception {
+        MvcResult result = mockMvc.perform(get("/items")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse()
+                .getContentAsString();
+        assertTrue(
+                html.contains("item-oneoff-"),
+                "should have one-off form row");
+        assertTrue(
+                html.contains("One-off service"),
+                "should have one-off service title");
+    }
+
+    @Test
+    @DisplayName("should render cancel buttons on forms")
+    void shouldRenderCancelButtons() throws Exception {
+        MvcResult result = mockMvc.perform(get("/items")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse()
+                .getContentAsString();
+        assertTrue(html.contains("btn-cancel"),
+                "should have btn-cancel class");
+        assertTrue(html.contains(
+                "data-toggle-form=\"add-item-form\""),
+                "should have cancel for add form");
+    }
+
     @SuppressWarnings("unchecked")
     private String getFirstItemId() throws Exception {
         return ((List<Item>) getModel("items"))

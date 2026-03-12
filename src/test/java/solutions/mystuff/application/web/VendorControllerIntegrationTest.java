@@ -186,6 +186,27 @@ class VendorControllerIntegrationTest {
                 "should have no inline onclick");
     }
 
+    @Test
+    @DisplayName("should render cancel buttons on forms")
+    void shouldRenderCancelButtons() throws Exception {
+        MvcResult result = mockMvc.perform(
+                        get("/vendors")
+                                .with(user("dev")
+                                        .roles("USER")))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse()
+                .getContentAsString();
+        assertTrue(html.contains("btn-cancel"),
+                "should have btn-cancel class");
+        assertTrue(html.contains(
+                "data-toggle-form=\"add-vendor-form\""),
+                "cancel for add vendor form");
+        assertTrue(html.contains(
+                "data-toggle-form=\"import-vendor-form\""),
+                "cancel for import vendor form");
+    }
+
     private String findVendorId(String name)
             throws Exception {
         MvcResult result = mockMvc.perform(

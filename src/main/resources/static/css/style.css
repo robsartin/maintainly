@@ -171,6 +171,14 @@ td.actions form {
     background: #0d47a1;
 }
 
+.btn-cancel {
+    background: #757575;
+}
+
+.btn-cancel:hover {
+    background: #616161;
+}
+
 .btn-delete {
     background: #e53935;
 }
