@@ -29,8 +29,8 @@ public class ControllerErrorAdvice {
         log.error("Invalid date format: {}",
                 ex.getMessage());
         model.addAttribute("error",
-                "Invalid date format: "
-                        + ex.getParsedString());
+                "Invalid date format."
+                        + " Please use yyyy-MM-dd.");
         model.addAttribute("items",
                 Collections.emptyList());
         return "items";

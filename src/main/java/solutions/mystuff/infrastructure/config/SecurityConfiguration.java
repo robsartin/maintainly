@@ -13,6 +13,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.header.writers
+        .ReferrerPolicyHeaderWriter;
 
 /**
  * Configures Spring Security for production and development profiles.
@@ -35,6 +37,13 @@ public class SecurityConfiguration {
     private static final Logger log =
             LoggerFactory.getLogger(
                     SecurityConfiguration.class);
+
+    private static final String CSP_POLICY =
+            "default-src 'self'; "
+            + "script-src 'self'; "
+            + "style-src 'self' 'unsafe-inline'; "
+            + "img-src 'self' data:; "
+            + "font-src 'self'";
 
     private static final String[] PUBLIC_PATHS = {
         "/actuator/health",
@@ -98,6 +107,18 @@ public class SecurityConfiguration {
                 .anyRequest().authenticated())
             .csrf(csrf -> csrf
                 .ignoringRequestMatchers(
-                        "/actuator/**"));
+                        "/actuator/**"))
+            .headers(headers -> headers
+                .frameOptions(frame -> frame.deny())
+                .contentTypeOptions(ct -> { })
+                .referrerPolicy(ref -> ref.policy(
+                        ReferrerPolicyHeaderWriter
+                                .ReferrerPolicy
+                                .STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
+                .httpStrictTransportSecurity(
+                        hsts -> hsts.disable())
+                .contentSecurityPolicy(csp ->
+                        csp.policyDirectives(
+                                CSP_POLICY)));
     }
 }

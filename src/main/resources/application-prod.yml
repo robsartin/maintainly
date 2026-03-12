@@ -15,6 +15,11 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
 
+management:
+  endpoint:
+    health:
+      show-details: when-authorized
+
 logging:
   level:
     root: WARN

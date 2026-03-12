@@ -1,6 +1,7 @@
 package solutions.mystuff.infrastructure.correlation;
 
 import java.io.IOException;
+import java.util.regex.Pattern;
 
 import solutions.mystuff.domain.model.UuidV7;
 import jakarta.servlet.FilterChain;
@@ -36,6 +37,11 @@ public class CorrelationIdFilter extends OncePerRequestFilter {
 
     private static final String HEADER = "X-Correlation-Id";
     private static final String MDC_KEY = "correlationId";
+    private static final Pattern UUID_PATTERN =
+            Pattern.compile(
+                    "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-"
+                    + "[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-"
+                    + "[0-9a-fA-F]{12}$");
 
     /** {@inheritDoc} */
     @Override
@@ -45,7 +51,7 @@ public class CorrelationIdFilter extends OncePerRequestFilter {
             FilterChain filterChain)
             throws ServletException, IOException {
         String id = request.getHeader(HEADER);
-        if (id == null || id.isBlank()) {
+        if (!isValidUuid(id)) {
             id = UuidV7.generate().toString();
         }
         CorrelationIdContext.setId(id);
@@ -57,5 +63,10 @@ public class CorrelationIdFilter extends OncePerRequestFilter {
             CorrelationIdContext.clear();
             MDC.remove(MDC_KEY);
         }
+    }
+
+    private static boolean isValidUuid(String value) {
+        return value != null && !value.isBlank()
+                && UUID_PATTERN.matcher(value).matches();
     }
 }

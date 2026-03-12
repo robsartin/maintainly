@@ -9,6 +9,7 @@ import java.util.function.Consumer;
 import solutions.mystuff.domain.model.AppUser;
 import solutions.mystuff.domain.model.FrequencyUnit;
 import solutions.mystuff.domain.model.Item;
+import solutions.mystuff.domain.model.LogSanitizer;
 import solutions.mystuff.domain.model.PageResult;
 import solutions.mystuff.domain.model.ServiceSchedule;
 import solutions.mystuff.domain.model.Vendor;
@@ -314,7 +315,8 @@ public class ItemController {
         int safePage = Math.max(0, page);
         PageResult<Item> result;
         if (q != null && !q.isBlank()) {
-            log.info("Searching items query={}", q);
+            log.info("Searching items query={}",
+                    LogSanitizer.sanitize(q));
             result = itemRepository
                     .searchByOrganizationId(
                             orgId, q, safePage, safeSize);

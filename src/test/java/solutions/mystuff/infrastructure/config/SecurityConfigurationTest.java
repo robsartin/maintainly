@@ -9,6 +9,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -59,6 +60,44 @@ class SecurityConfigurationTest {
         mockMvc.perform(get("/items")
                         .with(user("dev").roles("USER")))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("should set X-Frame-Options DENY")
+    void shouldSetFrameOptionsDeny() throws Exception {
+        mockMvc.perform(get("/items")
+                        .with(user("dev").roles("USER")))
+                .andExpect(header().string(
+                        "X-Frame-Options", "DENY"));
+    }
+
+    @Test
+    @DisplayName("should set X-Content-Type-Options nosniff")
+    void shouldSetContentTypeOptions() throws Exception {
+        mockMvc.perform(get("/items")
+                        .with(user("dev").roles("USER")))
+                .andExpect(header().string(
+                        "X-Content-Type-Options",
+                        "nosniff"));
+    }
+
+    @Test
+    @DisplayName("should set Content-Security-Policy")
+    void shouldSetCsp() throws Exception {
+        mockMvc.perform(get("/items")
+                        .with(user("dev").roles("USER")))
+                .andExpect(header().exists(
+                        "Content-Security-Policy"));
+    }
+
+    @Test
+    @DisplayName("should set Referrer-Policy")
+    void shouldSetReferrerPolicy() throws Exception {
+        mockMvc.perform(get("/items")
+                        .with(user("dev").roles("USER")))
+                .andExpect(header().string(
+                        "Referrer-Policy",
+                        "strict-origin-when-cross-origin"));
     }
 
     private void assertNotRedirectedToLogin(String path)

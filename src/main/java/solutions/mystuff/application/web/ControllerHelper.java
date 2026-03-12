@@ -3,6 +3,7 @@ package solutions.mystuff.application.web;
 import java.security.Principal;
 
 import solutions.mystuff.domain.model.AppUser;
+import solutions.mystuff.domain.model.LogSanitizer;
 import solutions.mystuff.domain.port.in.UserResolver;
 import org.slf4j.MDC;
 import org.springframework.security.oauth2.client
@@ -53,10 +54,11 @@ public class ControllerHelper {
             OAuth2User user = oauth.getPrincipal();
             String email = user.getAttribute("email");
             if (email != null && !email.isBlank()) {
-                return email;
+                return LogSanitizer.sanitize(email);
             }
         }
-        return principal.getName();
+        return LogSanitizer.sanitize(
+                principal.getName());
     }
 
     /** Adds username and organization attributes to the model. */

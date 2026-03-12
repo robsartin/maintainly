@@ -1,5 +1,8 @@
 package solutions.mystuff.application.web;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 import solutions.mystuff.domain.model.PageResult;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -50,7 +53,9 @@ final class LinkHeaderBuilder {
                 .append("?page=").append(page)
                 .append("&size=").append(size);
         if (q != null && !q.isBlank()) {
-            sb.append("&q=").append(q);
+            sb.append("&q=").append(
+                    URLEncoder.encode(q,
+                            StandardCharsets.UTF_8));
         }
         sb.append(">; rel=\"").append(rel).append("\"");
     }
