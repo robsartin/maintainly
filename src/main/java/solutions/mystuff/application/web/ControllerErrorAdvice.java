@@ -67,7 +67,8 @@ public class ControllerErrorAdvice {
                     Collections.emptyList());
             return "schedules";
         }
-        if (path.startsWith("/settings")) {
+        if (path.startsWith("/settings")
+                || path.startsWith("/vendors")) {
             return "redirect:/settings";
         }
         if (path.startsWith("/reports")) {

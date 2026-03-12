@@ -26,6 +26,8 @@ class VendorTest {
         assertNull(v.getStateProvince());
         assertNull(v.getPostalCode());
         assertNull(v.getCountry());
+        assertNull(v.getWebsite());
+        assertNull(v.getNotes());
         assertNotNull(v.getAltPhones());
     }
 
@@ -44,6 +46,8 @@ class VendorTest {
         v.setStateProvince("IL");
         v.setPostalCode("62701");
         v.setCountry("US");
+        v.setWebsite("https://abc.com");
+        v.setNotes("Preferred vendor");
         v.setAltPhones(new ArrayList<>());
         assertEquals(orgId, v.getOrganizationId());
         assertEquals("ABC Corp", v.getName());
@@ -55,6 +59,8 @@ class VendorTest {
         assertEquals("IL", v.getStateProvince());
         assertEquals("62701", v.getPostalCode());
         assertEquals("US", v.getCountry());
+        assertEquals("https://abc.com", v.getWebsite());
+        assertEquals("Preferred vendor", v.getNotes());
         assertNotNull(v.getAltPhones());
     }
 }

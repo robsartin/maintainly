@@ -100,6 +100,18 @@ class ControllerErrorAdviceTest {
     }
 
     @Test
+    @DisplayName("should route vendor errors to settings redirect")
+    void shouldRouteVendorErrors() {
+        IllegalArgumentException ex =
+                new IllegalArgumentException("bad input");
+        Model model = new ConcurrentModel();
+        String view = advice.handleIllegalArgument(
+                ex, model,
+                requestForPath("/vendors/import"));
+        assertEquals("redirect:/settings", view);
+    }
+
+    @Test
     @DisplayName("should route report errors to reports view")
     void shouldRouteReportErrors() {
         IllegalArgumentException ex =

@@ -69,6 +69,12 @@ public class Vendor extends OrgOwnedEntity {
     @Column(length = 100)
     private String country;
 
+    @Column(length = 2000)
+    private String website;
+
+    @Column(length = 2000)
+    private String notes;
+
     @OneToMany(mappedBy = "vendor",
             cascade = CascadeType.ALL,
             orphanRemoval = true)
@@ -145,6 +151,22 @@ public class Vendor extends OrgOwnedEntity {
 
     public void setCountry(String country) {
         this.country = country;
+    }
+
+    public String getWebsite() {
+        return website;
+    }
+
+    public void setWebsite(String website) {
+        this.website = website;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
 
     public List<VendorAltPhone> getAltPhones() {
