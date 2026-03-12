@@ -49,7 +49,8 @@
                     <td th:text="'Every ' + ${s.frequencyInterval} + ' ' + ${s.frequencyUnit}"></td>
                     <td class="actions">
                         <button type="button" class="btn-icon btn-edit" title="Edit schedule"
-                                th:attr="onclick='toggleForm(\'edit-' + ${s.id} + '\')'">
+                                th:data-target="'edit-' + ${s.id}"
+                                onclick="toggleForm(this.getAttribute('data-target'))">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                                  fill="none" stroke="currentColor" stroke-width="2"
                                  stroke-linecap="round" stroke-linejoin="round">
@@ -58,7 +59,8 @@
                             </svg>
                         </button>
                         <button type="button" class="btn-icon btn-log" title="Log service"
-                                th:attr="onclick='toggleForm(\'log-' + ${s.id} + '\')'">
+                                th:data-target="'log-' + ${s.id}"
+                                onclick="toggleForm(this.getAttribute('data-target'))">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                                  fill="none" stroke="currentColor" stroke-width="2"
                                  stroke-linecap="round" stroke-linejoin="round">
@@ -69,7 +71,8 @@
                             </svg>
                         </button>
                         <button type="button" class="btn-icon btn-schedule" title="Create schedule"
-                                th:attr="onclick='toggleForm(\'sched-' + ${s.id} + '\')'">
+                                th:data-target="'sched-' + ${s.id}"
+                                onclick="toggleForm(this.getAttribute('data-target'))">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                                  fill="none" stroke="currentColor" stroke-width="2"
                                  stroke-linecap="round" stroke-linejoin="round">

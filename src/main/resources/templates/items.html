@@ -92,7 +92,8 @@
                     <td th:text="${item.serialNumber}"></td>
                     <td class="actions" onclick="event.stopPropagation()">
                         <button type="button" class="btn-icon btn-log" title="Log service"
-                                th:attr="onclick='toggleForm(\'item-log-' + ${item.id} + '\')'">
+                                th:data-target="'item-log-' + ${item.id}"
+                                onclick="toggleForm(this.getAttribute('data-target'))">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                                  fill="none" stroke="currentColor" stroke-width="2"
                                  stroke-linecap="round" stroke-linejoin="round">
@@ -103,7 +104,8 @@
                             </svg>
                         </button>
                         <button type="button" class="btn-icon btn-schedule" title="Create schedule"
-                                th:attr="onclick='toggleForm(\'item-sched-' + ${item.id} + '\')'">
+                                th:data-target="'item-sched-' + ${item.id}"
+                                onclick="toggleForm(this.getAttribute('data-target'))">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                                  fill="none" stroke="currentColor" stroke-width="2"
                                  stroke-linecap="round" stroke-linejoin="round">
@@ -239,8 +241,8 @@
                                         <td class="actions">
                                             <button type="button" class="btn-icon btn-log"
                                                     title="Complete service"
-                                                    th:attr="onclick='toggleForm(\'complete-'
-                                                        + ${is.id} + '\')'">
+                                                    th:data-target="'complete-' + ${is.id}"
+                                                    onclick="toggleForm(this.getAttribute('data-target'))">
                                                 <svg xmlns="http://www.w3.org/2000/svg"
                                                      width="16" height="16" viewBox="0 0 24 24"
                                                      fill="none" stroke="currentColor"

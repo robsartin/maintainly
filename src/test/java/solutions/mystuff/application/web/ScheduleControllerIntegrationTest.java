@@ -136,6 +136,41 @@ class ScheduleControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("should render data-target for edit button")
+    void shouldRenderEditDataTarget() throws Exception {
+        mockMvc.perform(get("/schedules")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(
+                        containsString("data-target=\"edit-")))
+                .andExpect(content().string(
+                        containsString(
+                                "toggleForm(this.getAttribute("
+                                        + "'data-target'))")));
+    }
+
+    @Test
+    @DisplayName("should render data-target for log button")
+    void shouldRenderLogDataTarget() throws Exception {
+        mockMvc.perform(get("/schedules")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(
+                        containsString("data-target=\"log-")));
+    }
+
+    @Test
+    @DisplayName("should render data-target for schedule button")
+    void shouldRenderScheduleDataTarget()
+            throws Exception {
+        mockMvc.perform(get("/schedules")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(
+                        containsString("data-target=\"sched-")));
+    }
+
+    @Test
     @DisplayName("should render nav icons in schedules page")
     void shouldRenderNavIcons() throws Exception {
         mockMvc.perform(get("/schedules")

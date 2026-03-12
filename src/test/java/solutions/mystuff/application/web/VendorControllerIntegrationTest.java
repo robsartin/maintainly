@@ -32,6 +32,7 @@ import static org.springframework.test.web.servlet
         .result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet
         .result.MockMvcResultMatchers.status;
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions
         .assertTrue;
 
@@ -157,6 +158,27 @@ class VendorControllerIntegrationTest {
                         .with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/vendors"));
+    }
+
+    @Test
+    @DisplayName("should render data-edit-id for edit button")
+    void shouldRenderEditDataAttribute()
+            throws Exception {
+        mockMvc.perform(post("/vendors/add")
+                .param("name", "DataAttr Corp")
+                .with(user("dev").roles("USER"))
+                .with(csrf()));
+
+        mockMvc.perform(get("/vendors")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(
+                        containsString("data-edit-id=")))
+                .andExpect(content().string(
+                        containsString(
+                                "this.getAttribute("
+                                        + "'data-edit-id"
+                                        + "')")));
     }
 
     private String findVendorId(String name)
