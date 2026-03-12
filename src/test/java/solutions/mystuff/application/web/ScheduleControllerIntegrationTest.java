@@ -188,6 +188,27 @@ class ScheduleControllerIntegrationTest {
         assertTrue(
                 html.contains("data-confirm-submit="),
                 "should have data-confirm-submit");
+        assertTrue(
+                html.contains("data-vendor-change="),
+                "should have data-vendor-change");
+    }
+
+    @Test
+    @DisplayName("should serve app.js without stopPropagation")
+    void shouldServeAppJsWithoutStopPropagation()
+            throws Exception {
+        MvcResult result = mockMvc.perform(
+                        get("/js/app.js")
+                                .with(user("dev")
+                                        .roles("USER")))
+                .andExpect(status().isOk())
+                .andReturn();
+        String js = result.getResponse()
+                .getContentAsString();
+        assertTrue(
+                !js.contains("stopPropagation"),
+                "app.js must not use stopPropagation"
+                + " (breaks event delegation)");
     }
 
     @Test

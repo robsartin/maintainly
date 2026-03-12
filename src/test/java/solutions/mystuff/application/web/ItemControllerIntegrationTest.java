@@ -390,6 +390,49 @@ class ItemControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("should serve app.js as static resource")
+    void shouldServeAppJs() throws Exception {
+        MvcResult result = mockMvc.perform(
+                        get("/js/app.js")
+                                .with(user("dev")
+                                        .roles("USER")))
+                .andExpect(status().isOk())
+                .andReturn();
+        String js = result.getResponse()
+                .getContentAsString();
+        assertTrue(
+                js.contains("data-toggle-form"),
+                "app.js should handle data-toggle-form");
+        assertTrue(
+                js.contains("data-target"),
+                "app.js should handle data-target");
+        assertTrue(
+                js.contains("data-navigate"),
+                "app.js should handle data-navigate");
+        assertTrue(
+                js.contains("data-confirm-submit"),
+                "app.js should handle confirms");
+        assertTrue(
+                js.contains("data-vendor-change"),
+                "app.js should handle vendor change");
+        assertTrue(
+                !js.contains("stopPropagation"),
+                "app.js must not use stopPropagation"
+                + " (breaks event delegation)");
+    }
+
+    @Test
+    @DisplayName("should render data-navigate for item rows")
+    void shouldRenderDataNavigate() throws Exception {
+        mockMvc.perform(get("/items")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(
+                        containsString(
+                                "data-navigate=")));
+    }
+
+    @Test
     @DisplayName("should render nav icons in items page")
     void shouldRenderNavIcons() throws Exception {
         mockMvc.perform(get("/items")

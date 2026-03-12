@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         var link =
             e.target.closest('[data-navigate]');
-        if (link) {
+        if (link && !e.target.closest('td.actions')) {
             window.location.href =
                 link.getAttribute('data-navigate');
             return;
@@ -91,11 +91,4 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    var actionCells =
-        document.querySelectorAll('td.actions');
-    actionCells.forEach(function (td) {
-        td.addEventListener('click', function (e) {
-            e.stopPropagation();
-        });
-    });
 });
