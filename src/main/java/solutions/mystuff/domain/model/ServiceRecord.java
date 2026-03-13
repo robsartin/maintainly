@@ -72,6 +72,9 @@ public class ServiceRecord extends OrgOwnedEntity {
     @Column(precision = 12, scale = 2)
     private BigDecimal cost;
 
+    @Column(name = "technician_name", length = 200)
+    private String technicianName;
+
     /** Set the data-entry timestamp and delegate to the base persist callback. */
     @Override
     @PrePersist
@@ -154,5 +157,13 @@ public class ServiceRecord extends OrgOwnedEntity {
 
     public void setCost(BigDecimal cost) {
         this.cost = cost;
+    }
+
+    public String getTechnicianName() {
+        return technicianName;
+    }
+
+    public void setTechnicianName(String technicianName) {
+        this.technicianName = technicianName;
     }
 }

@@ -53,7 +53,7 @@ public class JpaItemRepositoryAdapter
             UUID organizationId, int page, int size) {
         Page<Item> p = delegate.findByOrganizationId(
                 organizationId, pageOf(page, size));
-        return toPageResult(p);
+        return PageResultConverter.toPageResult(p);
     }
 
     /** {@inheritDoc} */
@@ -71,7 +71,7 @@ public class JpaItemRepositoryAdapter
             int page, int size) {
         Page<Item> p = delegate.searchByOrganizationId(
                 organizationId, query, pageOf(page, size));
-        return toPageResult(p);
+        return PageResultConverter.toPageResult(p);
     }
 
     /** {@inheritDoc} */
@@ -93,12 +93,4 @@ public class JpaItemRepositoryAdapter
                 Sort.by("name").ascending());
     }
 
-    private <T> PageResult<T> toPageResult(Page<T> p) {
-        return new PageResult<>(
-                p.getContent(),
-                p.getNumber(),
-                p.getSize(),
-                p.getTotalElements(),
-                p.getTotalPages());
-    }
 }

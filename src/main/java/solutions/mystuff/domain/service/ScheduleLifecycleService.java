@@ -1,6 +1,8 @@
 package solutions.mystuff.domain.service;
 
 import java.time.LocalDate;
+import java.util.Comparator;
+import java.util.List;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.FrequencyUnit;
@@ -12,6 +14,7 @@ import solutions.mystuff.domain.port.in.ScheduleLifecycle;
 import solutions.mystuff.domain.port.out.ItemRepository;
 import solutions.mystuff.domain.port.out
         .ServiceScheduleRepository;
+import solutions.mystuff.domain.port.in.ItemQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -49,14 +52,17 @@ public class ScheduleLifecycleService
     private final ServiceScheduleRepository scheduleRepo;
     private final ItemRepository itemRepo;
     private final RecordCreation recordCreation;
+    private final ItemQuery itemQuery;
 
     public ScheduleLifecycleService(
             ServiceScheduleRepository scheduleRepo,
             ItemRepository itemRepo,
-            RecordCreation recordCreation) {
+            RecordCreation recordCreation,
+            ItemQuery itemQuery) {
         this.scheduleRepo = scheduleRepo;
         this.itemRepo = itemRepo;
         this.recordCreation = recordCreation;
+        this.itemQuery = itemQuery;
     }
 
     /** Creates a new service schedule for the given item. */
@@ -162,6 +168,34 @@ public class ScheduleLifecycleService
         scheduleRepo.save(sched);
         log.info("Deactivated schedule {}",
                 scheduleId);
+    }
+
+    @Override
+    @Transactional
+    public void completeNextForItem(
+            UUID orgId, UUID itemId, Vendor vendor,
+            String summary, LocalDate serviceDate,
+            String techName) {
+        List<ServiceSchedule> schedules =
+                itemQuery.findSchedulesByItem(
+                        itemId, orgId);
+        ServiceSchedule next = schedules.stream()
+                .filter(ServiceSchedule::isActive)
+                .min(Comparator.comparing(
+                        s -> s.getNextDueDate() != null
+                                ? s.getNextDueDate()
+                                : LocalDate.MAX))
+                .orElse(null);
+        if (next != null) {
+            completeSchedule(next.getId(), orgId,
+                    vendor, summary, serviceDate,
+                    techName);
+        } else {
+            Item item = findItem(itemId, orgId);
+            recordCreation.createRecord(orgId, item,
+                    null, null, vendor, summary,
+                    serviceDate, techName);
+        }
     }
 
     private ServiceSchedule findSchedule(

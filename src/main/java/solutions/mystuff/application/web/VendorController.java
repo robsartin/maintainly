@@ -6,8 +6,10 @@ import java.util.Collections;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.AppUser;
+import solutions.mystuff.domain.model.VendorData;
 import solutions.mystuff.domain.port.in.VendorImportExport;
 import solutions.mystuff.domain.port.in.VendorManagement;
+import solutions.mystuff.domain.port.in.VendorQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -24,14 +26,6 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * Handles vendor CRUD, import, and export at /vendors endpoints.
  *
- * <div class="mermaid">
- * sequenceDiagram
- *     Browser->>VendorController: GET /vendors
- *     VendorController->>ControllerHelper: resolveUser(principal)
- *     VendorController->>VendorManagement: findAllVendors()
- *     VendorController-->>Browser: Thymeleaf vendors view
- * </div>
- *
  * @see ControllerHelper
  * @see VendorManagement
  * @see VendorImportExport
@@ -45,14 +39,17 @@ public class VendorController {
 
     private final ControllerHelper helper;
     private final VendorManagement vendorService;
+    private final VendorQuery vendorQuery;
     private final VendorImportExport importExport;
 
     public VendorController(
             ControllerHelper helper,
             VendorManagement vendorService,
+            VendorQuery vendorQuery,
             VendorImportExport importExport) {
         this.helper = helper;
         this.vendorService = vendorService;
+        this.vendorQuery = vendorQuery;
         this.importExport = importExport;
     }
 
@@ -68,7 +65,7 @@ public class VendorController {
         try {
             helper.addUserAttrs(user, model);
             model.addAttribute("vendors",
-                    vendorService.findAllVendors(
+                    vendorQuery.findAllVendors(
                             user.getOrganization()
                                     .getId()));
             return "vendors";
@@ -103,10 +100,11 @@ public class VendorController {
         try {
             UUID orgId =
                     user.getOrganization().getId();
-            vendorService.updateVendor(orgId, null,
+            VendorData data = new VendorData(
                     name, phone, email, addressLine1,
                     addressLine2, city, stateProvince,
                     postalCode, country, website, notes);
+            vendorService.createVendor(orgId, data);
             return "redirect:/vendors";
         } finally {
             helper.clearOrgMdc();
@@ -140,10 +138,12 @@ public class VendorController {
         try {
             UUID orgId =
                     user.getOrganization().getId();
-            vendorService.updateVendor(orgId, vendorId,
+            VendorData data = new VendorData(
                     name, phone, email, addressLine1,
                     addressLine2, city, stateProvince,
                     postalCode, country, website, notes);
+            vendorService.updateVendor(
+                    orgId, vendorId, data);
             return "redirect:/vendors";
         } finally {
             helper.clearOrgMdc();

@@ -10,10 +10,10 @@ import solutions.mystuff.domain.model.FrequencyUnit;
 import solutions.mystuff.domain.model.PageResult;
 import solutions.mystuff.domain.model.ServiceSchedule;
 import solutions.mystuff.domain.model.Vendor;
-import solutions.mystuff.domain.port.in.ItemQuery;
 import solutions.mystuff.domain.port.in.ScheduleLifecycle;
 import solutions.mystuff.domain.port.in.ScheduleQuery;
 import solutions.mystuff.domain.port.in.VendorManagement;
+import solutions.mystuff.domain.port.in.VendorQuery;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,16 +27,6 @@ import org.springframework.web.bind.annotation
 /**
  * Manages service schedule CRUD at /schedules endpoints.
  *
- * <div class="mermaid">
- * sequenceDiagram
- *     Browser->>ScheduleController: GET/POST /schedules/**
- *     ScheduleController->>ControllerHelper: resolveUser(principal)
- *     ScheduleController->>ScheduleQuery: findActiveByOrganization()
- *     ScheduleController->>VendorManagement: resolveVendor()
- *     ScheduleController->>ScheduleLifecycle: create/edit/complete/deactivate
- *     ScheduleController-->>Browser: Thymeleaf view or redirect
- * </div>
- *
  * @see ControllerHelper
  * @see InputValidator
  */
@@ -46,23 +36,25 @@ public class ScheduleController {
     private static final Logger log =
             LoggerFactory.getLogger(
                     ScheduleController.class);
+    private static final String NEW_VENDOR_SENTINEL =
+            "__new__";
 
     private final ControllerHelper helper;
-    private final ItemQuery itemQuery;
     private final ScheduleQuery scheduleQuery;
     private final VendorManagement vendorService;
+    private final VendorQuery vendorQuery;
     private final ScheduleLifecycle scheduleService;
 
     public ScheduleController(
             ControllerHelper helper,
-            ItemQuery itemQuery,
             ScheduleQuery scheduleQuery,
             VendorManagement vendorService,
+            VendorQuery vendorQuery,
             ScheduleLifecycle scheduleService) {
         this.helper = helper;
-        this.itemQuery = itemQuery;
         this.scheduleQuery = scheduleQuery;
         this.vendorService = vendorService;
+        this.vendorQuery = vendorQuery;
         this.scheduleService = scheduleService;
     }
 
@@ -108,7 +100,7 @@ public class ScheduleController {
         helper.setOrgMdc(user);
         try {
             UUID orgId = user.getOrganization().getId();
-            Vendor vendor = vendorService.resolveVendor(
+            Vendor vendor = resolveVendor(
                     orgId, vendorId, newVendorName,
                     newVendorPhone);
             LocalDate date = InputValidator.parseDate(
@@ -158,7 +150,7 @@ public class ScheduleController {
         helper.setOrgMdc(user);
         try {
             UUID orgId = user.getOrganization().getId();
-            Vendor vendor = vendorService.resolveVendor(
+            Vendor vendor = resolveVendor(
                     orgId, vendorId, newVendorName,
                     newVendorPhone);
             LocalDate due = InputValidator.parseDate(
@@ -170,6 +162,28 @@ public class ScheduleController {
         } finally {
             helper.clearOrgMdc();
         }
+    }
+
+    private Vendor resolveVendor(
+            UUID orgId, String vendorId,
+            String newVendorName,
+            String newVendorPhone) {
+        if (NEW_VENDOR_SENTINEL.equals(vendorId)) {
+            return vendorService.createVendor(
+                    orgId, newVendorName,
+                    newVendorPhone);
+        }
+        if (vendorId != null && !vendorId.isBlank()) {
+            return vendorQuery.findAllVendors(orgId)
+                    .stream()
+                    .filter(v -> v.getId().toString()
+                            .equals(vendorId))
+                    .findFirst()
+                    .orElseThrow(() ->
+                            new IllegalArgumentException(
+                                    "Vendor not found"));
+        }
+        return null;
     }
 
     private String handleNoOrg(
@@ -196,8 +210,7 @@ public class ScheduleController {
         LinkHeaderBuilder.addLinkHeader(
                 response, "/schedules", result, null);
         model.addAttribute("vendors",
-                itemQuery.findVendorsByOrganization(
-                        orgId));
+                vendorQuery.findAllVendors(orgId));
         model.addAttribute("frequencyUnits",
                 FrequencyUnit.values());
         LocalDate today = LocalDate.now();

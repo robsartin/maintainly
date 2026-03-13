@@ -7,13 +7,11 @@ import java.util.UUID;
 import solutions.mystuff.domain.model.Item;
 import solutions.mystuff.domain.model.PageResult;
 import solutions.mystuff.domain.model.UuidV7;
-import solutions.mystuff.domain.model.Vendor;
 import solutions.mystuff.domain.port.out.ItemRepository;
 import solutions.mystuff.domain.port.out
         .ServiceRecordRepository;
 import solutions.mystuff.domain.port.out
         .ServiceScheduleRepository;
-import solutions.mystuff.domain.port.out.VendorRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -32,11 +30,9 @@ class ItemQueryServiceTest {
             mock(ServiceRecordRepository.class);
     private final ServiceScheduleRepository schedRepo =
             mock(ServiceScheduleRepository.class);
-    private final VendorRepository vendorRepo =
-            mock(VendorRepository.class);
     private final ItemQueryService service =
             new ItemQueryService(itemRepo, recordRepo,
-                    schedRepo, vendorRepo);
+                    schedRepo);
 
     private final UUID orgId = UuidV7.generate();
 
@@ -102,16 +98,5 @@ class ItemQueryServiceTest {
         verify(schedRepo)
                 .findByItemIdAndOrganizationId(
                         itemId, orgId);
-    }
-
-    @Test
-    @DisplayName("should delegate findVendorsByOrganization")
-    void shouldDelegateFindVendors() {
-        Vendor v = new Vendor();
-        when(vendorRepo.findByOrganizationId(orgId))
-                .thenReturn(List.of(v));
-        assertEquals(1,
-                service.findVendorsByOrganization(orgId)
-                        .size());
     }
 }

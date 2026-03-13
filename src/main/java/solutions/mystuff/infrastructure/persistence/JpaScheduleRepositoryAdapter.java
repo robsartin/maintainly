@@ -66,7 +66,7 @@ public class JpaScheduleRepositoryAdapter
                 delegate.findActiveByOrgId(
                         organizationId,
                         PageRequest.of(page, size));
-        return toPageResult(p);
+        return PageResultConverter.toPageResult(p);
     }
 
     /** {@inheritDoc} */
@@ -94,12 +94,4 @@ public class JpaScheduleRepositoryAdapter
         return delegate.save(schedule);
     }
 
-    private <T> PageResult<T> toPageResult(Page<T> p) {
-        return new PageResult<>(
-                p.getContent(),
-                p.getNumber(),
-                p.getSize(),
-                p.getTotalElements(),
-                p.getTotalPages());
-    }
 }

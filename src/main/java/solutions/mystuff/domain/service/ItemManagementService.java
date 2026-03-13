@@ -3,6 +3,7 @@ package solutions.mystuff.domain.service;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.Item;
+import solutions.mystuff.domain.model.Validation;
 import solutions.mystuff.domain.port.in.ItemManagement;
 import solutions.mystuff.domain.port.out.ItemRepository;
 import org.slf4j.Logger;
@@ -13,13 +14,6 @@ import org.springframework.transaction.annotation
 
 /**
  * Validates and persists new items within a transaction.
- *
- * <div class="mermaid">
- * sequenceDiagram
- *     Controller->>ItemManagementService: createItem(...)
- *     ItemManagementService->>ItemManagementService: validate fields
- *     ItemManagementService->>ItemRepository: save(item)
- * </div>
  *
  * @see ItemManagement
  * @see ItemRepository
@@ -47,12 +41,18 @@ public class ItemManagementService
             UUID orgId, String name,
             String location, String manufacturer,
             String modelName, String serialNumber) {
-        String trimName = requireNotBlank(name);
-        requireMaxLength(trimName, "Item name");
-        requireMaxLength(location, "Location");
-        requireMaxLength(manufacturer, "Manufacturer");
-        requireMaxLength(modelName, "Model name");
-        requireMaxLength(serialNumber, "Serial number");
+        String trimName = Validation.requireNotBlank(
+                name, "Item name");
+        Validation.requireMaxLength(
+                trimName, "Item name", MAX_LENGTH);
+        Validation.requireMaxLength(
+                location, "Location", MAX_LENGTH);
+        Validation.requireMaxLength(
+                manufacturer, "Manufacturer", MAX_LENGTH);
+        Validation.requireMaxLength(
+                modelName, "Model name", MAX_LENGTH);
+        Validation.requireMaxLength(
+                serialNumber, "Serial number", MAX_LENGTH);
 
         Item item = new Item();
         item.setOrganizationId(orgId);
@@ -62,24 +62,6 @@ public class ItemManagementService
         Item saved = itemRepo.save(item);
         log.info("Created item {}", saved.getName());
         return saved;
-    }
-
-    private String requireNotBlank(String value) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(
-                    "Item name is required");
-        }
-        return value.trim();
-    }
-
-    private void requireMaxLength(
-            String value, String field) {
-        if (value != null
-                && value.trim().length() > MAX_LENGTH) {
-            throw new IllegalArgumentException(
-                    field + " exceeds maximum length of "
-                            + MAX_LENGTH);
-        }
     }
 
     private void setIfPresent(

@@ -3,30 +3,26 @@ package solutions.mystuff.domain.service;
 import java.util.List;
 import java.util.UUID;
 
+import solutions.mystuff.domain.model.Validation;
 import solutions.mystuff.domain.model.Vendor;
+import solutions.mystuff.domain.model.VendorData;
 import solutions.mystuff.domain.port.in.VendorManagement;
+import solutions.mystuff.domain.port.in.VendorQuery;
 import solutions.mystuff.domain.port.out.VendorRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation
+        .Transactional;
 
 /**
- * Resolves, creates, updates, and deletes vendors.
- *
- * <div class="mermaid">
- * sequenceDiagram
- *     Controller->>VendorManagementService: resolveVendor(...)
- *     alt vendorId == "__new__"
- *         VendorManagementService->>VendorRepository: save(newVendor)
- *     else existing vendor
- *         VendorManagementService->>VendorRepository: findByIdAndOrganizationId(...)
- *     end
- * </div>
+ * Creates, updates, deletes, and queries vendors.
  *
  * @see VendorManagement
+ * @see VendorQuery
  * @see VendorRepository
  */
 @Service
 public class VendorManagementService
-        implements VendorManagement {
+        implements VendorManagement, VendorQuery {
 
     private final VendorRepository vendorRepository;
 
@@ -36,64 +32,40 @@ public class VendorManagementService
     }
 
     @Override
-    public Vendor resolveVendor(
-            UUID orgId, String vendorId,
-            String newVendorName,
-            String newVendorPhone) {
-        if ("__new__".equals(vendorId)) {
-            return createVendor(orgId,
-                    newVendorName, newVendorPhone);
+    public Vendor createVendor(
+            UUID orgId, VendorData data) {
+        Validation.requireNotBlank(
+                data.name(), "Vendor name");
+        Vendor vendor = newVendor(orgId);
+        applyFields(vendor, data);
+        return vendorRepository.save(vendor);
+    }
+
+    @Override
+    public Vendor createVendor(
+            UUID orgId, String name, String phone) {
+        Validation.requireNotBlank(name, "Vendor name");
+        Validation.requireMaxLength(name, "Vendor name",
+                VendorFieldLimits.MAX_NAME);
+        Validation.requireMaxLength(phone, "Vendor phone",
+                VendorFieldLimits.MAX_PHONE);
+        Vendor vendor = newVendor(orgId);
+        vendor.setName(name.trim());
+        if (phone != null && !phone.isBlank()) {
+            vendor.setPhone(phone.trim());
         }
-        if (vendorId != null && !vendorId.isBlank()) {
-            return findVendor(orgId,
-                    UUID.fromString(vendorId));
-        }
-        return null;
+        return vendorRepository.save(vendor);
     }
 
     @Override
     public Vendor updateVendor(
             UUID orgId, UUID vendorId,
-            String name, String phone, String email,
-            String addressLine1, String addressLine2,
-            String city, String stateProvince,
-            String postalCode, String country,
-            String website, String notes) {
-        requireName(name);
-        Vendor vendor = vendorId != null
-                ? findVendor(orgId, vendorId)
-                : newVendor(orgId);
-        applyFields(vendor, name, phone, email,
-                addressLine1, addressLine2, city,
-                stateProvince, postalCode, country,
-                website, notes);
+            VendorData data) {
+        Validation.requireNotBlank(
+                data.name(), "Vendor name");
+        Vendor vendor = findVendor(orgId, vendorId);
+        applyFields(vendor, data);
         return vendorRepository.save(vendor);
-    }
-
-    private Vendor newVendor(UUID orgId) {
-        Vendor v = new Vendor();
-        v.setOrganizationId(orgId);
-        return v;
-    }
-
-    private void applyFields(
-            Vendor v, String name, String phone,
-            String email, String addressLine1,
-            String addressLine2, String city,
-            String stateProvince, String postalCode,
-            String country, String website,
-            String notes) {
-        v.setName(name.trim());
-        v.setPhone(trimOrNull(phone));
-        v.setEmail(trimOrNull(email));
-        v.setAddressLine1(trimOrNull(addressLine1));
-        v.setAddressLine2(trimOrNull(addressLine2));
-        v.setCity(trimOrNull(city));
-        v.setStateProvince(trimOrNull(stateProvince));
-        v.setPostalCode(trimOrNull(postalCode));
-        v.setCountry(trimOrNull(country));
-        v.setWebsite(trimOrNull(website));
-        v.setNotes(trimOrNull(notes));
     }
 
     @Override
@@ -105,25 +77,34 @@ public class VendorManagementService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Vendor> findAllVendors(UUID orgId) {
         return vendorRepository
                 .findByOrganizationId(orgId);
     }
 
-    private Vendor createVendor(
-            UUID orgId, String name, String phone) {
-        requireName(name);
-        requireMaxLength(name, "Vendor name",
-                VendorFieldLimits.MAX_NAME);
-        requireMaxLength(phone, "Vendor phone",
-                VendorFieldLimits.MAX_PHONE);
-        Vendor vendor = new Vendor();
-        vendor.setOrganizationId(orgId);
-        vendor.setName(name.trim());
-        if (phone != null && !phone.isBlank()) {
-            vendor.setPhone(phone.trim());
-        }
-        return vendorRepository.save(vendor);
+    private Vendor newVendor(UUID orgId) {
+        Vendor v = new Vendor();
+        v.setOrganizationId(orgId);
+        return v;
+    }
+
+    private void applyFields(
+            Vendor v, VendorData data) {
+        v.setName(data.name().trim());
+        v.setPhone(trimOrNull(data.phone()));
+        v.setEmail(trimOrNull(data.email()));
+        v.setAddressLine1(
+                trimOrNull(data.addressLine1()));
+        v.setAddressLine2(
+                trimOrNull(data.addressLine2()));
+        v.setCity(trimOrNull(data.city()));
+        v.setStateProvince(
+                trimOrNull(data.stateProvince()));
+        v.setPostalCode(trimOrNull(data.postalCode()));
+        v.setCountry(trimOrNull(data.country()));
+        v.setWebsite(trimOrNull(data.website()));
+        v.setNotes(trimOrNull(data.notes()));
     }
 
     private Vendor findVendor(
@@ -134,23 +115,6 @@ public class VendorManagementService
                 .orElseThrow(() ->
                         new IllegalArgumentException(
                                 "Vendor not found"));
-    }
-
-    private void requireName(String name) {
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException(
-                    "Vendor name is required");
-        }
-    }
-
-    private void requireMaxLength(
-            String value, String field, int max) {
-        if (value != null
-                && value.trim().length() > max) {
-            throw new IllegalArgumentException(
-                    field + " exceeds maximum length"
-                            + " of " + max);
-        }
     }
 
     private String trimOrNull(String value) {

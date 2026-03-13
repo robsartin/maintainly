@@ -1,7 +1,6 @@
 package solutions.mystuff.application.web;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import solutions.mystuff.domain.model.Item;
@@ -9,8 +8,6 @@ import solutions.mystuff.domain.model.ServiceRecord;
 import solutions.mystuff.domain.model.ServiceSchedule;
 import com.lowagie.text.Document;
 import com.lowagie.text.Element;
-import com.lowagie.text.Font;
-import com.lowagie.text.FontFactory;
 import com.lowagie.text.PageSize;
 import com.lowagie.text.Paragraph;
 import com.lowagie.text.Phrase;
@@ -23,33 +20,10 @@ import jakarta.servlet.http.HttpServletResponse;
  * Generates a PDF report of an item's service history
  * and active schedules using OpenPDF.
  *
- * <div class="mermaid">
- * sequenceDiagram
- *     ReportController->>ItemHistoryPdf: write(response, item, ...)
- *     ItemHistoryPdf->>Document: org header, item info, tables
- *     ItemHistoryPdf-->>Browser: PDF via HttpServletResponse
- * </div>
- *
  * @see ReportController
+ * @see PdfHelper
  */
 final class ItemHistoryPdf {
-
-    private static final DateTimeFormatter FMT =
-            DateTimeFormatter.ofPattern("MMM d, yyyy");
-    private static final Font TITLE_FONT =
-            FontFactory.getFont(
-                    FontFactory.HELVETICA_BOLD, 16);
-    private static final Font SECTION_FONT =
-            FontFactory.getFont(
-                    FontFactory.HELVETICA_BOLD, 13);
-    private static final Font LABEL_FONT =
-            FontFactory.getFont(
-                    FontFactory.HELVETICA_BOLD, 10);
-    private static final Font BODY_FONT =
-            FontFactory.getFont(
-                    FontFactory.HELVETICA, 10);
-    private static final java.awt.Color HEADER_BG =
-            new java.awt.Color(220, 220, 220);
 
     private ItemHistoryPdf() {
     }
@@ -70,7 +44,7 @@ final class ItemHistoryPdf {
         PdfWriter.getInstance(doc,
                 response.getOutputStream());
         doc.open();
-        addOrgHeader(doc, orgName, username);
+        PdfHelper.addOrgHeader(doc, orgName, username);
         addTitle(doc, orgName, item);
         addItemDetails(doc, item);
         addScheduleSection(doc, schedules);
@@ -78,33 +52,20 @@ final class ItemHistoryPdf {
         doc.close();
     }
 
-    private static void addOrgHeader(
-            Document doc, String orgName,
-            String username) throws Exception {
-        Paragraph org = new Paragraph(
-                orgName, LABEL_FONT);
-        org.setAlignment(Element.ALIGN_LEFT);
-        doc.add(org);
-        Paragraph user = new Paragraph(
-                username, BODY_FONT);
-        user.setAlignment(Element.ALIGN_LEFT);
-        user.setSpacingAfter(8);
-        doc.add(user);
-    }
-
     private static void addTitle(
             Document doc, String orgName, Item item)
             throws Exception {
         Paragraph title = new Paragraph(
                 orgName + " — " + item.getName(),
-                TITLE_FONT);
+                PdfHelper.TITLE_FONT);
         title.setAlignment(Element.ALIGN_CENTER);
         title.setSpacingAfter(4);
         doc.add(title);
         Paragraph gen = new Paragraph(
                 "Generated "
-                        + LocalDate.now().format(FMT),
-                BODY_FONT);
+                        + LocalDate.now().format(
+                                PdfHelper.FMT),
+                PdfHelper.BODY_FONT);
         gen.setAlignment(Element.ALIGN_RIGHT);
         gen.setSpacingAfter(12);
         doc.add(gen);
@@ -117,13 +78,13 @@ final class ItemHistoryPdf {
         table.setWidthPercentage(100);
         table.setSpacingAfter(12);
         addLabelValue(table, "Location",
-                safe(item.getLocation()));
+                PdfHelper.safe(item.getLocation()));
         addLabelValue(table, "Manufacturer",
-                safe(item.getManufacturer()));
+                PdfHelper.safe(item.getManufacturer()));
         addLabelValue(table, "Model",
-                safe(item.getModelName()));
+                PdfHelper.safe(item.getModelName()));
         addLabelValue(table, "Serial #",
-                safe(item.getSerialNumber()));
+                PdfHelper.safe(item.getSerialNumber()));
         doc.add(table);
     }
 
@@ -131,12 +92,12 @@ final class ItemHistoryPdf {
             PdfPTable table,
             String label, String value) {
         PdfPCell lbl = new PdfPCell(
-                new Phrase(label, LABEL_FONT));
+                new Phrase(label, PdfHelper.LABEL_FONT));
         lbl.setBorder(0);
         lbl.setPadding(3);
         table.addCell(lbl);
         PdfPCell val = new PdfPCell(
-                new Phrase(value, BODY_FONT));
+                new Phrase(value, PdfHelper.BODY_FONT));
         val.setBorder(0);
         val.setPadding(3);
         table.addCell(val);
@@ -147,7 +108,8 @@ final class ItemHistoryPdf {
             List<ServiceSchedule> schedules)
             throws Exception {
         Paragraph heading = new Paragraph(
-                "Active Schedules", SECTION_FONT);
+                "Active Schedules",
+                PdfHelper.SECTION_FONT);
         heading.setSpacingAfter(6);
         doc.add(heading);
         List<ServiceSchedule> active = schedules
@@ -155,7 +117,8 @@ final class ItemHistoryPdf {
                 .toList();
         if (active.isEmpty()) {
             doc.add(new Paragraph(
-                    "No active schedules.", BODY_FONT));
+                    "No active schedules.",
+                    PdfHelper.BODY_FONT));
         } else {
             doc.add(buildScheduleTable(active));
         }
@@ -168,22 +131,24 @@ final class ItemHistoryPdf {
                 new float[]{3, 2, 2, 2, 2});
         table.setWidthPercentage(100);
         table.setSpacingAfter(16);
-        addHeaderRow(table, "Service Type", "Vendor",
-                "Next Due", "Frequency",
+        PdfHelper.addHeaderRow(table, "Service Type",
+                "Vendor", "Next Due", "Frequency",
                 "Last Completed");
         for (ServiceSchedule s : schedules) {
-            addCell(table, s.getServiceType());
-            addCell(table,
+            PdfHelper.addCell(table, s.getServiceType());
+            PdfHelper.addCell(table,
                     s.getPreferredVendor() != null
                             ? s.getPreferredVendor()
                                     .getName() : "");
-            addCell(table,
-                    fmtDate(s.getNextDueDate()));
-            addCell(table,
+            PdfHelper.addCell(table,
+                    PdfHelper.fmtDate(
+                            s.getNextDueDate()));
+            PdfHelper.addCell(table,
                     "Every " + s.getFrequencyInterval()
                             + " " + s.getFrequencyUnit());
-            addCell(table,
-                    fmtDate(s.getLastCompletedDate()));
+            PdfHelper.addCell(table,
+                    PdfHelper.fmtDate(
+                            s.getLastCompletedDate()));
         }
         return table;
     }
@@ -193,12 +158,14 @@ final class ItemHistoryPdf {
             List<ServiceRecord> records)
             throws Exception {
         Paragraph heading = new Paragraph(
-                "Service History", SECTION_FONT);
+                "Service History",
+                PdfHelper.SECTION_FONT);
         heading.setSpacingAfter(6);
         doc.add(heading);
         if (records.isEmpty()) {
             doc.add(new Paragraph(
-                    "No service records.", BODY_FONT));
+                    "No service records.",
+                    PdfHelper.BODY_FONT));
         } else {
             doc.add(buildRecordTable(records));
         }
@@ -210,55 +177,25 @@ final class ItemHistoryPdf {
         PdfPTable table = new PdfPTable(
                 new float[]{2, 2, 2, 2, 4});
         table.setWidthPercentage(100);
-        addHeaderRow(table, "Date", "Service Type",
-                "Vendor", "Tech", "Summary");
+        PdfHelper.addHeaderRow(table, "Date",
+                "Service Type", "Vendor", "Tech",
+                "Summary");
         for (ServiceRecord r : records) {
-            addCell(table,
-                    fmtDate(r.getServiceDate()));
-            addCell(table, safe(r.getServiceType()));
-            addCell(table,
+            PdfHelper.addCell(table,
+                    PdfHelper.fmtDate(
+                            r.getServiceDate()));
+            PdfHelper.addCell(table,
+                    PdfHelper.safe(r.getServiceType()));
+            PdfHelper.addCell(table,
                     r.getVendor() != null
                             ? r.getVendor().getName()
                             : "");
-            addCell(table,
-                    extractTech(r.getDescription()));
-            addCell(table, safe(r.getSummary()));
+            PdfHelper.addCell(table,
+                    PdfHelper.safe(
+                            r.getTechnicianName()));
+            PdfHelper.addCell(table,
+                    PdfHelper.safe(r.getSummary()));
         }
         return table;
-    }
-
-    private static void addHeaderRow(
-            PdfPTable table, String... headers) {
-        for (String h : headers) {
-            PdfPCell cell = new PdfPCell(
-                    new Phrase(h, LABEL_FONT));
-            cell.setBackgroundColor(HEADER_BG);
-            cell.setPadding(5);
-            table.addCell(cell);
-        }
-    }
-
-    private static void addCell(
-            PdfPTable table, String text) {
-        PdfPCell cell = new PdfPCell(
-                new Phrase(text, BODY_FONT));
-        cell.setPadding(4);
-        table.addCell(cell);
-    }
-
-    private static String fmtDate(LocalDate date) {
-        return date != null ? date.format(FMT) : "";
-    }
-
-    private static String safe(String val) {
-        return val != null ? val : "";
-    }
-
-    private static String extractTech(String desc) {
-        if (desc != null
-                && desc.startsWith("Technician: ")) {
-            return desc.substring(12);
-        }
-        return "";
     }
 }

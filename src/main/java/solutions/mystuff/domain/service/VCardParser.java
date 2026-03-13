@@ -6,14 +6,15 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import solutions.mystuff.domain.model.ParsedAltPhone;
+import solutions.mystuff.domain.model.ParsedVCard;
+
 /**
- * Parses vCard 4.0 (RFC 6350) content into structured maps.
- *
- * <p>Handles line unfolding, property parameter parsing, value
- * unescaping, case-insensitive property names, and both CRLF
- * and LF line endings. Skips vCards without an FN property.
+ * Parses vCard 4.0 (RFC 6350) content into typed
+ * {@link ParsedVCard} records.
  *
  * @see VCardSerializer
+ * @see ParsedVCard
  */
 public final class VCardParser {
 
@@ -23,26 +24,63 @@ public final class VCardParser {
     }
 
     /**
-     * Parses vCard content into a list of property maps.
+     * Parses vCard content into a list of typed records.
      *
      * @param vcfContent the raw vCard file content
-     * @return list of maps with vendor field keys
+     * @return list of parsed vCards
      * @throws IllegalArgumentException if more than 100 vCards
      */
-    public static List<Map<String, Object>> parse(
+    public static List<ParsedVCard> parse(
             String vcfContent) {
         if (vcfContent == null || vcfContent.isBlank()) {
             return List.of();
         }
         String[] lines = unfold(vcfContent);
-        List<Map<String, Object>> results =
+        List<Map<String, Object>> rawResults =
                 new ArrayList<>();
         List<String> currentLines = null;
         for (String line : lines) {
             currentLines = processLine(
-                    line, currentLines, results);
+                    line, currentLines, rawResults);
         }
-        return results;
+        return rawResults.stream()
+                .map(VCardParser::toRecord)
+                .toList();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static ParsedVCard toRecord(
+            Map<String, Object> card) {
+        List<ParsedAltPhone> altPhones = new ArrayList<>();
+        List<Map<String, String>> rawAlts =
+                (List<Map<String, String>>)
+                        card.get("altPhones");
+        if (rawAlts != null) {
+            for (Map<String, String> alt : rawAlts) {
+                altPhones.add(new ParsedAltPhone(
+                        alt.get("phone"),
+                        alt.get("label")));
+            }
+        }
+        return new ParsedVCard(
+                str(card, "name"),
+                str(card, "phone"),
+                str(card, "email"),
+                str(card, "addressLine1"),
+                str(card, "addressLine2"),
+                str(card, "city"),
+                str(card, "stateProvince"),
+                str(card, "postalCode"),
+                str(card, "country"),
+                str(card, "website"),
+                str(card, "notes"),
+                altPhones);
+    }
+
+    private static String str(
+            Map<String, Object> card, String key) {
+        Object val = card.get(key);
+        return val != null ? val.toString() : null;
     }
 
     private static String[] unfold(String content) {

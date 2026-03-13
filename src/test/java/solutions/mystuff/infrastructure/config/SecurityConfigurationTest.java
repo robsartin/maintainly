@@ -3,22 +3,61 @@ package solutions.mystuff.infrastructure.config;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.autoconfigure
+        .EnableAutoConfiguration;
+import org.springframework.boot.data.jpa.autoconfigure
+        .DataJpaRepositoriesAutoConfiguration;
+import org.springframework.boot.flyway.autoconfigure
+        .FlywayAutoConfiguration;
+import org.springframework.boot.hibernate.autoconfigure
+        .HibernateJpaAutoConfiguration;
+import org.springframework.boot.jdbc.autoconfigure
+        .DataSourceAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure
+        .AutoConfigureMockMvc;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.security.test.web.servlet
+        .request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request
+        .MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result
+        .MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result
+        .MockMvcResultMatchers.status;
 
-@SpringBootTest
+@SpringBootTest(
+        classes = SecurityConfigurationTest.TestConfig.class)
 @AutoConfigureMockMvc
 @DisplayName("Security Configuration")
 class SecurityConfigurationTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Configuration
+    @EnableAutoConfiguration(exclude = {
+        DataSourceAutoConfiguration.class,
+        HibernateJpaAutoConfiguration.class,
+        FlywayAutoConfiguration.class,
+        DataJpaRepositoriesAutoConfiguration.class
+    })
+    @Import(SecurityConfiguration.class)
+    static class TestConfig {
+
+        @RestController
+        static class StubController {
+            @GetMapping("/items")
+            String items() {
+                return "ok";
+            }
+        }
+    }
 
     @Test
     @DisplayName("should allow unauthenticated health endpoint")

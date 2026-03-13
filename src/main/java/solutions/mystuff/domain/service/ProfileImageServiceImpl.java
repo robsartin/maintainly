@@ -90,10 +90,9 @@ public class ProfileImageServiceImpl
         userRepo.save(user);
     }
 
-    /** Validates content type and size, then resizes the image to 128x128. */
+    /** Validates size and resizes the image to 128x128. */
     byte[] resizeImage(
             byte[] imageData, String contentType) {
-        validateType(contentType);
         if (imageData.length > MAX_BYTES) {
             throw new IllegalArgumentException(
                     "Image exceeds maximum size of "
