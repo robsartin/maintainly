@@ -163,16 +163,8 @@ public class ServiceSchedule extends OrgOwnedEntity {
         this.lastCompletedDate = completedDate;
         if (frequencyUnit != null
                 && frequencyInterval != null) {
-            this.nextDueDate = switch (frequencyUnit) {
-                case days -> completedDate
-                        .plusDays(frequencyInterval);
-                case weeks -> completedDate
-                        .plusWeeks(frequencyInterval);
-                case months -> completedDate
-                        .plusMonths(frequencyInterval);
-                case years -> completedDate
-                        .plusYears(frequencyInterval);
-            };
+            this.nextDueDate = frequencyUnit.advance(
+                    completedDate, frequencyInterval);
         }
     }
 }

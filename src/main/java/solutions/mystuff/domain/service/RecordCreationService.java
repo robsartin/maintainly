@@ -66,8 +66,7 @@ public class RecordCreationService
         record.setServiceDate(serviceDate);
         record.setSummary(summary.trim());
         if (techName != null && !techName.isBlank()) {
-            record.setDescription(
-                    "Technician: " + techName.trim());
+            record.setTechnicianName(techName.trim());
         }
         recordRepo.save(record);
         log.info("Saved service record for item {}",

@@ -8,6 +8,7 @@ import solutions.mystuff.domain.model.FrequencyUnit;
 import solutions.mystuff.domain.model.Item;
 import solutions.mystuff.domain.model.ServiceSchedule;
 import solutions.mystuff.domain.model.Vendor;
+import solutions.mystuff.domain.port.in.ItemQuery;
 import solutions.mystuff.domain.port.in.RecordCreation;
 import solutions.mystuff.domain.port.out.ItemRepository;
 import solutions.mystuff.domain.port.out
@@ -33,10 +34,12 @@ class ScheduleLifecycleServiceTest {
             mock(ItemRepository.class);
     private final RecordCreation recordCreation =
             mock(RecordCreation.class);
+    private final ItemQuery itemQuery =
+            mock(ItemQuery.class);
     private final ScheduleLifecycleService service =
             new ScheduleLifecycleService(
                     schedRepo, itemRepo,
-                    recordCreation);
+                    recordCreation, itemQuery);
 
     private final UUID orgId = UUID.randomUUID();
 

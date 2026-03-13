@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.Vendor;
+import solutions.mystuff.domain.model.VendorData;
 import solutions.mystuff.domain.port.out.VendorRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,38 +30,13 @@ class VendorManagementServiceTest {
     private final UUID orgId = UUID.randomUUID();
 
     @Test
-    @DisplayName("should resolve existing vendor by ID")
-    void shouldResolveExisting() {
-        UUID vendorId = UUID.randomUUID();
-        Vendor vendor = new Vendor();
-        vendor.setName("Existing");
-        when(repo.findByIdAndOrganizationId(
-                vendorId, orgId))
-                .thenReturn(Optional.of(vendor));
-
-        Vendor result = service.resolveVendor(
-                orgId, vendorId.toString(), null, null);
-
-        assertThat(result.getName())
-                .isEqualTo("Existing");
-    }
-
-    @Test
-    @DisplayName("should return null for blank vendor ID")
-    void shouldReturnNullForBlank() {
-        Vendor result = service.resolveVendor(
-                orgId, null, null, null);
-        assertThat(result).isNull();
-    }
-
-    @Test
-    @DisplayName("should create new vendor")
-    void shouldCreateNewVendor() {
+    @DisplayName("should create vendor with name and phone")
+    void shouldCreateWithNameAndPhone() {
         when(repo.save(any(Vendor.class)))
                 .thenAnswer(i -> i.getArgument(0));
 
-        Vendor result = service.resolveVendor(
-                orgId, "__new__", "Acme", "555-1234");
+        Vendor result = service.createVendor(
+                orgId, "Acme", "555-1234");
 
         assertThat(result.getName()).isEqualTo("Acme");
         assertThat(result.getPhone())
@@ -69,44 +45,26 @@ class VendorManagementServiceTest {
     }
 
     @Test
-    @DisplayName("should reject blank vendor name")
-    void shouldRejectBlankName() {
+    @DisplayName("should reject blank vendor name on inline create")
+    void shouldRejectBlankNameInline() {
         assertThatThrownBy(() ->
-                service.resolveVendor(
-                        orgId, "__new__", "  ", null))
+                service.createVendor(
+                        orgId, "  ", null))
                 .isInstanceOf(
                         IllegalArgumentException.class)
                 .hasMessageContaining("required");
     }
 
     @Test
-    @DisplayName("should reject long vendor name")
-    void shouldRejectLongName() {
+    @DisplayName("should reject long vendor name on inline create")
+    void shouldRejectLongNameInline() {
         String longName = "x".repeat(201);
         assertThatThrownBy(() ->
-                service.resolveVendor(
-                        orgId, "__new__",
-                        longName, null))
+                service.createVendor(
+                        orgId, longName, null))
                 .isInstanceOf(
                         IllegalArgumentException.class)
                 .hasMessageContaining("maximum length");
-    }
-
-    @Test
-    @DisplayName("should throw when vendor not found")
-    void shouldThrowWhenNotFound() {
-        UUID vendorId = UUID.randomUUID();
-        when(repo.findByIdAndOrganizationId(
-                vendorId, orgId))
-                .thenReturn(Optional.empty());
-
-        assertThatThrownBy(() ->
-                service.resolveVendor(
-                        orgId, vendorId.toString(),
-                        null, null))
-                .isInstanceOf(
-                        IllegalArgumentException.class)
-                .hasMessage("Vendor not found");
     }
 
     @Test
@@ -120,11 +78,13 @@ class VendorManagementServiceTest {
         when(repo.save(any(Vendor.class)))
                 .thenAnswer(i -> i.getArgument(0));
 
+        VendorData data = new VendorData(
+                "Updated", "555-9999", "new@test.com",
+                "456 Oak", "Apt 2", "Chicago", "IL",
+                "60601", "US", "https://updated.com",
+                "Great vendor");
         Vendor result = service.updateVendor(
-                orgId, vendorId, "Updated", "555-9999",
-                "new@test.com", "456 Oak", "Apt 2",
-                "Chicago", "IL", "60601", "US",
-                "https://updated.com", "Great vendor");
+                orgId, vendorId, data);
 
         assertThat(result.getName())
                 .isEqualTo("Updated");
@@ -147,11 +107,13 @@ class VendorManagementServiceTest {
         when(repo.save(any(Vendor.class)))
                 .thenAnswer(i -> i.getArgument(0));
 
-        Vendor result = service.updateVendor(
-                orgId, null, "New Corp", "555-1111",
-                "info@new.com", "789 Pine", null,
-                "Boston", "MA", "02101", "US",
-                "https://new.com", "Notes here");
+        VendorData data = new VendorData(
+                "New Corp", "555-1111", "info@new.com",
+                "789 Pine", null, "Boston", "MA",
+                "02101", "US", "https://new.com",
+                "Notes here");
+        Vendor result = service.createVendor(
+                orgId, data);
 
         assertThat(result.getName())
                 .isEqualTo("New Corp");
@@ -165,11 +127,12 @@ class VendorManagementServiceTest {
     @DisplayName("should reject blank name on update")
     void shouldRejectBlankNameOnUpdate() {
         UUID vendorId = UUID.randomUUID();
+        VendorData data = new VendorData(
+                "  ", null, null, null, null,
+                null, null, null, null, null, null);
         assertThatThrownBy(() ->
                 service.updateVendor(
-                        orgId, vendorId, "  ", null,
-                        null, null, null, null,
-                        null, null, null, null, null))
+                        orgId, vendorId, data))
                 .isInstanceOf(
                         IllegalArgumentException.class)
                 .hasMessageContaining("required");
@@ -183,11 +146,12 @@ class VendorManagementServiceTest {
                 vendorId, orgId))
                 .thenReturn(Optional.empty());
 
+        VendorData data = new VendorData(
+                "Name", null, null, null, null,
+                null, null, null, null, null, null);
         assertThatThrownBy(() ->
                 service.updateVendor(
-                        orgId, vendorId, "Name", null,
-                        null, null, null, null,
-                        null, null, null, null, null))
+                        orgId, vendorId, data))
                 .isInstanceOf(
                         IllegalArgumentException.class)
                 .hasMessage("Vendor not found");

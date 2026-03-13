@@ -2,10 +2,11 @@ package solutions.mystuff.domain.service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.LogSanitizer;
+import solutions.mystuff.domain.model.ParsedAltPhone;
+import solutions.mystuff.domain.model.ParsedVCard;
 import solutions.mystuff.domain.model.Vendor;
 import solutions.mystuff.domain.model.VendorAltPhone;
 import solutions.mystuff.domain.port.in.VendorImportExport;
@@ -15,17 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Imports and exports vendors using vCard 4.0 format.
- *
- * <p>All imported fields are sanitized via {@link LogSanitizer}
- * and truncated to their database column maximum lengths.
- *
- * <div class="mermaid">
- * sequenceDiagram
- *     Controller->>VendorImportExportService: importVendors(...)
- *     VendorImportExportService->>VCardParser: parse(vcfContent)
- *     VendorImportExportService->>LogSanitizer: sanitize(field)
- *     VendorImportExportService->>VendorRepository: save(vendor)
- * </div>
  *
  * @see VendorImportExport
  * @see VCardSerializer
@@ -72,14 +62,14 @@ public class VendorImportExportService
             throw new IllegalArgumentException(
                     "File is empty");
         }
-        List<Map<String, Object>> cards =
+        List<ParsedVCard> cards =
                 VCardParser.parse(vcfContent);
         if (cards.isEmpty()) {
             throw new IllegalArgumentException(
                     "No valid contacts found in file");
         }
         List<Vendor> result = new ArrayList<>();
-        for (Map<String, Object> card : cards) {
+        for (ParsedVCard card : cards) {
             Vendor vendor = mapToVendor(orgId, card);
             addAltPhones(orgId, vendor, card);
             result.add(
@@ -88,24 +78,20 @@ public class VendorImportExportService
         return result;
     }
 
-    @SuppressWarnings("unchecked")
     private void addAltPhones(
             UUID orgId, Vendor vendor,
-            Map<String, Object> card) {
-        List<Map<String, String>> altList =
-                (List<Map<String, String>>)
-                        card.get("altPhones");
-        if (altList == null) {
+            ParsedVCard card) {
+        if (card.altPhones() == null) {
             return;
         }
-        for (Map<String, String> alt : altList) {
+        for (ParsedAltPhone alt : card.altPhones()) {
             VendorAltPhone altPhone =
                     new VendorAltPhone();
             altPhone.setPhone(sanitize(
-                    alt.get("phone"),
+                    alt.phone(),
                     VendorFieldLimits.MAX_PHONE));
             altPhone.setLabel(sanitize(
-                    alt.get("label"),
+                    alt.label(),
                     VendorFieldLimits.MAX_LABEL));
             altPhone.setOrganizationId(orgId);
             altPhone.setVendor(vendor);
@@ -114,55 +100,42 @@ public class VendorImportExportService
     }
 
     private Vendor mapToVendor(
-            UUID orgId, Map<String, Object> card) {
+            UUID orgId, ParsedVCard card) {
         Vendor v = new Vendor();
         v.setOrganizationId(orgId);
-        mapContactFields(v, card);
-        mapAddressFields(v, card);
-        v.setWebsite(sanitize(
-                str(card, "website"),
-                VendorFieldLimits.MAX_URL));
-        v.setNotes(sanitize(str(card, "notes"),
-                VendorFieldLimits.MAX_NOTES));
+        setVendorFields(v, card);
         v.setAltPhones(new ArrayList<>());
         return v;
     }
 
-    private void mapContactFields(
-            Vendor v, Map<String, Object> card) {
-        v.setName(sanitize(str(card, "name"),
+    private void setVendorFields(
+            Vendor v, ParsedVCard card) {
+        v.setName(sanitize(card.name(),
                 VendorFieldLimits.MAX_NAME));
-        v.setPhone(sanitize(str(card, "phone"),
+        v.setPhone(sanitize(card.phone(),
                 VendorFieldLimits.MAX_PHONE));
-        v.setEmail(sanitize(str(card, "email"),
+        v.setEmail(sanitize(card.email(),
                 VendorFieldLimits.MAX_EMAIL));
-    }
-
-    private void mapAddressFields(
-            Vendor v, Map<String, Object> card) {
         v.setAddressLine1(sanitize(
-                str(card, "addressLine1"),
+                card.addressLine1(),
                 VendorFieldLimits.MAX_ADDR));
         v.setAddressLine2(sanitize(
-                str(card, "addressLine2"),
+                card.addressLine2(),
                 VendorFieldLimits.MAX_ADDR));
-        v.setCity(sanitize(str(card, "city"),
+        v.setCity(sanitize(card.city(),
                 VendorFieldLimits.MAX_CITY));
         v.setStateProvince(sanitize(
-                str(card, "stateProvince"),
+                card.stateProvince(),
                 VendorFieldLimits.MAX_STATE));
         v.setPostalCode(sanitize(
-                str(card, "postalCode"),
+                card.postalCode(),
                 VendorFieldLimits.MAX_POSTAL));
-        v.setCountry(sanitize(
-                str(card, "country"),
+        v.setCountry(sanitize(card.country(),
                 VendorFieldLimits.MAX_COUNTRY));
-    }
-
-    private String str(
-            Map<String, Object> card, String key) {
-        Object val = card.get(key);
-        return val != null ? val.toString() : null;
+        v.setWebsite(sanitize(card.website(),
+                VendorFieldLimits.MAX_URL));
+        v.setNotes(sanitize(card.notes(),
+                VendorFieldLimits.MAX_NOTES));
     }
 
     private String sanitize(

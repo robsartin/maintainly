@@ -49,8 +49,8 @@ class RecordCreationServiceTest {
         ServiceRecord saved = captor.getValue();
         assertThat(saved.getSummary())
                 .isEqualTo("Replaced filter");
-        assertThat(saved.getDescription())
-                .isEqualTo("Technician: John");
+        assertThat(saved.getTechnicianName())
+                .isEqualTo("John");
     }
 
     @Test
@@ -69,7 +69,7 @@ class RecordCreationServiceTest {
                 ArgumentCaptor.forClass(
                         ServiceRecord.class);
         verify(repo).save(captor.capture());
-        assertThat(captor.getValue().getDescription())
+        assertThat(captor.getValue().getTechnicianName())
                 .isNull();
     }
 

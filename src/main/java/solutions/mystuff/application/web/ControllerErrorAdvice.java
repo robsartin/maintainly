@@ -2,6 +2,7 @@ package solutions.mystuff.application.web;
 
 import java.time.format.DateTimeParseException;
 import java.util.Collections;
+import java.util.Map;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -22,6 +23,23 @@ public class ControllerErrorAdvice {
     private static final Logger log =
             LoggerFactory.getLogger(
                     ControllerErrorAdvice.class);
+
+    private static final Map<String, ErrorViewConfig>
+            VIEW_REGISTRY = Map.of(
+                    "/schedules",
+                    new ErrorViewConfig("schedules",
+                            "schedules"),
+                    "/vendors",
+                    new ErrorViewConfig(
+                            "redirect:/vendors", null),
+                    "/settings",
+                    new ErrorViewConfig(
+                            "redirect:/settings", null),
+                    "/reports",
+                    new ErrorViewConfig("reports", null));
+
+    private static final ErrorViewConfig DEFAULT_VIEW =
+            new ErrorViewConfig("items", "items");
 
     /** Handles invalid date format input. */
     @ExceptionHandler(DateTimeParseException.class)
@@ -62,22 +80,26 @@ public class ControllerErrorAdvice {
     String resolveErrorView(
             Model model, HttpServletRequest request) {
         String path = request.getRequestURI();
-        if (path.startsWith("/schedules")) {
-            model.addAttribute("schedules",
+        for (Map.Entry<String, ErrorViewConfig> entry
+                : VIEW_REGISTRY.entrySet()) {
+            if (path.startsWith(entry.getKey())) {
+                return applyConfig(
+                        model, entry.getValue());
+            }
+        }
+        return applyConfig(model, DEFAULT_VIEW);
+    }
+
+    private String applyConfig(
+            Model model, ErrorViewConfig config) {
+        if (config.emptyListAttr != null) {
+            model.addAttribute(config.emptyListAttr,
                     Collections.emptyList());
-            return "schedules";
         }
-        if (path.startsWith("/vendors")) {
-            return "redirect:/vendors";
-        }
-        if (path.startsWith("/settings")) {
-            return "redirect:/settings";
-        }
-        if (path.startsWith("/reports")) {
-            return "reports";
-        }
-        model.addAttribute("items",
-                Collections.emptyList());
-        return "items";
+        return config.viewName;
+    }
+
+    private record ErrorViewConfig(
+            String viewName, String emptyListAttr) {
     }
 }

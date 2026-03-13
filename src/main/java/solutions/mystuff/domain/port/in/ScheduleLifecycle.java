@@ -53,4 +53,12 @@ public interface ScheduleLifecycle {
     /** Deactivate a schedule so it no longer triggers. */
     void deactivateSchedule(
             UUID scheduleId, UUID orgId);
+
+    /**
+     * Complete the soonest active schedule for an item,
+     * or create a one-off record if no active schedule exists.
+     */
+    void completeNextForItem(UUID orgId, UUID itemId,
+            Vendor vendor, String summary,
+            LocalDate serviceDate, String techName);
 }

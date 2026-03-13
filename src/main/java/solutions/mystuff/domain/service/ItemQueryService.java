@@ -8,25 +8,16 @@ import solutions.mystuff.domain.model.Item;
 import solutions.mystuff.domain.model.PageResult;
 import solutions.mystuff.domain.model.ServiceRecord;
 import solutions.mystuff.domain.model.ServiceSchedule;
-import solutions.mystuff.domain.model.Vendor;
 import solutions.mystuff.domain.port.in.ItemQuery;
 import solutions.mystuff.domain.port.out.ItemRepository;
 import solutions.mystuff.domain.port.out
         .ServiceRecordRepository;
 import solutions.mystuff.domain.port.out
         .ServiceScheduleRepository;
-import solutions.mystuff.domain.port.out.VendorRepository;
 import org.springframework.stereotype.Service;
 
 /**
  * Delegates item read queries to outbound repository ports.
- *
- * <div class="mermaid">
- * sequenceDiagram
- *     Controller->>ItemQueryService: findByOrganization(...)
- *     ItemQueryService->>ItemRepository: delegate
- *     ItemRepository-->>Controller: result
- * </div>
  *
  * @see ItemQuery
  */
@@ -36,17 +27,14 @@ public class ItemQueryService implements ItemQuery {
     private final ItemRepository itemRepo;
     private final ServiceRecordRepository recordRepo;
     private final ServiceScheduleRepository scheduleRepo;
-    private final VendorRepository vendorRepo;
 
     public ItemQueryService(
             ItemRepository itemRepo,
             ServiceRecordRepository recordRepo,
-            ServiceScheduleRepository scheduleRepo,
-            VendorRepository vendorRepo) {
+            ServiceScheduleRepository scheduleRepo) {
         this.itemRepo = itemRepo;
         this.recordRepo = recordRepo;
         this.scheduleRepo = scheduleRepo;
-        this.vendorRepo = vendorRepo;
     }
 
     /** {@inheritDoc} */
@@ -95,12 +83,5 @@ public class ItemQueryService implements ItemQuery {
         return scheduleRepo
                 .findByItemIdAndOrganizationId(
                         itemId, orgId);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public List<Vendor> findVendorsByOrganization(
-            UUID orgId) {
-        return vendorRepo.findByOrganizationId(orgId);
     }
 }
