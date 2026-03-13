@@ -370,16 +370,62 @@ tr.detail-row td {
     font-size: 0.9rem;
 }
 
-.upload-form {
+.image-upload-target {
+    position: relative;
+    width: 128px;
+    height: 128px;
+    border: 2px dashed #ccc;
+    border-radius: 4px;
+    cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    flex-wrap: wrap;
+    justify-content: center;
+    overflow: hidden;
+    transition: border-color 0.2s;
 }
 
-.upload-form label {
+.image-upload-target:hover {
+    border-color: #2196F3;
+}
+
+.image-upload-target .upload-hint {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0,0,0,0.6);
+    color: white;
+    text-align: center;
+    font-size: 0.75rem;
+    padding: 0.25rem 0;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.image-upload-target:hover .upload-hint {
+    opacity: 1;
+}
+
+.no-image-placeholder {
+    color: #888;
     font-size: 0.85rem;
-    color: #555;
+}
+
+.file-input-hidden {
+    display: none;
+}
+
+.upload-help {
+    font-size: 0.8rem;
+    color: #888;
+    margin: 0.5rem 0 0;
+}
+
+.upload-form {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
 }
 
 a.btn-icon {
@@ -441,6 +487,11 @@ a.btn-icon:hover {
     gap: 0.25rem;
     font-size: 0.85rem;
     color: #555;
+    text-decoration: none;
+}
+
+.user-info:hover {
+    color: #1565c0;
 }
 
 .user-avatar {

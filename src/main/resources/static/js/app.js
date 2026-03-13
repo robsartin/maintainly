@@ -30,6 +30,17 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     document.body.addEventListener('click', function (e) {
+        var uploadTarget =
+            e.target.closest('[data-image-upload]');
+        if (uploadTarget) {
+            var fileInput =
+                uploadTarget.querySelector('.file-input-hidden');
+            if (fileInput) {
+                fileInput.click();
+            }
+            return;
+        }
+
         var btn = e.target.closest('[data-toggle-form]');
         if (btn) {
             toggleForm(btn.getAttribute('data-toggle-form'));
@@ -64,6 +75,14 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     document.body.addEventListener('change', function (e) {
+        if (e.target.matches('[data-auto-submit]')) {
+            var form = e.target.closest('form');
+            if (form && e.target.files.length > 0) {
+                form.submit();
+            }
+            return;
+        }
+
         if (e.target.matches('[data-vendor-change]')) {
             onVendorChange(e.target);
             return;

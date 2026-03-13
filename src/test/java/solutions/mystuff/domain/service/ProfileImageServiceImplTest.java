@@ -80,25 +80,64 @@ class ProfileImageServiceImplTest {
     }
 
     @Test
-    @DisplayName("should resize large image")
-    void shouldResizeLargeImage() throws Exception {
+    @DisplayName("should resize large square to 128x128")
+    void shouldResizeLargeSquare() throws Exception {
         byte[] large = smallPng(256, 256);
         byte[] result = service.resizeImage(
                 large, "image/png");
 
         BufferedImage img = ImageIO.read(
                 new java.io.ByteArrayInputStream(result));
-        assertTrue(img.getWidth() <= 128);
-        assertTrue(img.getHeight() <= 128);
+        assertEquals(128, img.getWidth());
+        assertEquals(128, img.getHeight());
     }
 
     @Test
-    @DisplayName("should not resize small image")
-    void shouldNotResizeSmallImage() throws Exception {
-        byte[] small = smallPng(64, 64);
+    @DisplayName("should crop wide image to 128x128")
+    void shouldCropWideImage() throws Exception {
+        byte[] wide = smallPng(400, 200);
+        byte[] result = service.resizeImage(
+                wide, "image/png");
+
+        BufferedImage img = ImageIO.read(
+                new java.io.ByteArrayInputStream(result));
+        assertEquals(128, img.getWidth());
+        assertEquals(128, img.getHeight());
+    }
+
+    @Test
+    @DisplayName("should crop tall image to 128x128")
+    void shouldCropTallImage() throws Exception {
+        byte[] tall = smallPng(200, 400);
+        byte[] result = service.resizeImage(
+                tall, "image/png");
+
+        BufferedImage img = ImageIO.read(
+                new java.io.ByteArrayInputStream(result));
+        assertEquals(128, img.getWidth());
+        assertEquals(128, img.getHeight());
+    }
+
+    @Test
+    @DisplayName("should resize small non-square to 128x128")
+    void shouldResizeSmallNonSquare() throws Exception {
+        byte[] small = smallPng(64, 32);
         byte[] result = service.resizeImage(
                 small, "image/png");
-        assertArrayEquals(small, result);
+
+        BufferedImage img = ImageIO.read(
+                new java.io.ByteArrayInputStream(result));
+        assertEquals(128, img.getWidth());
+        assertEquals(128, img.getHeight());
+    }
+
+    @Test
+    @DisplayName("should not resize exact 128x128 image")
+    void shouldNotResizeExact128() throws Exception {
+        byte[] exact = smallPng(128, 128);
+        byte[] result = service.resizeImage(
+                exact, "image/png");
+        assertArrayEquals(exact, result);
     }
 
     @Test
