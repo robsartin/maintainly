@@ -46,7 +46,7 @@
                     <td th:text="${s.serviceType}"></td>
                     <td th:text="${s.preferredVendor != null ? s.preferredVendor.name : ''}"></td>
                     <td th:text="${s.nextDueDate}" style="white-space:nowrap"></td>
-                    <td th:text="'Every ' + ${s.frequencyInterval} + ' ' + ${s.frequencyUnit}"></td>
+                    <td th:text="'Every ' + ${s.frequencyInterval} + ' ' + (${s.frequencyInterval == 1 ? s.frequencyUnit.name().substring(0, s.frequencyUnit.name().length() - 1) : s.frequencyUnit})"></td>
                     <td class="actions">
                         <button type="button" class="btn-icon btn-log" title="Log service"
                                 th:data-target="'log-' + ${s.id}"

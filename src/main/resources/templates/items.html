@@ -264,7 +264,7 @@
                                     <tr th:if="${is.active}">
                                         <td th:text="${is.serviceType}"></td>
                                         <td th:text="${is.nextDueDate}" style="white-space:nowrap"></td>
-                                        <td th:text="'Every ' + ${is.frequencyInterval} + ' ' + ${is.frequencyUnit}"></td>
+                                        <td th:text="'Every ' + ${is.frequencyInterval} + ' ' + (${is.frequencyInterval == 1 ? is.frequencyUnit.name().substring(0, is.frequencyUnit.name().length() - 1) : is.frequencyUnit})"></td>
                                         <td th:text="${is.lastCompletedDate != null
                                             ? is.lastCompletedDate : 'Never'}"
                                             style="white-space:nowrap"></td>
