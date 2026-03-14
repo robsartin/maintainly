@@ -4,15 +4,19 @@ import java.time.format.DateTimeParseException;
 import java.util.Collections;
 import java.util.Map;
 
+import solutions.mystuff.domain.model.NotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
- * Global exception handler that routes errors to the correct view.
+ * Global exception handler that routes errors to the correct view
+ * with appropriate HTTP status codes.
  *
  * @see ItemController
  * @see ScheduleController
@@ -41,8 +45,9 @@ public class ControllerErrorAdvice {
     private static final ErrorViewConfig DEFAULT_VIEW =
             new ErrorViewConfig("items", "items");
 
-    /** Handles invalid date format input. */
+    /** Handles invalid date format input — 400 Bad Request. */
     @ExceptionHandler(DateTimeParseException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public String handleDateParseError(
             DateTimeParseException ex, Model model,
             HttpServletRequest request) {
@@ -54,8 +59,9 @@ public class ControllerErrorAdvice {
         return resolveErrorView(model, request);
     }
 
-    /** Handles validation errors from controllers and services. */
+    /** Handles validation errors — 400 Bad Request. */
     @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public String handleIllegalArgument(
             IllegalArgumentException ex, Model model,
             HttpServletRequest request) {
@@ -65,8 +71,20 @@ public class ControllerErrorAdvice {
         return resolveErrorView(model, request);
     }
 
-    /** Catches unexpected runtime exceptions as a safety net. */
+    /** Handles entity not found — 404 Not Found. */
+    @ExceptionHandler(NotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public String handleNotFound(
+            NotFoundException ex, Model model,
+            HttpServletRequest request) {
+        log.warn("Not found: {}", ex.getMessage());
+        model.addAttribute("error", ex.getMessage());
+        return resolveErrorView(model, request);
+    }
+
+    /** Catches unexpected runtime exceptions — 500 Internal Server Error. */
     @ExceptionHandler(RuntimeException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public String handleRuntimeException(
             RuntimeException ex, Model model,
             HttpServletRequest request) {

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import solutions.mystuff.domain.model.NotFoundException;
 import solutions.mystuff.domain.model.ParsedAltPhone;
 import solutions.mystuff.domain.model.Vendor;
 import solutions.mystuff.domain.model.VendorData;
@@ -156,7 +157,7 @@ class VendorManagementServiceTest {
                 service.updateVendor(
                         orgId, vendorId, data))
                 .isInstanceOf(
-                        IllegalArgumentException.class)
+                        NotFoundException.class)
                 .hasMessage("Vendor not found");
     }
 
@@ -185,7 +186,7 @@ class VendorManagementServiceTest {
         assertThatThrownBy(() ->
                 service.deleteVendor(orgId, vendorId))
                 .isInstanceOf(
-                        IllegalArgumentException.class)
+                        NotFoundException.class)
                 .hasMessage("Vendor not found");
     }
 

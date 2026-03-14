@@ -3,6 +3,7 @@ package solutions.mystuff.domain.service;
 import java.util.List;
 import java.util.UUID;
 
+import solutions.mystuff.domain.model.NotFoundException;
 import solutions.mystuff.domain.model.ParsedAltPhone;
 import solutions.mystuff.domain.model.Validation;
 import solutions.mystuff.domain.model.Vendor;
@@ -142,7 +143,7 @@ public class VendorManagementService
                 .findByIdAndOrganizationId(
                         vendorId, orgId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
+                        new NotFoundException(
                                 "Vendor not found"));
     }
 

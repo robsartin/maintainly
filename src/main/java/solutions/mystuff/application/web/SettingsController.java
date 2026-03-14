@@ -83,7 +83,7 @@ public class SettingsController {
                             description = "Redirect to"
                                     + " /settings on"
                                     + " success"),
-                    @ApiResponse(responseCode = "200",
+                    @ApiResponse(responseCode = "400",
                             description = "Error if no"
                                     + " file or no"
                                     + " organization")})
@@ -113,7 +113,7 @@ public class SettingsController {
                             description = "Redirect to"
                                     + " /settings on"
                                     + " success"),
-                    @ApiResponse(responseCode = "200",
+                    @ApiResponse(responseCode = "400",
                             description = "Error if no"
                                     + " file selected")})
     @PutMapping("/settings/user-image")

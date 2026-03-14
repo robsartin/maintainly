@@ -8,6 +8,7 @@ import solutions.mystuff.domain.model.AppUser;
 import solutions.mystuff.domain.model.FrequencyUnit;
 import solutions.mystuff.domain.model.Item;
 import solutions.mystuff.domain.model.LogSanitizer;
+import solutions.mystuff.domain.model.NotFoundException;
 import solutions.mystuff.domain.model.PageResult;
 import solutions.mystuff.domain.model.Vendor;
 import solutions.mystuff.domain.port.in.ItemManagement;
@@ -115,15 +116,11 @@ public class ItemController {
                     "items");
         }
         helper.setOrgMdc(user);
-        try {
-            UUID orgId = user.getOrganization().getId();
-            loadItems(q, orgId, page, size,
-                    model, response);
-            helper.addUserAttrs(user, model);
-            return "items";
-        } finally {
-            helper.clearOrgMdc();
-        }
+        UUID orgId = user.getOrganization().getId();
+        loadItems(q, orgId, page, size,
+                model, response);
+        helper.addUserAttrs(user, model);
+        return "items";
     }
 
     @Operation(summary = "Item detail",
@@ -141,9 +138,9 @@ public class ItemController {
                             description = "HTML page with"
                                     + " item detail"
                                     + " expanded"),
-                    @ApiResponse(responseCode = "200",
-                            description = "Error if item"
-                                    + " not found")})
+                    @ApiResponse(responseCode = "404",
+                            description = "Item not"
+                                    + " found")})
     @GetMapping("/items/{id}")
     public String itemDetail(
             @Parameter(description = "Item UUID")
@@ -162,16 +159,12 @@ public class ItemController {
                     "items");
         }
         helper.setOrgMdc(user);
-        try {
-            UUID orgId = user.getOrganization().getId();
-            loadItems(null, orgId, page, size,
-                    model, response);
-            helper.addUserAttrs(user, model);
-            addDetailAttrs(model, itemId, orgId);
-            return "items";
-        } finally {
-            helper.clearOrgMdc();
-        }
+        UUID orgId = user.getOrganization().getId();
+        loadItems(null, orgId, page, size,
+                model, response);
+        helper.addUserAttrs(user, model);
+        addDetailAttrs(model, itemId, orgId);
+        return "items";
     }
 
     @Operation(summary = "Create item",
@@ -183,7 +176,7 @@ public class ItemController {
                             description = "Redirect to"
                                     + " /items on"
                                     + " success"),
-                    @ApiResponse(responseCode = "200",
+                    @ApiResponse(responseCode = "400",
                             description = "Validation"
                                     + " error (blank"
                                     + " name, exceeds"
@@ -213,15 +206,11 @@ public class ItemController {
             Principal principal) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
-        try {
-            UUID orgId = user.getOrganization().getId();
-            itemService.createItem(orgId, name,
-                    location, manufacturer,
-                    modelName, serialNumber);
-            return "redirect:/items";
-        } finally {
-            helper.clearOrgMdc();
-        }
+        UUID orgId = user.getOrganization().getId();
+        itemService.createItem(orgId, name,
+                location, manufacturer,
+                modelName, serialNumber);
+        return "redirect:/items";
     }
 
     @Operation(summary = "Log service record",
@@ -237,12 +226,14 @@ public class ItemController {
                             description = "Redirect to"
                                     + " /items on"
                                     + " success"),
-                    @ApiResponse(responseCode = "200",
+                    @ApiResponse(responseCode = "400",
                             description = "Validation"
                                     + " error (blank"
                                     + " summary, bad"
-                                    + " date, item not"
-                                    + " found)")})
+                                    + " date)"),
+                    @ApiResponse(responseCode = "404",
+                            description = "Item not"
+                                    + " found")})
     @PostMapping("/items/{id}/service-records")
     public String logItemService(
             @Parameter(description = "Item UUID")
@@ -280,27 +271,23 @@ public class ItemController {
             Principal principal) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
-        try {
-            UUID orgId = user.getOrganization().getId();
-            Item item = findItem(itemId, orgId);
-            Vendor vendor = helper.resolveVendor(
-                    orgId, vendorId, newVendorName,
-                    newVendorPhone);
-            LocalDate date = InputValidator.parseDate(
-                    serviceDate, "Service date");
-            if (oneOff) {
-                recordService.createRecord(orgId, item,
-                        null, null, vendor, summary,
-                        date, techName);
-            } else {
-                scheduleService.completeNextForItem(
-                        orgId, itemId, vendor,
-                        summary, date, techName);
-            }
-            return "redirect:/items";
-        } finally {
-            helper.clearOrgMdc();
+        UUID orgId = user.getOrganization().getId();
+        Item item = findItem(itemId, orgId);
+        Vendor vendor = helper.resolveVendor(
+                orgId, vendorId, newVendorName,
+                newVendorPhone);
+        LocalDate date = InputValidator.parseDate(
+                serviceDate, "Service date");
+        if (oneOff) {
+            recordService.createRecord(orgId, item,
+                    null, null, vendor, summary,
+                    date, techName);
+        } else {
+            scheduleService.completeNextForItem(
+                    orgId, itemId, vendor,
+                    summary, date, techName);
         }
+        return "redirect:/items";
     }
 
     @Operation(summary = "Create schedule",
@@ -316,7 +303,7 @@ public class ItemController {
                                     + " /schedules if"
                                     + " redirectTo="
                                     + "'schedules')"),
-                    @ApiResponse(responseCode = "200",
+                    @ApiResponse(responseCode = "400",
                             description = "Validation"
                                     + " error (blank"
                                     + " type, bad date,"
@@ -366,23 +353,19 @@ public class ItemController {
             Principal principal) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
-        try {
-            UUID orgId = user.getOrganization().getId();
-            Vendor vendor = helper.resolveVendor(
-                    orgId, vendorId, newVendorName,
-                    newVendorPhone);
-            LocalDate due = InputValidator.parseDate(
-                    nextDueDate, "Next due date");
-            scheduleService.createSchedule(orgId,
-                    itemId, serviceType, vendor, due,
-                    frequencyInterval, frequencyUnit);
-            if ("schedules".equals(redirectTo)) {
-                return "redirect:/schedules";
-            }
-            return "redirect:/items";
-        } finally {
-            helper.clearOrgMdc();
+        UUID orgId = user.getOrganization().getId();
+        Vendor vendor = helper.resolveVendor(
+                orgId, vendorId, newVendorName,
+                newVendorPhone);
+        LocalDate due = InputValidator.parseDate(
+                nextDueDate, "Next due date");
+        scheduleService.createSchedule(orgId,
+                itemId, serviceType, vendor, due,
+                frequencyInterval, frequencyUnit);
+        if ("schedules".equals(redirectTo)) {
+            return "redirect:/schedules";
         }
+        return "redirect:/items";
     }
 
     private void addDetailAttrs(
@@ -427,7 +410,7 @@ public class ItemController {
         return itemQuery
                 .findByIdAndOrganization(itemId, orgId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
+                        new NotFoundException(
                                 "Item not found"));
     }
 }

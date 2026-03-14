@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import solutions.mystuff.domain.model.NotFoundException;
 import solutions.mystuff.domain.model.UuidV7;
 import solutions.mystuff.domain.model.Vendor;
 import solutions.mystuff.domain.model.VendorAltPhone;
@@ -59,7 +60,7 @@ class VendorImportExportServiceTest {
         when(repository.findByIdAndOrganizationId(
                 vendorId, orgId))
                 .thenReturn(Optional.empty());
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(NotFoundException.class,
                 () -> service.exportVendor(
                         orgId, vendorId));
     }

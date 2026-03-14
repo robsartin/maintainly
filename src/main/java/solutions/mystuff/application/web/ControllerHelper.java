@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import solutions.mystuff.domain.model.AppUser;
 import solutions.mystuff.domain.model.LogSanitizer;
+import solutions.mystuff.domain.model.NotFoundException;
 import solutions.mystuff.domain.model.Vendor;
 import solutions.mystuff.domain.port.in.UserResolver;
 import solutions.mystuff.domain.port.in.VendorManagement;
@@ -29,7 +30,7 @@ import org.springframework.ui.Model;
  *         +resolveUser(Principal) AppUser
  *         +addUserAttrs(AppUser, Model) void
  *         +setOrgMdc(AppUser) void
- *         +clearOrgMdc() void
+ *
  *         +clampSize(int) int
  *         +resolveVendor(...) Vendor
  *         +handleNoOrg(AppUser, Model, String) String
@@ -100,11 +101,6 @@ public class ControllerHelper {
         }
     }
 
-    /** Removes the organization ID from the MDC. */
-    void clearOrgMdc() {
-        MDC.remove(MDC_ORG_ID);
-    }
-
     /** Clamps page size between 1 and the configured maximum. */
     int clampSize(int size) {
         return Math.max(1, Math.min(size, MAX_PAGE_SIZE));
@@ -127,7 +123,7 @@ public class ControllerHelper {
                     .filter(v -> v.getId().equals(id))
                     .findFirst()
                     .orElseThrow(() ->
-                            new IllegalArgumentException(
+                            new NotFoundException(
                                     "Vendor not found"));
         }
         return null;

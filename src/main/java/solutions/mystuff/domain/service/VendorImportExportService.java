@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.LogSanitizer;
+import solutions.mystuff.domain.model.NotFoundException;
 import solutions.mystuff.domain.model.ParsedAltPhone;
 import solutions.mystuff.domain.model.ParsedVCard;
 import solutions.mystuff.domain.model.Vendor;
@@ -40,7 +41,7 @@ public class VendorImportExportService
                 .findByIdAndOrganizationId(
                         vendorId, orgId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
+                        new NotFoundException(
                                 "Vendor not found"));
         return VCardSerializer.serialize(vendor);
     }

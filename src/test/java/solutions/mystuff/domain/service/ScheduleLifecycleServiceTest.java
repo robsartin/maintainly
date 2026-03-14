@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import solutions.mystuff.domain.model.FrequencyUnit;
 import solutions.mystuff.domain.model.Item;
+import solutions.mystuff.domain.model.NotFoundException;
 import solutions.mystuff.domain.model.ServiceSchedule;
 import solutions.mystuff.domain.model.Vendor;
 import solutions.mystuff.domain.port.in.ItemQuery;
@@ -248,7 +249,7 @@ class ScheduleLifecycleServiceTest {
         assertThatThrownBy(() ->
                 service.skipSchedule(schedId, orgId))
                 .isInstanceOf(
-                        IllegalArgumentException.class)
+                        NotFoundException.class)
                 .hasMessage("Schedule not found");
     }
 

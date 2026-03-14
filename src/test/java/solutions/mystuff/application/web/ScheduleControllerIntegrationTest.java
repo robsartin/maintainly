@@ -108,7 +108,7 @@ class ScheduleControllerIntegrationTest {
                         .param("serviceDate", "2026-04-15")
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
-                .andExpect(status().isOk())
+                .andExpect(status().isNotFound())
                 .andExpect(model().attributeExists("error"));
     }
 
@@ -131,7 +131,7 @@ class ScheduleControllerIntegrationTest {
         mockMvc.perform(delete("/schedules/" + fakeId)
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
-                .andExpect(status().isOk())
+                .andExpect(status().isNotFound())
                 .andExpect(model().attributeExists("error"));
     }
 
@@ -258,7 +258,7 @@ class ScheduleControllerIntegrationTest {
                         .param("frequencyUnit", "months")
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
-                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest())
                 .andExpect(model().attributeExists(
                         "error"));
     }
@@ -286,7 +286,7 @@ class ScheduleControllerIntegrationTest {
                         .param("frequencyUnit", "months")
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
-                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest())
                 .andExpect(model().attributeExists(
                         "error"));
     }

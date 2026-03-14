@@ -93,15 +93,11 @@ public class ScheduleController {
                     "schedules");
         }
         helper.setOrgMdc(user);
-        try {
-            UUID orgId = user.getOrganization().getId();
-            loadSchedules(orgId, page, size,
-                    model, response);
-            helper.addUserAttrs(user, model);
-            return "schedules";
-        } finally {
-            helper.clearOrgMdc();
-        }
+        UUID orgId = user.getOrganization().getId();
+        loadSchedules(orgId, page, size,
+                model, response);
+        helper.addUserAttrs(user, model);
+        return "schedules";
     }
 
     @Operation(summary = "Complete schedule",
@@ -117,11 +113,13 @@ public class ScheduleController {
                                     + " /items/{itemId}"
                                     + " if redirectTo="
                                     + "'item')"),
-                    @ApiResponse(responseCode = "200",
+                    @ApiResponse(responseCode = "400",
                             description = "Validation"
-                                    + " error (bad date,"
-                                    + " schedule not"
-                                    + " found)")})
+                                    + " error (bad"
+                                    + " date)"),
+                    @ApiResponse(responseCode = "404",
+                            description = "Schedule not"
+                                    + " found")})
     @PostMapping("/schedules/{id}/completions")
     public String logScheduleService(
             @Parameter(description = "Schedule UUID")
@@ -158,25 +156,21 @@ public class ScheduleController {
             Principal principal) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
-        try {
-            UUID orgId = user.getOrganization().getId();
-            Vendor vendor = helper.resolveVendor(
-                    orgId, vendorId, newVendorName,
-                    newVendorPhone);
-            LocalDate date = InputValidator.parseDate(
-                    serviceDate, "Service date");
-            ServiceSchedule sched =
-                    scheduleService.completeSchedule(
-                            scheduleId, orgId, vendor,
-                            summary, date, techName);
-            if ("item".equals(redirectTo)) {
-                return "redirect:/items/"
-                        + sched.getItem().getId();
-            }
-            return "redirect:/schedules";
-        } finally {
-            helper.clearOrgMdc();
+        UUID orgId = user.getOrganization().getId();
+        Vendor vendor = helper.resolveVendor(
+                orgId, vendorId, newVendorName,
+                newVendorPhone);
+        LocalDate date = InputValidator.parseDate(
+                serviceDate, "Service date");
+        ServiceSchedule sched =
+                scheduleService.completeSchedule(
+                        scheduleId, orgId, vendor,
+                        summary, date, techName);
+        if ("item".equals(redirectTo)) {
+            return "redirect:/items/"
+                    + sched.getItem().getId();
         }
+        return "redirect:/schedules";
     }
 
     @Operation(summary = "Skip schedule",
@@ -190,9 +184,8 @@ public class ScheduleController {
                             description = "Redirect to"
                                     + " /items/"
                                     + "{itemId}"),
-                    @ApiResponse(responseCode = "200",
-                            description = "Error if"
-                                    + " schedule not"
+                    @ApiResponse(responseCode = "404",
+                            description = "Schedule not"
                                     + " found")})
     @PostMapping("/schedules/{id}/skip")
     public String skipSchedule(
@@ -201,16 +194,12 @@ public class ScheduleController {
             Principal principal) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
-        try {
-            UUID orgId = user.getOrganization().getId();
-            ServiceSchedule sched =
-                    scheduleService.skipSchedule(
-                            scheduleId, orgId);
-            return "redirect:/items/"
-                    + sched.getItem().getId();
-        } finally {
-            helper.clearOrgMdc();
-        }
+        UUID orgId = user.getOrganization().getId();
+        ServiceSchedule sched =
+                scheduleService.skipSchedule(
+                        scheduleId, orgId);
+        return "redirect:/items/"
+                + sched.getItem().getId();
     }
 
     @Operation(summary = "Delete schedule",
@@ -221,9 +210,8 @@ public class ScheduleController {
                     @ApiResponse(responseCode = "302",
                             description = "Redirect to"
                                     + " /schedules"),
-                    @ApiResponse(responseCode = "200",
-                            description = "Error if"
-                                    + " schedule not"
+                    @ApiResponse(responseCode = "404",
+                            description = "Schedule not"
                                     + " found")})
     @DeleteMapping("/schedules/{id}")
     public String deleteSchedule(
@@ -232,14 +220,10 @@ public class ScheduleController {
             Principal principal) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
-        try {
-            UUID orgId = user.getOrganization().getId();
-            scheduleService.deactivateSchedule(
-                    scheduleId, orgId);
-            return "redirect:/schedules";
-        } finally {
-            helper.clearOrgMdc();
-        }
+        UUID orgId = user.getOrganization().getId();
+        scheduleService.deactivateSchedule(
+                scheduleId, orgId);
+        return "redirect:/schedules";
     }
 
     private void loadSchedules(

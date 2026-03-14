@@ -86,16 +86,12 @@ public class VendorController {
                     "vendors");
         }
         helper.setOrgMdc(user);
-        try {
-            helper.addUserAttrs(user, model);
-            model.addAttribute("vendors",
-                    vendorQuery.findAllVendors(
-                            user.getOrganization()
-                                    .getId()));
-            return "vendors";
-        } finally {
-            helper.clearOrgMdc();
-        }
+        helper.addUserAttrs(user, model);
+        model.addAttribute("vendors",
+                vendorQuery.findAllVendors(
+                        user.getOrganization()
+                                .getId()));
+        return "vendors";
     }
 
     @Operation(summary = "Create vendor",
@@ -109,7 +105,7 @@ public class VendorController {
                             description = "Redirect to"
                                     + " /vendors on"
                                     + " success"),
-                    @ApiResponse(responseCode = "200",
+                    @ApiResponse(responseCode = "400",
                             description = "Validation"
                                     + " error (blank"
                                     + " name)")})
@@ -169,20 +165,16 @@ public class VendorController {
             Principal principal) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
-        try {
-            UUID orgId =
-                    user.getOrganization().getId();
-            VendorData data = new VendorData(
-                    name, phone, email, addressLine1,
-                    addressLine2, city, stateProvince,
-                    postalCode, country, website, notes,
-                    buildAltPhones(altPhoneNumber,
-                            altPhoneLabel));
-            vendorService.createVendor(orgId, data);
-            return "redirect:/vendors";
-        } finally {
-            helper.clearOrgMdc();
-        }
+        UUID orgId =
+                user.getOrganization().getId();
+        VendorData data = new VendorData(
+                name, phone, email, addressLine1,
+                addressLine2, city, stateProvince,
+                postalCode, country, website, notes,
+                buildAltPhones(altPhoneNumber,
+                        altPhoneLabel));
+        vendorService.createVendor(orgId, data);
+        return "redirect:/vendors";
     }
 
     @Operation(summary = "Update vendor",
@@ -195,11 +187,13 @@ public class VendorController {
                             description = "Redirect to"
                                     + " /vendors on"
                                     + " success"),
-                    @ApiResponse(responseCode = "200",
+                    @ApiResponse(responseCode = "400",
                             description = "Validation"
                                     + " error (blank"
-                                    + " name, vendor"
-                                    + " not found)")})
+                                    + " name)"),
+                    @ApiResponse(responseCode = "404",
+                            description = "Vendor not"
+                                    + " found")})
     @PutMapping("/vendors/{id}")
     public String editVendor(
             @Parameter(description = "Vendor UUID")
@@ -255,21 +249,17 @@ public class VendorController {
             Principal principal) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
-        try {
-            UUID orgId =
-                    user.getOrganization().getId();
-            VendorData data = new VendorData(
-                    name, phone, email, addressLine1,
-                    addressLine2, city, stateProvince,
-                    postalCode, country, website, notes,
-                    buildAltPhones(altPhoneNumber,
-                            altPhoneLabel));
-            vendorService.updateVendor(
-                    orgId, vendorId, data);
-            return "redirect:/vendors";
-        } finally {
-            helper.clearOrgMdc();
-        }
+        UUID orgId =
+                user.getOrganization().getId();
+        VendorData data = new VendorData(
+                name, phone, email, addressLine1,
+                addressLine2, city, stateProvince,
+                postalCode, country, website, notes,
+                buildAltPhones(altPhoneNumber,
+                        altPhoneLabel));
+        vendorService.updateVendor(
+                orgId, vendorId, data);
+        return "redirect:/vendors";
     }
 
     @Operation(summary = "Delete vendor",
@@ -281,9 +271,8 @@ public class VendorController {
                     @ApiResponse(responseCode = "302",
                             description = "Redirect to"
                                     + " /vendors"),
-                    @ApiResponse(responseCode = "200",
-                            description = "Error if"
-                                    + " vendor not"
+                    @ApiResponse(responseCode = "404",
+                            description = "Vendor not"
                                     + " found")})
     @DeleteMapping("/vendors/{id}")
     public String deleteVendor(
@@ -292,14 +281,10 @@ public class VendorController {
             Principal principal) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
-        try {
-            vendorService.deleteVendor(
-                    user.getOrganization().getId(),
-                    vendorId);
-            return "redirect:/vendors";
-        } finally {
-            helper.clearOrgMdc();
-        }
+        vendorService.deleteVendor(
+                user.getOrganization().getId(),
+                vendorId);
+        return "redirect:/vendors";
     }
 
     @Operation(summary = "Export all vendors",
@@ -318,15 +303,11 @@ public class VendorController {
             Principal principal) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
-        try {
-            String vcf = importExport
-                    .exportAllVendors(
-                            user.getOrganization()
-                                    .getId());
-            return vcfResponse(vcf, "vendors.vcf");
-        } finally {
-            helper.clearOrgMdc();
-        }
+        String vcf = importExport
+                .exportAllVendors(
+                        user.getOrganization()
+                                .getId());
+        return vcfResponse(vcf, "vendors.vcf");
     }
 
     @Operation(summary = "Export single vendor",
@@ -344,14 +325,10 @@ public class VendorController {
             Principal principal) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
-        try {
-            String vcf = importExport.exportVendor(
-                    user.getOrganization().getId(),
-                    id);
-            return vcfResponse(vcf, "vendor.vcf");
-        } finally {
-            helper.clearOrgMdc();
-        }
+        String vcf = importExport.exportVendor(
+                user.getOrganization().getId(),
+                id);
+        return vcfResponse(vcf, "vendor.vcf");
     }
 
     @Operation(summary = "Import vendors",
@@ -366,7 +343,7 @@ public class VendorController {
                             description = "Redirect to"
                                     + " /vendors on"
                                     + " success"),
-                    @ApiResponse(responseCode = "200",
+                    @ApiResponse(responseCode = "400",
                             description = "Error if"
                                     + " file empty or"
                                     + " unreadable")})
@@ -396,8 +373,6 @@ public class VendorController {
         } catch (Exception e) {
             throw new IllegalArgumentException(
                     "Failed to read file", e);
-        } finally {
-            helper.clearOrgMdc();
         }
     }
 

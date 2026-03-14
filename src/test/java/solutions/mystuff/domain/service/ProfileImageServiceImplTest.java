@@ -7,6 +7,7 @@ import java.util.UUID;
 import javax.imageio.ImageIO;
 
 import solutions.mystuff.domain.model.AppUser;
+import solutions.mystuff.domain.model.NotFoundException;
 import solutions.mystuff.domain.model.Organization;
 import solutions.mystuff.domain.model.UuidV7;
 import solutions.mystuff.domain.port.out.AppUserRepository;
@@ -173,7 +174,7 @@ class ProfileImageServiceImplTest {
         when(orgRepo.findById(orgId))
                 .thenReturn(Optional.empty());
 
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(NotFoundException.class,
                 () -> service.saveOrganizationImage(
                         orgId, smallPng(64, 64),
                         "image/png"));
@@ -186,7 +187,7 @@ class ProfileImageServiceImplTest {
         when(userRepo.findById(userId))
                 .thenReturn(Optional.empty());
 
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(NotFoundException.class,
                 () -> service.saveUserImage(
                         userId, smallPng(64, 64),
                         "image/png"));

@@ -232,7 +232,7 @@ class ItemControllerIntegrationTest {
                         .param("serviceDate", "2026-04-15")
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
-                .andExpect(status().isOk())
+                .andExpect(status().isNotFound())
                 .andExpect(model().attributeExists("error"));
     }
 
@@ -269,7 +269,7 @@ class ItemControllerIntegrationTest {
                         .param("frequencyUnit", "months")
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
-                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest())
                 .andExpect(model().attributeExists(
                         "error"));
     }
@@ -288,7 +288,7 @@ class ItemControllerIntegrationTest {
                         .param("frequencyUnit", "months")
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
-                .andExpect(status().isOk())
+                .andExpect(status().isNotFound())
                 .andExpect(model().attributeExists("error"));
     }
 
@@ -362,7 +362,7 @@ class ItemControllerIntegrationTest {
                         .param("vendorId", "__new__")
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
-                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest())
                 .andExpect(model().attributeExists("error"));
     }
 
@@ -508,7 +508,7 @@ class ItemControllerIntegrationTest {
                         .param("serviceDate", "2026-03-10")
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
-                .andExpect(status().isOk())
+                .andExpect(status().isNotFound())
                 .andExpect(model().attributeExists("error"));
     }
 
@@ -531,7 +531,7 @@ class ItemControllerIntegrationTest {
                         + "/skip")
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
-                .andExpect(status().isOk())
+                .andExpect(status().isNotFound())
                 .andExpect(model().attributeExists("error"));
     }
 
@@ -552,7 +552,7 @@ class ItemControllerIntegrationTest {
                         .param("name", "  ")
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
-                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest())
                 .andExpect(model().attributeExists(
                         "error"));
     }
@@ -566,7 +566,7 @@ class ItemControllerIntegrationTest {
                         .param("name", longName)
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
-                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest())
                 .andExpect(model().attributeExists(
                         "error"));
     }
@@ -581,7 +581,7 @@ class ItemControllerIntegrationTest {
                         .param("serviceDate", "2026-03-10")
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
-                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest())
                 .andExpect(model().attributeExists(
                         "error"));
     }
@@ -596,7 +596,7 @@ class ItemControllerIntegrationTest {
                         .param("serviceDate", "not-valid")
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
-                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest())
                 .andExpect(model().attributeExists(
                         "error"));
     }
@@ -613,7 +613,7 @@ class ItemControllerIntegrationTest {
                         .param("frequencyUnit", "months")
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
-                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest())
                 .andExpect(model().attributeExists(
                         "error"));
     }
@@ -632,7 +632,7 @@ class ItemControllerIntegrationTest {
                         .param("frequencyUnit", "months")
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
-                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest())
                 .andExpect(model().attributeExists(
                         "error"));
     }

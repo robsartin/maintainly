@@ -11,6 +11,7 @@ import java.util.UUID;
 import javax.imageio.ImageIO;
 
 import solutions.mystuff.domain.model.AppUser;
+import solutions.mystuff.domain.model.NotFoundException;
 import solutions.mystuff.domain.model.Organization;
 import solutions.mystuff.domain.port.in.ProfileImageUpload;
 import solutions.mystuff.domain.port.out.AppUserRepository;
@@ -66,7 +67,7 @@ public class ProfileImageServiceImpl
                 imageData, contentType);
         Organization org = orgRepo.findById(orgId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
+                        new NotFoundException(
                                 "Organization not found"));
         org.setProfileImage(resized);
         org.setProfileImageType(contentType);
@@ -83,7 +84,7 @@ public class ProfileImageServiceImpl
                 imageData, contentType);
         AppUser user = userRepo.findById(userId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
+                        new NotFoundException(
                                 "User not found"));
         user.setProfileImage(resized);
         user.setProfileImageType(contentType);

@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import solutions.mystuff.domain.model.FrequencyUnit;
 import solutions.mystuff.domain.model.Item;
+import solutions.mystuff.domain.model.NotFoundException;
 import solutions.mystuff.domain.model.ServiceSchedule;
 import solutions.mystuff.domain.model.Vendor;
 import solutions.mystuff.domain.port.in.RecordCreation;
@@ -206,7 +207,7 @@ public class ScheduleLifecycleService
                 .findByIdAndOrganizationId(
                         scheduleId, orgId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
+                        new NotFoundException(
                                 "Schedule not found"));
     }
 
@@ -215,7 +216,7 @@ public class ScheduleLifecycleService
                 .findByIdAndOrganizationId(
                         itemId, orgId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
+                        new NotFoundException(
                                 "Item not found"));
     }
 

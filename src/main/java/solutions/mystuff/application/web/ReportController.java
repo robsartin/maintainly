@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import solutions.mystuff.domain.model.AppUser;
 import solutions.mystuff.domain.model.Item;
+import solutions.mystuff.domain.model.NotFoundException;
 import solutions.mystuff.domain.model.ServiceRecord;
 import solutions.mystuff.domain.model.ServiceSchedule;
 import solutions.mystuff.domain.port.in.ItemQuery;
@@ -76,16 +77,12 @@ public class ReportController {
             return "reports";
         }
         helper.setOrgMdc(user);
-        try {
-            UUID orgId = user.getOrganization().getId();
-            helper.addUserAttrs(user, model);
-            model.addAttribute("items",
-                    itemQuery.findAllByOrganization(
-                            orgId));
-            return "reports";
-        } finally {
-            helper.clearOrgMdc();
-        }
+        UUID orgId = user.getOrganization().getId();
+        helper.addUserAttrs(user, model);
+        model.addAttribute("items",
+                itemQuery.findAllByOrganization(
+                        orgId));
+        return "reports";
     }
 
     @Operation(summary = "Service summary PDF",
@@ -115,19 +112,15 @@ public class ReportController {
             return;
         }
         helper.setOrgMdc(user);
-        try {
-            UUID orgId = user.getOrganization().getId();
-            LocalDate cutoff = dueSoonCutoff();
-            List<ServiceSchedule> schedules =
-                    filterDueSoon(orgId, cutoff);
-            String orgName = user.getOrganization()
-                    .getName();
-            ServiceSummaryPdf.write(
-                    response, schedules, cutoff,
-                    orgName, user.getUsername());
-        } finally {
-            helper.clearOrgMdc();
-        }
+        UUID orgId = user.getOrganization().getId();
+        LocalDate cutoff = dueSoonCutoff();
+        List<ServiceSchedule> schedules =
+                filterDueSoon(orgId, cutoff);
+        String orgName = user.getOrganization()
+                .getName();
+        ServiceSummaryPdf.write(
+                response, schedules, cutoff,
+                orgName, user.getUsername());
     }
 
     @Operation(summary = "Item history PDF",
@@ -145,9 +138,8 @@ public class ReportController {
                                     mediaType
                                             = "application"
                                             + "/pdf")),
-                    @ApiResponse(responseCode = "200",
-                            description = "Error if"
-                                    + " item not"
+                    @ApiResponse(responseCode = "404",
+                            description = "Item not"
                                     + " found")})
     @GetMapping("/reports/item-history")
     public void itemHistory(
@@ -166,12 +158,8 @@ public class ReportController {
             return;
         }
         helper.setOrgMdc(user);
-        try {
-            writeItemHistoryPdf(
-                    user, itemId, response);
-        } finally {
-            helper.clearOrgMdc();
-        }
+        writeItemHistoryPdf(
+                user, itemId, response);
     }
 
     private void writeItemHistoryPdf(
@@ -182,7 +170,7 @@ public class ReportController {
         Item item = itemQuery
                 .findByIdAndOrganization(itemId, orgId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
+                        new NotFoundException(
                                 "Item not found"));
         List<ServiceRecord> records =
                 itemQuery.findRecordsByItem(
