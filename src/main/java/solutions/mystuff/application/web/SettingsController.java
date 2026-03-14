@@ -6,6 +6,9 @@ import solutions.mystuff.domain.model.AppUser;
 import solutions.mystuff.domain.model.Organization;
 import solutions.mystuff.domain.port.in.ProfileImageUpload;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -36,7 +39,8 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @Controller
 @Tag(name = "Settings",
-        description = "User and organization settings")
+        description = "User and organization settings"
+                + " including profile images")
 public class SettingsController {
 
     private final ControllerHelper helper;
@@ -49,7 +53,17 @@ public class SettingsController {
         this.imageService = imageService;
     }
 
-    @Operation(summary = "Settings page")
+    @Operation(summary = "Settings page",
+            description = "Renders the settings page"
+                    + " showing the current user's"
+                    + " profile and organization"
+                    + " details. Model attributes:"
+                    + " user (AppUser) with username,"
+                    + " email, profileImage flag,"
+                    + " organization name and image.",
+            responses = @ApiResponse(
+                    responseCode = "200",
+                    description = "HTML settings page"))
     @GetMapping("/settings")
     public String settings(
             Principal principal, Model model) {
@@ -59,9 +73,24 @@ public class SettingsController {
         return "settings";
     }
 
-    @Operation(summary = "Upload organization image")
+    @Operation(summary = "Upload organization image",
+            description = "Uploads and replaces the"
+                    + " organization's profile image."
+                    + " Image is resized to 128x128px."
+                    + " Max file size: 512KB.",
+            responses = {
+                    @ApiResponse(responseCode = "302",
+                            description = "Redirect to"
+                                    + " /settings on"
+                                    + " success"),
+                    @ApiResponse(responseCode = "200",
+                            description = "Error if no"
+                                    + " file or no"
+                                    + " organization")})
     @PutMapping("/settings/org-image")
     public String uploadOrgImage(
+            @Parameter(description = "Image file"
+                    + " (PNG, JPG, GIF; max 512KB)")
             @RequestParam("file") MultipartFile file,
             Principal principal) {
         AppUser user = helper.resolveUser(principal);
@@ -74,9 +103,23 @@ public class SettingsController {
         return "redirect:/settings";
     }
 
-    @Operation(summary = "Upload user image")
+    @Operation(summary = "Upload user image",
+            description = "Uploads and replaces the"
+                    + " current user's profile image."
+                    + " Image is resized to 128x128px."
+                    + " Max file size: 512KB.",
+            responses = {
+                    @ApiResponse(responseCode = "302",
+                            description = "Redirect to"
+                                    + " /settings on"
+                                    + " success"),
+                    @ApiResponse(responseCode = "200",
+                            description = "Error if no"
+                                    + " file selected")})
     @PutMapping("/settings/user-image")
     public String uploadUserImage(
+            @Parameter(description = "Image file"
+                    + " (PNG, JPG, GIF; max 512KB)")
             @RequestParam("file") MultipartFile file,
             Principal principal) {
         AppUser user = helper.resolveUser(principal);
@@ -88,7 +131,21 @@ public class SettingsController {
         return "redirect:/settings";
     }
 
-    @Operation(summary = "Get organization image")
+    @Operation(summary = "Get organization image",
+            description = "Returns the organization's"
+                    + " profile image as binary data"
+                    + " with its original content type."
+                    + " Cached for 1 hour.",
+            responses = {
+                    @ApiResponse(responseCode = "200",
+                            description = "Image binary"
+                                    + " data",
+                            content = @Content(
+                                    mediaType = "image"
+                                            + "/*")),
+                    @ApiResponse(responseCode = "404",
+                            description = "No image"
+                                    + " set")})
     @GetMapping("/profile-image/org")
     public ResponseEntity<byte[]> orgImage(
             Principal principal) {
@@ -102,7 +159,21 @@ public class SettingsController {
                 org.getProfileImageType());
     }
 
-    @Operation(summary = "Get user image")
+    @Operation(summary = "Get user image",
+            description = "Returns the current user's"
+                    + " profile image as binary data"
+                    + " with its original content type."
+                    + " Cached for 1 hour.",
+            responses = {
+                    @ApiResponse(responseCode = "200",
+                            description = "Image binary"
+                                    + " data",
+                            content = @Content(
+                                    mediaType = "image"
+                                            + "/*")),
+                    @ApiResponse(responseCode = "404",
+                            description = "No image"
+                                    + " set")})
     @GetMapping("/profile-image/user")
     public ResponseEntity<byte[]> userImage(
             Principal principal) {

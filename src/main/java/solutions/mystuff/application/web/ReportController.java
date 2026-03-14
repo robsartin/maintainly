@@ -13,6 +13,9 @@ import solutions.mystuff.domain.model.ServiceSchedule;
 import solutions.mystuff.domain.port.in.ItemQuery;
 import solutions.mystuff.domain.port.in.ScheduleQuery;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Controller;
@@ -55,7 +58,15 @@ public class ReportController {
         this.helper = helper;
     }
 
-    @Operation(summary = "Reports page")
+    @Operation(summary = "Reports page",
+            description = "Renders the reports landing"
+                    + " page with a list of items for"
+                    + " which history PDFs can be"
+                    + " generated. Model attributes:"
+                    + " items (List<Item>).",
+            responses = @ApiResponse(
+                    responseCode = "200",
+                    description = "HTML reports page"))
     @GetMapping("/reports")
     public String reports(
             Principal principal, Model model) {
@@ -78,8 +89,19 @@ public class ReportController {
     }
 
     @Operation(summary = "Service summary PDF",
-            description = "Streams a PDF of schedules"
-                    + " due within the cutoff window")
+            description = "Streams a PDF listing all"
+                    + " schedules due by end of the"
+                    + " current or next month."
+                    + " Includes item name, service"
+                    + " type, vendor, due date, and"
+                    + " last completed date.",
+            responses = @ApiResponse(
+                    responseCode = "200",
+                    description = "PDF document"
+                            + " download",
+                    content = @Content(
+                            mediaType = "application"
+                                    + "/pdf")))
     @GetMapping("/reports/service-summary")
     public void serviceSummary(
             Principal principal,
@@ -109,10 +131,29 @@ public class ReportController {
     }
 
     @Operation(summary = "Item history PDF",
-            description = "Streams a PDF of service"
-                    + " history for a single item")
+            description = "Streams a PDF of the full"
+                    + " service history for a single"
+                    + " item. Includes all service"
+                    + " records (date, type, summary,"
+                    + " vendor, tech) and active"
+                    + " schedules.",
+            responses = {
+                    @ApiResponse(responseCode = "200",
+                            description = "PDF document"
+                                    + " download",
+                            content = @Content(
+                                    mediaType
+                                            = "application"
+                                            + "/pdf")),
+                    @ApiResponse(responseCode = "200",
+                            description = "Error if"
+                                    + " item not"
+                                    + " found")})
     @GetMapping("/reports/item-history")
     public void itemHistory(
+            @Parameter(description = "Item UUID for"
+                    + " which to generate the history"
+                    + " report")
             @RequestParam UUID itemId,
             Principal principal,
             HttpServletResponse response)

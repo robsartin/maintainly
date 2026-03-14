@@ -13,6 +13,9 @@ import solutions.mystuff.domain.port.in.VendorImportExport;
 import solutions.mystuff.domain.port.in.VendorManagement;
 import solutions.mystuff.domain.port.in.VendorQuery;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +41,7 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @Controller
 @Tag(name = "Vendors",
-        description = "Vendor CRUD, import, and export")
+        description = "Vendor CRUD, vCard import/export")
 public class VendorController {
 
     private static final Logger log =
@@ -61,7 +64,19 @@ public class VendorController {
         this.importExport = importExport;
     }
 
-    @Operation(summary = "List vendors")
+    @Operation(summary = "List vendors",
+            description = "Returns all vendors for"
+                    + " the organization. Model"
+                    + " attributes: vendors"
+                    + " (List<Vendor>), each with"
+                    + " name, phone, email, address"
+                    + " fields, website, notes, and"
+                    + " altPhones"
+                    + " (List<VendorAltPhone>).",
+            responses = @ApiResponse(
+                    responseCode = "200",
+                    description = "HTML page with"
+                            + " vendor table"))
     @GetMapping("/vendors")
     public String vendors(
             Principal principal, Model model) {
@@ -83,28 +98,72 @@ public class VendorController {
         }
     }
 
-    @Operation(summary = "Create vendor")
+    @Operation(summary = "Create vendor",
+            description = "Creates a new vendor with"
+                    + " contact details and optional"
+                    + " alternate phone numbers."
+                    + " Alt phones are submitted as"
+                    + " parallel arrays.",
+            responses = {
+                    @ApiResponse(responseCode = "302",
+                            description = "Redirect to"
+                                    + " /vendors on"
+                                    + " success"),
+                    @ApiResponse(responseCode = "200",
+                            description = "Validation"
+                                    + " error (blank"
+                                    + " name)")})
     @PostMapping("/vendors")
     public String addVendor(
+            @Parameter(description = "Vendor name"
+                    + " (required, max 200 chars)",
+                    required = true)
             @RequestParam String name,
+            @Parameter(description = "Primary phone"
+                    + " (max 50 chars)")
             @RequestParam(required = false) String phone,
+            @Parameter(description = "Email address"
+                    + " (max 320 chars)")
             @RequestParam(required = false) String email,
+            @Parameter(description = "Street address"
+                    + " line 1 (max 200 chars)")
             @RequestParam(required = false)
                     String addressLine1,
+            @Parameter(description = "Street address"
+                    + " line 2 (max 200 chars)")
             @RequestParam(required = false)
                     String addressLine2,
+            @Parameter(description = "City"
+                    + " (max 100 chars)")
             @RequestParam(required = false) String city,
+            @Parameter(description = "State or"
+                    + " province (max 100 chars)")
             @RequestParam(required = false)
                     String stateProvince,
+            @Parameter(description = "Postal/ZIP code"
+                    + " (max 30 chars)")
             @RequestParam(required = false)
                     String postalCode,
+            @Parameter(description = "Country"
+                    + " (max 100 chars)")
             @RequestParam(required = false)
                     String country,
+            @Parameter(description = "Website URL"
+                    + " (max 2000 chars)")
             @RequestParam(required = false)
                     String website,
+            @Parameter(description = "Free-text notes"
+                    + " (max 2000 chars)")
             @RequestParam(required = false) String notes,
+            @Parameter(description = "Alt phone numbers"
+                    + " (parallel array with"
+                    + " altPhoneLabel, max 50 chars"
+                    + " each)")
             @RequestParam(required = false)
                     List<String> altPhoneNumber,
+            @Parameter(description = "Alt phone labels"
+                    + " (e.g. 'mobile', 'after-hours',"
+                    + " max 50 chars each)")
             @RequestParam(required = false)
                     List<String> altPhoneLabel,
             Principal principal) {
@@ -126,29 +185,71 @@ public class VendorController {
         }
     }
 
-    @Operation(summary = "Update vendor")
+    @Operation(summary = "Update vendor",
+            description = "Replaces all fields on an"
+                    + " existing vendor including alt"
+                    + " phones. Omitted alt phones are"
+                    + " removed.",
+            responses = {
+                    @ApiResponse(responseCode = "302",
+                            description = "Redirect to"
+                                    + " /vendors on"
+                                    + " success"),
+                    @ApiResponse(responseCode = "200",
+                            description = "Validation"
+                                    + " error (blank"
+                                    + " name, vendor"
+                                    + " not found)")})
     @PutMapping("/vendors/{id}")
     public String editVendor(
+            @Parameter(description = "Vendor UUID")
             @PathVariable("id") UUID vendorId,
+            @Parameter(description = "Vendor name"
+                    + " (required, max 200 chars)",
+                    required = true)
             @RequestParam String name,
+            @Parameter(description = "Primary phone"
+                    + " (max 50 chars)")
             @RequestParam(required = false) String phone,
+            @Parameter(description = "Email address"
+                    + " (max 320 chars)")
             @RequestParam(required = false) String email,
+            @Parameter(description = "Street address"
+                    + " line 1 (max 200 chars)")
             @RequestParam(required = false)
                     String addressLine1,
+            @Parameter(description = "Street address"
+                    + " line 2 (max 200 chars)")
             @RequestParam(required = false)
                     String addressLine2,
+            @Parameter(description = "City"
+                    + " (max 100 chars)")
             @RequestParam(required = false) String city,
+            @Parameter(description = "State or"
+                    + " province (max 100 chars)")
             @RequestParam(required = false)
                     String stateProvince,
+            @Parameter(description = "Postal/ZIP code"
+                    + " (max 30 chars)")
             @RequestParam(required = false)
                     String postalCode,
+            @Parameter(description = "Country"
+                    + " (max 100 chars)")
             @RequestParam(required = false)
                     String country,
+            @Parameter(description = "Website URL"
+                    + " (max 2000 chars)")
             @RequestParam(required = false)
                     String website,
+            @Parameter(description = "Free-text notes"
+                    + " (max 2000 chars)")
             @RequestParam(required = false) String notes,
+            @Parameter(description = "Alt phone numbers"
+                    + " (parallel array with"
+                    + " altPhoneLabel)")
             @RequestParam(required = false)
                     List<String> altPhoneNumber,
+            @Parameter(description = "Alt phone labels")
             @RequestParam(required = false)
                     List<String> altPhoneLabel,
             Principal principal) {
@@ -171,9 +272,22 @@ public class VendorController {
         }
     }
 
-    @Operation(summary = "Delete vendor")
+    @Operation(summary = "Delete vendor",
+            description = "Permanently deletes a"
+                    + " vendor. Schedules referencing"
+                    + " this vendor will have their"
+                    + " preferred_vendor set to null.",
+            responses = {
+                    @ApiResponse(responseCode = "302",
+                            description = "Redirect to"
+                                    + " /vendors"),
+                    @ApiResponse(responseCode = "200",
+                            description = "Error if"
+                                    + " vendor not"
+                                    + " found")})
     @DeleteMapping("/vendors/{id}")
     public String deleteVendor(
+            @Parameter(description = "Vendor UUID")
             @PathVariable("id") UUID vendorId,
             Principal principal) {
         AppUser user = helper.resolveUser(principal);
@@ -190,7 +304,15 @@ public class VendorController {
 
     @Operation(summary = "Export all vendors",
             description = "Downloads all vendors as"
-                    + " a vCard (.vcf) file")
+                    + " a vCard 4.0 (.vcf) file."
+                    + " Includes name, phone, email,"
+                    + " address, and alt phones as"
+                    + " additional TEL properties.",
+            responses = @ApiResponse(
+                    responseCode = "200",
+                    description = "vCard file download",
+                    content = @Content(
+                            mediaType = "text/vcard")))
     @GetMapping("/vendors/export")
     public ResponseEntity<byte[]> exportAll(
             Principal principal) {
@@ -209,9 +331,15 @@ public class VendorController {
 
     @Operation(summary = "Export single vendor",
             description = "Downloads one vendor as"
-                    + " a vCard (.vcf) file")
+                    + " a vCard 4.0 (.vcf) file.",
+            responses = @ApiResponse(
+                    responseCode = "200",
+                    description = "vCard file download",
+                    content = @Content(
+                            mediaType = "text/vcard")))
     @GetMapping("/vendors/export/{id}")
     public ResponseEntity<byte[]> exportOne(
+            @Parameter(description = "Vendor UUID")
             @PathVariable("id") UUID id,
             Principal principal) {
         AppUser user = helper.resolveUser(principal);
@@ -228,9 +356,24 @@ public class VendorController {
 
     @Operation(summary = "Import vendors",
             description = "Imports vendors from an"
-                    + " uploaded vCard (.vcf) file")
+                    + " uploaded vCard (.vcf) file."
+                    + " Supports vCard 3.0 and 4.0."
+                    + " Multiple TEL properties become"
+                    + " alt phones. Duplicate names"
+                    + " create new vendors.",
+            responses = {
+                    @ApiResponse(responseCode = "302",
+                            description = "Redirect to"
+                                    + " /vendors on"
+                                    + " success"),
+                    @ApiResponse(responseCode = "200",
+                            description = "Error if"
+                                    + " file empty or"
+                                    + " unreadable")})
     @PostMapping("/vendors/import")
     public String importVendors(
+            @Parameter(description = "vCard (.vcf)"
+                    + " file to import")
             @RequestParam("file") MultipartFile file,
             Principal principal) {
         AppUser user = helper.resolveUser(principal);

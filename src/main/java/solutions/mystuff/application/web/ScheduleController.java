@@ -16,6 +16,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -58,11 +60,30 @@ public class ScheduleController {
     }
 
     @Operation(summary = "List schedules",
-            description = "Lists active schedules"
-                    + " with pagination")
+            description = "Returns a paginated list of"
+                    + " active schedules sorted by next"
+                    + " due date. Model attributes:"
+                    + " schedules"
+                    + " (List<ServiceSchedule>),"
+                    + " schedPage (PageResult),"
+                    + " vendors (List<Vendor>),"
+                    + " frequencyUnits"
+                    + " (FrequencyUnit[]),"
+                    + " today (LocalDate),"
+                    + " soon (LocalDate, today+2"
+                    + " weeks). Includes Link header"
+                    + " for pagination.",
+            responses = @ApiResponse(
+                    responseCode = "200",
+                    description = "HTML page with"
+                            + " schedule table"))
     @GetMapping("/schedules")
     public String schedules(
+            @Parameter(description = "Zero-based page"
+                    + " index")
             @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Page size"
+                    + " (max 50)")
             @RequestParam(defaultValue = "10") int size,
             Principal principal, Model model,
             HttpServletResponse response) {
@@ -84,21 +105,54 @@ public class ScheduleController {
     }
 
     @Operation(summary = "Complete schedule",
-            description = "Logs a service record and"
-                    + " advances the due date")
+            description = "Logs a service record for"
+                    + " the schedule and advances its"
+                    + " next due date by the configured"
+                    + " frequency. Vendor is optional"
+                    + " for completions.",
+            responses = {
+                    @ApiResponse(responseCode = "302",
+                            description = "Redirect to"
+                                    + " /schedules (or"
+                                    + " /items/{itemId}"
+                                    + " if redirectTo="
+                                    + "'item')"),
+                    @ApiResponse(responseCode = "200",
+                            description = "Validation"
+                                    + " error (bad date,"
+                                    + " schedule not"
+                                    + " found)")})
     @PostMapping("/schedules/{id}/completions")
     public String logScheduleService(
+            @Parameter(description = "Schedule UUID")
             @PathVariable("id") UUID scheduleId,
+            @Parameter(description = "What was done"
+                    + " (required)", required = true)
             @RequestParam String summary,
+            @Parameter(description = "Date of service"
+                    + " in ISO format (yyyy-MM-dd)",
+                    required = true,
+                    example = "2026-06-15")
             @RequestParam String serviceDate,
+            @Parameter(description = "Existing vendor"
+                    + " UUID, or '__new__' to create"
+                    + " inline")
             @RequestParam(required = false)
                     String vendorId,
+            @Parameter(description = "Name for inline"
+                    + " vendor creation")
             @RequestParam(required = false)
                     String newVendorName,
+            @Parameter(description = "Phone for inline"
+                    + " vendor creation")
             @RequestParam(required = false)
                     String newVendorPhone,
+            @Parameter(description = "Technician name")
             @RequestParam(required = false)
                     String techName,
+            @Parameter(description = "Set to 'item' to"
+                    + " redirect to the item detail"
+                    + " instead of /schedules")
             @RequestParam(required = false)
                     String redirectTo,
             Principal principal) {
@@ -126,10 +180,23 @@ public class ScheduleController {
     }
 
     @Operation(summary = "Skip schedule",
-            description = "Skips current occurrence"
-                    + " and advances the due date")
+            description = "Skips the current occurrence"
+                    + " and advances the next due date"
+                    + " by the configured frequency"
+                    + " without logging a service"
+                    + " record.",
+            responses = {
+                    @ApiResponse(responseCode = "302",
+                            description = "Redirect to"
+                                    + " /items/"
+                                    + "{itemId}"),
+                    @ApiResponse(responseCode = "200",
+                            description = "Error if"
+                                    + " schedule not"
+                                    + " found")})
     @PostMapping("/schedules/{id}/skip")
     public String skipSchedule(
+            @Parameter(description = "Schedule UUID")
             @PathVariable("id") UUID scheduleId,
             Principal principal) {
         AppUser user = helper.resolveUser(principal);
@@ -147,9 +214,20 @@ public class ScheduleController {
     }
 
     @Operation(summary = "Delete schedule",
-            description = "Deactivates a schedule")
+            description = "Soft-deletes (deactivates)"
+                    + " a schedule so it no longer"
+                    + " generates due dates.",
+            responses = {
+                    @ApiResponse(responseCode = "302",
+                            description = "Redirect to"
+                                    + " /schedules"),
+                    @ApiResponse(responseCode = "200",
+                            description = "Error if"
+                                    + " schedule not"
+                                    + " found")})
     @DeleteMapping("/schedules/{id}")
     public String deleteSchedule(
+            @Parameter(description = "Schedule UUID")
             @PathVariable("id") UUID scheduleId,
             Principal principal) {
         AppUser user = helper.resolveUser(principal);
