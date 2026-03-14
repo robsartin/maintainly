@@ -22,7 +22,13 @@ import solutions.mystuff.domain.model.Vendor;
  */
 public interface RecordCreation {
 
-    /** Create a new service record for the given item. */
+    /**
+     * Create a new service record (visit) for the given item.
+     *
+     * <p>Vendor and techName are optional but encouraged for
+     * traceability. Unlike schedules, visits do not require
+     * a vendor.
+     */
     void createRecord(UUID orgId, Item item,
             String serviceType,
             ServiceSchedule schedule, Vendor vendor,

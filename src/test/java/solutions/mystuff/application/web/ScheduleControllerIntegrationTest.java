@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.ServiceSchedule;
+import solutions.mystuff.domain.model.Vendor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -226,6 +227,27 @@ class ScheduleControllerIntegrationTest {
     void shouldCreateScheduleFromSchedules()
             throws Exception {
         String itemId = getFirstItemId();
+        String vendorId = getFirstVendorId();
+        mockMvc.perform(post("/items/" + itemId
+                        + "/schedules")
+                        .param("redirectTo", "schedules")
+                        .param("serviceType",
+                                "HVAC Inspection")
+                        .param("nextDueDate", "2026-12-01")
+                        .param("frequencyInterval", "6")
+                        .param("frequencyUnit", "months")
+                        .param("vendorId", vendorId)
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/schedules"));
+    }
+
+    @Test
+    @DisplayName("should reject schedule without vendor")
+    void shouldRejectScheduleWithoutVendor()
+            throws Exception {
+        String itemId = getFirstItemId();
         mockMvc.perform(post("/items/" + itemId
                         + "/schedules")
                         .param("redirectTo", "schedules")
@@ -236,8 +258,9 @@ class ScheduleControllerIntegrationTest {
                         .param("frequencyUnit", "months")
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/schedules"));
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists(
+                        "error"));
     }
 
     @Test
@@ -306,6 +329,14 @@ class ScheduleControllerIntegrationTest {
             throws Exception {
         return (List<ServiceSchedule>)
                 getScheduleModel("schedules");
+    }
+
+    @SuppressWarnings("unchecked")
+    private String getFirstVendorId()
+            throws Exception {
+        return ((List<Vendor>)
+                getScheduleModel("vendors"))
+                .get(0).getId().toString();
     }
 
     private Object getScheduleModel(String attr)

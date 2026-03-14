@@ -1,5 +1,7 @@
 package solutions.mystuff.domain.model;
 
+import java.util.List;
+
 /**
  * Value object carrying vendor field values for create and
  * update operations, avoiding long parameter lists on ports.
@@ -17,5 +19,6 @@ public record VendorData(
         String postalCode,
         String country,
         String website,
-        String notes) {
+        String notes,
+        List<ParsedAltPhone> altPhones) {
 }

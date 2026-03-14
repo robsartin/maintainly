@@ -3,8 +3,10 @@ package solutions.mystuff.domain.service;
 import java.util.List;
 import java.util.UUID;
 
+import solutions.mystuff.domain.model.ParsedAltPhone;
 import solutions.mystuff.domain.model.Validation;
 import solutions.mystuff.domain.model.Vendor;
+import solutions.mystuff.domain.model.VendorAltPhone;
 import solutions.mystuff.domain.model.VendorData;
 import solutions.mystuff.domain.port.in.VendorManagement;
 import solutions.mystuff.domain.port.in.VendorQuery;
@@ -105,6 +107,33 @@ public class VendorManagementService
         v.setCountry(trimOrNull(data.country()));
         v.setWebsite(trimOrNull(data.website()));
         v.setNotes(trimOrNull(data.notes()));
+        syncAltPhones(v, data);
+    }
+
+    private void syncAltPhones(
+            Vendor v, VendorData data) {
+        v.getAltPhones().clear();
+        if (data.altPhones() == null) {
+            return;
+        }
+        for (ParsedAltPhone ap : data.altPhones()) {
+            if (ap.phone() == null
+                    || ap.phone().isBlank()) {
+                continue;
+            }
+            Validation.requireMaxLength(
+                    ap.phone(), "Alt phone",
+                    VendorFieldLimits.MAX_PHONE);
+            Validation.requireMaxLength(
+                    ap.label(), "Alt phone label",
+                    VendorFieldLimits.MAX_LABEL);
+            VendorAltPhone alt = new VendorAltPhone();
+            alt.setVendor(v);
+            alt.setOrganizationId(v.getOrganizationId());
+            alt.setPhone(ap.phone().trim());
+            alt.setLabel(trimOrNull(ap.label()));
+            v.getAltPhones().add(alt);
+        }
     }
 
     private Vendor findVendor(

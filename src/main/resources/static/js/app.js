@@ -63,6 +63,33 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        var addPhone =
+            e.target.closest('.btn-add-alt-phone');
+        if (addPhone) {
+            var section =
+                addPhone.closest('.alt-phones-section');
+            var template =
+                section.querySelector('.alt-phone-template');
+            var clone = template.cloneNode(true);
+            clone.style.display = '';
+            clone.classList.remove('alt-phone-template');
+            clone.classList.add('alt-phone-row');
+            template.parentNode.insertBefore(
+                clone, template);
+            return;
+        }
+
+        var removePhone =
+            e.target.closest('.btn-remove-alt-phone');
+        if (removePhone) {
+            var row = removePhone.closest(
+                '.alt-phone-row');
+            if (row) {
+                row.remove();
+            }
+            return;
+        }
+
         var del =
             e.target.closest('[data-confirm-submit]');
         if (del) {

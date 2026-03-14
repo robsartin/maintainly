@@ -209,6 +209,67 @@ class VendorControllerIntegrationTest {
                 "cancel for import vendor form");
     }
 
+    @Test
+    @DisplayName("should add vendor with alt phones")
+    void shouldAddVendorWithAltPhones()
+            throws Exception {
+        mockMvc.perform(post("/vendors")
+                        .param("name", "AltPhone Corp")
+                        .param("phone", "555-0010")
+                        .param("altPhoneNumber",
+                                "555-0011")
+                        .param("altPhoneNumber",
+                                "555-0012")
+                        .param("altPhoneLabel", "mobile")
+                        .param("altPhoneLabel",
+                                "after-hours")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/vendors"));
+
+        MvcResult result = mockMvc.perform(
+                        get("/vendors")
+                                .with(user("dev")
+                                        .roles("USER")))
+                .andReturn();
+        String html = result.getResponse()
+                .getContentAsString();
+        assertTrue(
+                html.contains("AltPhone Corp"),
+                "vendor should appear");
+        assertTrue(
+                html.contains("(+2 more)"),
+                "alt phone count should show");
+    }
+
+    @Test
+    @DisplayName("should edit vendor alt phones")
+    void shouldEditVendorAltPhones() throws Exception {
+        mockMvc.perform(post("/vendors")
+                .param("name", "EditAlt Corp")
+                .param("altPhoneNumber", "555-0020")
+                .param("altPhoneLabel", "fax")
+                .with(user("dev").roles("USER"))
+                .with(csrf()));
+
+        String vendorId =
+                findVendorId("EditAlt Corp");
+
+        mockMvc.perform(put("/vendors/" + vendorId)
+                        .param("name", "EditAlt Corp")
+                        .param("altPhoneNumber",
+                                "555-0021")
+                        .param("altPhoneNumber",
+                                "555-0022")
+                        .param("altPhoneLabel", "mobile")
+                        .param("altPhoneLabel", "work")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/vendors"));
+    }
+
     private String findVendorId(String name)
             throws Exception {
         MvcResult result = mockMvc.perform(

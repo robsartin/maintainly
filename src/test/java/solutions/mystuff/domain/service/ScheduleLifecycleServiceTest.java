@@ -56,9 +56,11 @@ class ScheduleLifecycleServiceTest {
                 any(ServiceSchedule.class)))
                 .thenAnswer(i -> i.getArgument(0));
 
+        Vendor vendor = new Vendor();
+        vendor.setName("Acme");
         ServiceSchedule result =
                 service.createSchedule(orgId, itemId,
-                        "Filter Change", null,
+                        "Filter Change", vendor,
                         LocalDate.of(2026, 6, 1),
                         3, FrequencyUnit.months);
 
@@ -66,6 +68,8 @@ class ScheduleLifecycleServiceTest {
                 .isEqualTo("Filter Change");
         assertThat(result.getFrequencyInterval())
                 .isEqualTo(3);
+        assertThat(result.getPreferredVendor())
+                .isEqualTo(vendor);
     }
 
     @Test
@@ -198,6 +202,39 @@ class ScheduleLifecycleServiceTest {
         service.deactivateSchedule(schedId, orgId);
 
         assertThat(sched.isActive()).isFalse();
+    }
+
+    @Test
+    @DisplayName("should reject schedule without vendor")
+    void shouldRejectScheduleWithoutVendor() {
+        assertThatThrownBy(() ->
+                service.createSchedule(orgId,
+                        UUID.randomUUID(), "Test", null,
+                        LocalDate.now(), 1,
+                        FrequencyUnit.months))
+                .isInstanceOf(
+                        IllegalArgumentException.class)
+                .hasMessageContaining(
+                        "Vendor is required");
+    }
+
+    @Test
+    @DisplayName("should reject edit without vendor")
+    void shouldRejectEditWithoutVendor() {
+        UUID schedId = UUID.randomUUID();
+        ServiceSchedule sched = buildSchedule();
+        when(schedRepo.findByIdAndOrganizationId(
+                schedId, orgId))
+                .thenReturn(Optional.of(sched));
+
+        assertThatThrownBy(() ->
+                service.editSchedule(schedId, orgId,
+                        "Updated", LocalDate.now(),
+                        1, FrequencyUnit.months, null))
+                .isInstanceOf(
+                        IllegalArgumentException.class)
+                .hasMessageContaining(
+                        "Vendor is required");
     }
 
     @Test

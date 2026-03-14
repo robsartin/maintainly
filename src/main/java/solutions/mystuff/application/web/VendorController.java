@@ -2,9 +2,12 @@ package solutions.mystuff.application.web;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.AppUser;
+import solutions.mystuff.domain.model.ParsedAltPhone;
 import solutions.mystuff.domain.model.VendorData;
 import solutions.mystuff.domain.port.in.VendorImportExport;
 import solutions.mystuff.domain.port.in.VendorManagement;
@@ -96,6 +99,10 @@ public class VendorController {
             @RequestParam(required = false)
                     String website,
             @RequestParam(required = false) String notes,
+            @RequestParam(required = false)
+                    List<String> altPhoneNumber,
+            @RequestParam(required = false)
+                    List<String> altPhoneLabel,
             Principal principal) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
@@ -105,7 +112,9 @@ public class VendorController {
             VendorData data = new VendorData(
                     name, phone, email, addressLine1,
                     addressLine2, city, stateProvince,
-                    postalCode, country, website, notes);
+                    postalCode, country, website, notes,
+                    buildAltPhones(altPhoneNumber,
+                            altPhoneLabel));
             vendorService.createVendor(orgId, data);
             return "redirect:/vendors";
         } finally {
@@ -134,6 +143,10 @@ public class VendorController {
             @RequestParam(required = false)
                     String website,
             @RequestParam(required = false) String notes,
+            @RequestParam(required = false)
+                    List<String> altPhoneNumber,
+            @RequestParam(required = false)
+                    List<String> altPhoneLabel,
             Principal principal) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
@@ -143,7 +156,9 @@ public class VendorController {
             VendorData data = new VendorData(
                     name, phone, email, addressLine1,
                     addressLine2, city, stateProvince,
-                    postalCode, country, website, notes);
+                    postalCode, country, website, notes,
+                    buildAltPhones(altPhoneNumber,
+                            altPhoneLabel));
             vendorService.updateVendor(
                     orgId, vendorId, data);
             return "redirect:/vendors";
@@ -231,6 +246,25 @@ public class VendorController {
         } finally {
             helper.clearOrgMdc();
         }
+    }
+
+    private List<ParsedAltPhone> buildAltPhones(
+            List<String> phones, List<String> labels) {
+        if (phones == null || phones.isEmpty()) {
+            return List.of();
+        }
+        List<ParsedAltPhone> result = new ArrayList<>();
+        for (int i = 0; i < phones.size(); i++) {
+            String phone = phones.get(i);
+            String label = labels != null
+                    && i < labels.size()
+                    ? labels.get(i) : null;
+            if (phone != null && !phone.isBlank()) {
+                result.add(new ParsedAltPhone(
+                        phone, label));
+            }
+        }
+        return result;
     }
 
     private ResponseEntity<byte[]> vcfResponse(

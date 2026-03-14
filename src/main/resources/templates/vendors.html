@@ -84,6 +84,35 @@
             <label>Country <input type="text" name="country" maxlength="100"/></label>
             <label>Website <input type="url" name="website" maxlength="2000"/></label>
             <label>Notes <textarea name="notes" maxlength="2000"></textarea></label>
+            <fieldset class="alt-phones-section">
+                <legend>Additional Phones</legend>
+                <div class="alt-phone-list">
+                    <div class="alt-phone-template" style="display:none">
+                        <label>Phone <input type="text" name="altPhoneNumber" maxlength="50"/></label>
+                        <label>Label <input type="text" name="altPhoneLabel" maxlength="50"
+                                            placeholder="e.g. mobile"/></label>
+                        <button type="button" class="btn-icon btn-delete btn-remove-alt-phone"
+                                title="Remove">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                 viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <button type="button" class="btn-icon btn-add-alt-phone" title="Add phone">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="16"/>
+                        <line x1="8" y1="12" x2="16" y2="12"/>
+                    </svg>
+                    Add phone
+                </button>
+            </fieldset>
             <button type="submit" class="btn-icon btn-add" title="Save">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                      fill="none" stroke="currentColor" stroke-width="2"
@@ -121,7 +150,12 @@
         <th:block th:each="vendor : ${vendors}">
             <tr>
                 <td th:text="${vendor.name}"></td>
-                <td th:text="${vendor.phone}"></td>
+                <td>
+                    <span th:text="${vendor.phone}"></span>
+                    <span th:if="${!vendor.altPhones.isEmpty()}"
+                          th:text="'(+' + ${vendor.altPhones.size()} + ' more)'"
+                          class="alt-phone-count"></span>
+                </td>
                 <td th:text="${vendor.email}"></td>
                 <td th:text="${vendor.city}"></td>
                 <td th:text="${vendor.website}"></td>
@@ -195,6 +229,59 @@
                                               maxlength="2000"/></label>
                         <label>Notes <textarea name="notes" maxlength="2000"
                                                th:text="${vendor.notes}"></textarea></label>
+                        <fieldset class="alt-phones-section">
+                            <legend>Additional Phones</legend>
+                            <div class="alt-phone-list">
+                                <div th:each="ap : ${vendor.altPhones}" class="alt-phone-row">
+                                    <label>Phone <input type="text" name="altPhoneNumber"
+                                                        th:value="${ap.phone}" maxlength="50"/></label>
+                                    <label>Label <input type="text" name="altPhoneLabel"
+                                                        th:value="${ap.label}" maxlength="50"
+                                                        placeholder="e.g. mobile"/></label>
+                                    <button type="button"
+                                            class="btn-icon btn-delete btn-remove-alt-phone"
+                                            title="Remove">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                             viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                             stroke-width="2" stroke-linecap="round"
+                                             stroke-linejoin="round">
+                                            <line x1="18" y1="6" x2="6" y2="18"/>
+                                            <line x1="6" y1="6" x2="18" y2="18"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="alt-phone-template" style="display:none">
+                                    <label>Phone <input type="text" name="altPhoneNumber"
+                                                        maxlength="50"/></label>
+                                    <label>Label <input type="text" name="altPhoneLabel"
+                                                        maxlength="50"
+                                                        placeholder="e.g. mobile"/></label>
+                                    <button type="button"
+                                            class="btn-icon btn-delete btn-remove-alt-phone"
+                                            title="Remove">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                             viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                             stroke-width="2" stroke-linecap="round"
+                                             stroke-linejoin="round">
+                                            <line x1="18" y1="6" x2="6" y2="18"/>
+                                            <line x1="6" y1="6" x2="18" y2="18"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-icon btn-add-alt-phone"
+                                    title="Add phone">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                     viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                     stroke-width="2" stroke-linecap="round"
+                                     stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <line x1="12" y1="8" x2="12" y2="16"/>
+                                    <line x1="8" y1="12" x2="16" y2="12"/>
+                                </svg>
+                                Add phone
+                            </button>
+                        </fieldset>
                         <button type="submit" class="btn-icon btn-add" title="Save">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                      fill="none" stroke="currentColor" stroke-width="2"

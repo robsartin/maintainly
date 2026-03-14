@@ -76,6 +76,7 @@ public class ScheduleLifecycleService
             FrequencyUnit frequencyUnit) {
         validateScheduleFields(serviceType,
                 frequencyInterval);
+        requireVendor(vendor);
         Item item = findItem(itemId, orgId);
         ServiceSchedule sched = new ServiceSchedule();
         sched.setOrganizationId(orgId);
@@ -144,6 +145,7 @@ public class ScheduleLifecycleService
             Vendor vendor) {
         validateScheduleFields(serviceType,
                 frequencyInterval);
+        requireVendor(vendor);
         ServiceSchedule sched =
                 findSchedule(scheduleId, orgId);
         sched.setServiceType(serviceType.trim());
@@ -215,6 +217,13 @@ public class ScheduleLifecycleService
                 .orElseThrow(() ->
                         new IllegalArgumentException(
                                 "Item not found"));
+    }
+
+    private void requireVendor(Vendor vendor) {
+        if (vendor == null) {
+            throw new IllegalArgumentException(
+                    "Vendor is required for schedules");
+        }
     }
 
     private void validateScheduleFields(
