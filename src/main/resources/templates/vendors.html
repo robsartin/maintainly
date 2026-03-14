@@ -71,7 +71,7 @@
 
     <div id="add-vendor-form" style="display:none" class="vendor-form-panel">
         <h3>New Vendor</h3>
-        <form th:action="@{/vendors/add}" method="post" class="vendor-form">
+        <form th:action="@{/vendors}" method="post" class="vendor-form">
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
             <label>Name <input type="text" name="name" required maxlength="200"/></label>
             <label>Phone <input type="text" name="phone" maxlength="50"/></label>
@@ -145,10 +145,10 @@
                             <line x1="12" y1="15" x2="12" y2="3"/>
                         </svg>
                     </a>
-                    <form th:action="@{/vendors/delete}" method="post" style="display:inline">
+                    <form th:action="@{/vendors/{id}(id=${vendor.id})}" method="post" style="display:inline">
+                        <input type="hidden" name="_method" value="DELETE"/>
                         <input type="hidden" th:name="${_csrf.parameterName}"
                                th:value="${_csrf.token}"/>
-                        <input type="hidden" name="vendorId" th:value="${vendor.id}"/>
                         <button type="submit" class="btn-icon btn-delete" title="Delete vendor"
                                 data-confirm-submit="Delete this vendor?">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
@@ -163,10 +163,10 @@
             </tr>
             <tr th:id="'edit-' + ${vendor.id}" style="display:none">
                 <td colspan="6">
-                    <form th:action="@{/vendors/edit}" method="post" class="vendor-form">
+                    <form th:action="@{/vendors/{id}(id=${vendor.id})}" method="post" class="vendor-form">
+                        <input type="hidden" name="_method" value="PUT"/>
                         <input type="hidden" th:name="${_csrf.parameterName}"
                                th:value="${_csrf.token}"/>
-                        <input type="hidden" name="vendorId" th:value="${vendor.id}"/>
                         <label>Name <input type="text" name="name" th:value="${vendor.name}"
                                            required maxlength="200"/></label>
                         <label>Phone <input type="text" name="phone" th:value="${vendor.phone}"

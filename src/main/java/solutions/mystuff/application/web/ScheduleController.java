@@ -19,7 +19,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation
         .RequestParam;
@@ -82,9 +84,9 @@ public class ScheduleController {
     }
 
     /** Completes a schedule by logging a service record. */
-    @PostMapping("/schedules/log")
+    @PostMapping("/schedules/{id}/completions")
     public String logScheduleService(
-            @RequestParam UUID scheduleId,
+            @PathVariable("id") UUID scheduleId,
             @RequestParam String summary,
             @RequestParam String serviceDate,
             @RequestParam(required = false)
@@ -95,6 +97,8 @@ public class ScheduleController {
                     String newVendorPhone,
             @RequestParam(required = false)
                     String techName,
+            @RequestParam(required = false)
+                    String redirectTo,
             Principal principal) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
@@ -105,19 +109,43 @@ public class ScheduleController {
                     newVendorPhone);
             LocalDate date = InputValidator.parseDate(
                     serviceDate, "Service date");
-            scheduleService.completeSchedule(
-                    scheduleId, orgId, vendor,
-                    summary, date, techName);
+            ServiceSchedule sched =
+                    scheduleService.completeSchedule(
+                            scheduleId, orgId, vendor,
+                            summary, date, techName);
+            if ("item".equals(redirectTo)) {
+                return "redirect:/items/"
+                        + sched.getItem().getId();
+            }
             return "redirect:/schedules";
         } finally {
             helper.clearOrgMdc();
         }
     }
 
+    /** Skips the current occurrence and advances the due date. */
+    @PostMapping("/schedules/{id}/skip")
+    public String skipSchedule(
+            @PathVariable("id") UUID scheduleId,
+            Principal principal) {
+        AppUser user = helper.resolveUser(principal);
+        helper.setOrgMdc(user);
+        try {
+            UUID orgId = user.getOrganization().getId();
+            ServiceSchedule sched =
+                    scheduleService.skipSchedule(
+                            scheduleId, orgId);
+            return "redirect:/items/"
+                    + sched.getItem().getId();
+        } finally {
+            helper.clearOrgMdc();
+        }
+    }
+
     /** Deactivates (soft-deletes) a schedule. */
-    @PostMapping("/schedules/delete")
+    @DeleteMapping("/schedules/{id}")
     public String deleteSchedule(
-            @RequestParam UUID scheduleId,
+            @PathVariable("id") UUID scheduleId,
             Principal principal) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
@@ -132,7 +160,7 @@ public class ScheduleController {
     }
 
     /** Creates a new recurring service schedule. */
-    @PostMapping("/schedules/create")
+    @PostMapping("/schedules")
     public String createSchedule(
             @RequestParam UUID itemId,
             @RequestParam String serviceType,

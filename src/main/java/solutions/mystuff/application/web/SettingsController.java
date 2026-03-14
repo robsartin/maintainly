@@ -12,7 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -56,7 +56,7 @@ public class SettingsController {
     }
 
     /** Uploads a profile image for the organization. */
-    @PostMapping("/settings/org-image")
+    @PutMapping("/settings/org-image")
     public String uploadOrgImage(
             @RequestParam("file") MultipartFile file,
             Principal principal) {
@@ -71,7 +71,7 @@ public class SettingsController {
     }
 
     /** Uploads a profile image for the current user. */
-    @PostMapping("/settings/user-image")
+    @PutMapping("/settings/user-image")
     public String uploadUserImage(
             @RequestParam("file") MultipartFile file,
             Principal principal) {

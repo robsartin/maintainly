@@ -17,11 +17,15 @@ import static org.springframework.security.test.web
         .servlet.request
         .SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet
+        .request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet
         .request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet
         .request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet
         .request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet
+        .request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet
         .result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet
@@ -57,7 +61,7 @@ class VendorControllerIntegrationTest {
     @Test
     @DisplayName("should add vendor")
     void shouldAddVendor() throws Exception {
-        mockMvc.perform(post("/vendors/add")
+        mockMvc.perform(post("/vendors")
                         .param("name", "Integration Corp")
                         .param("phone", "555-0001")
                         .param("email", "test@int.com")
@@ -71,7 +75,7 @@ class VendorControllerIntegrationTest {
     @Test
     @DisplayName("should reject blank name on add")
     void shouldRejectBlankName() throws Exception {
-        mockMvc.perform(post("/vendors/add")
+        mockMvc.perform(post("/vendors")
                         .param("name", "  ")
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
@@ -82,15 +86,14 @@ class VendorControllerIntegrationTest {
     @Test
     @DisplayName("should edit vendor")
     void shouldEditVendor() throws Exception {
-        mockMvc.perform(post("/vendors/add")
+        mockMvc.perform(post("/vendors")
                 .param("name", "EditMe Corp")
                 .with(user("dev").roles("USER"))
                 .with(csrf()));
 
         String vendorId = findVendorId("EditMe Corp");
 
-        mockMvc.perform(post("/vendors/edit")
-                        .param("vendorId", vendorId)
+        mockMvc.perform(put("/vendors/" + vendorId)
                         .param("name", "Edited Corp")
                         .param("phone", "555-9999")
                         .param("website",
@@ -104,7 +107,7 @@ class VendorControllerIntegrationTest {
     @Test
     @DisplayName("should delete vendor")
     void shouldDeleteVendor() throws Exception {
-        mockMvc.perform(post("/vendors/add")
+        mockMvc.perform(post("/vendors")
                 .param("name", "DeleteMe Corp")
                 .with(user("dev").roles("USER"))
                 .with(csrf()));
@@ -112,8 +115,7 @@ class VendorControllerIntegrationTest {
         String vendorId =
                 findVendorId("DeleteMe Corp");
 
-        mockMvc.perform(post("/vendors/delete")
-                        .param("vendorId", vendorId)
+        mockMvc.perform(delete("/vendors/" + vendorId)
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
                 .andExpect(status().is3xxRedirection())
@@ -123,7 +125,7 @@ class VendorControllerIntegrationTest {
     @Test
     @DisplayName("should export all vendors")
     void shouldExportAll() throws Exception {
-        mockMvc.perform(post("/vendors/add")
+        mockMvc.perform(post("/vendors")
                 .param("name", "ExportTest Corp")
                 .with(user("dev").roles("USER"))
                 .with(csrf()));
@@ -164,7 +166,7 @@ class VendorControllerIntegrationTest {
     @DisplayName("should render data-toggle-form for edit")
     void shouldRenderEditDataAttribute()
             throws Exception {
-        mockMvc.perform(post("/vendors/add")
+        mockMvc.perform(post("/vendors")
                 .param("name", "DataAttr Corp")
                 .with(user("dev").roles("USER"))
                 .with(csrf()));
@@ -219,13 +221,16 @@ class VendorControllerIntegrationTest {
         int nameIdx = html.indexOf(name);
         assertTrue(nameIdx > 0,
                 "Vendor not found: " + name);
-        String marker = "name=\"vendorId\" value=\"";
-        int start = html.indexOf(marker, nameIdx);
-        if (start < 0) {
-            start = html.lastIndexOf(marker, nameIdx);
+        String marker = "name=\"_method\" value=\"PUT\"";
+        int putIdx = html.indexOf(marker, nameIdx);
+        if (putIdx < 0) {
+            putIdx = html.lastIndexOf(marker, nameIdx);
         }
-        start += marker.length();
-        int end = html.indexOf("\"", start);
-        return html.substring(start, end);
+        String actionMarker = "/vendors/";
+        int actionIdx = html.lastIndexOf(
+                actionMarker, putIdx);
+        int idStart = actionIdx + actionMarker.length();
+        int idEnd = html.indexOf("\"", idStart);
+        return html.substring(idStart, idEnd);
     }
 }

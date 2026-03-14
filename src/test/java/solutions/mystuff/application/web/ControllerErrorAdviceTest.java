@@ -84,7 +84,7 @@ class ControllerErrorAdviceTest {
                 new IllegalArgumentException("bad input");
         Model model = new ConcurrentModel();
         String view = advice.handleIllegalArgument(
-                ex, model, requestForPath("/schedules/log"));
+                ex, model, requestForPath("/schedules/abc/completions"));
         assertEquals("schedules", view);
     }
 
@@ -123,7 +123,7 @@ class ControllerErrorAdviceTest {
     }
 
     private HttpServletRequest itemRequest() {
-        return requestForPath("/items/add");
+        return requestForPath("/items");
     }
 
     private HttpServletRequest requestForPath(

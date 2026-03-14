@@ -74,8 +74,8 @@
                                 <line x1="10" y1="16" x2="14" y2="16"/>
                             </svg>
                         </button>
-                        <form method="post" th:action="@{/schedules/delete}" style="display:inline">
-                            <input type="hidden" name="scheduleId" th:value="${s.id}"/>
+                        <form method="post" th:action="@{/schedules/{id}(id=${s.id})}" style="display:inline">
+                            <input type="hidden" name="_method" value="DELETE"/>
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                             <button type="submit" class="btn-icon btn-delete" title="Delete schedule"
                                     data-confirm-submit="Delete this schedule?">
@@ -93,8 +93,7 @@
                 </tr>
                 <tr th:id="'log-' + ${s.id}" class="form-row" style="display:none">
                     <td colspan="8">
-                        <form method="post" th:action="@{/schedules/log}" class="inline-form">
-                            <input type="hidden" name="scheduleId" th:value="${s.id}"/>
+                        <form method="post" th:action="@{/schedules/{id}/completions(id=${s.id})}" class="inline-form">
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                             <label>Date <input type="date" name="serviceDate" required/></label>
                             <label>Summary <input type="text" name="summary" required
@@ -138,7 +137,7 @@
                 </tr>
                 <tr th:id="'sched-' + ${s.id}" class="form-row" style="display:none">
                     <td colspan="8">
-                        <form method="post" th:action="@{/schedules/create}" class="inline-form">
+                        <form method="post" th:action="@{/schedules}" class="inline-form">
                             <input type="hidden" name="itemId" th:value="${s.item.id}"/>
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                             <label>Type <input type="text"

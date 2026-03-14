@@ -31,6 +31,7 @@ import static org.springframework.test.web.servlet
         .result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet
         .result.MockMvcResultMatchers.status;
+import org.springframework.http.HttpMethod;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -56,7 +57,8 @@ class SettingsControllerIntegrationTest {
         MockMultipartFile file = new MockMultipartFile(
                 "file", "logo.png", "image/png",
                 smallPng());
-        mockMvc.perform(multipart("/settings/org-image")
+        mockMvc.perform(multipart(HttpMethod.PUT,
+                        "/settings/org-image")
                         .file(file)
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
@@ -70,7 +72,8 @@ class SettingsControllerIntegrationTest {
         MockMultipartFile file = new MockMultipartFile(
                 "file", "avatar.png", "image/png",
                 smallPng());
-        mockMvc.perform(multipart("/settings/user-image")
+        mockMvc.perform(multipart(HttpMethod.PUT,
+                        "/settings/user-image")
                         .file(file)
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
@@ -84,7 +87,8 @@ class SettingsControllerIntegrationTest {
         MockMultipartFile file = new MockMultipartFile(
                 "file", "logo.png", "image/png",
                 smallPng());
-        mockMvc.perform(multipart("/settings/org-image")
+        mockMvc.perform(multipart(HttpMethod.PUT,
+                        "/settings/org-image")
                 .file(file)
                 .with(user("dev").roles("USER"))
                 .with(csrf()));
@@ -102,7 +106,8 @@ class SettingsControllerIntegrationTest {
         MockMultipartFile file = new MockMultipartFile(
                 "file", "avatar.png", "image/png",
                 smallPng());
-        mockMvc.perform(multipart("/settings/user-image")
+        mockMvc.perform(multipart(HttpMethod.PUT,
+                        "/settings/user-image")
                 .file(file)
                 .with(user("dev").roles("USER"))
                 .with(csrf()));

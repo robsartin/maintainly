@@ -19,6 +19,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -84,8 +85,8 @@ class ScheduleControllerIntegrationTest {
     @DisplayName("should log service for a schedule")
     void shouldLogServiceForSchedule() throws Exception {
         String scheduleId = getFirstScheduleId();
-        mockMvc.perform(post("/schedules/log")
-                        .param("scheduleId", scheduleId)
+        mockMvc.perform(post("/schedules/" + scheduleId
+                        + "/completions")
                         .param("summary", "Routine check")
                         .param("serviceDate", "2026-03-10")
                         .param("techName", "John")
@@ -100,9 +101,8 @@ class ScheduleControllerIntegrationTest {
     void shouldHandleInvalidScheduleId()
             throws Exception {
         UUID fakeId = UUID.randomUUID();
-        mockMvc.perform(post("/schedules/log")
-                        .param("scheduleId",
-                                fakeId.toString())
+        mockMvc.perform(post("/schedules/" + fakeId
+                        + "/completions")
                         .param("summary", "Test")
                         .param("serviceDate", "2026-04-15")
                         .with(user("dev").roles("USER"))
@@ -115,8 +115,7 @@ class ScheduleControllerIntegrationTest {
     @DisplayName("should delete a schedule")
     void shouldDeleteSchedule() throws Exception {
         String scheduleId = getFirstScheduleId();
-        mockMvc.perform(post("/schedules/delete")
-                        .param("scheduleId", scheduleId)
+        mockMvc.perform(delete("/schedules/" + scheduleId)
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
                 .andExpect(status().is3xxRedirection())
@@ -128,9 +127,7 @@ class ScheduleControllerIntegrationTest {
     void shouldHandleInvalidScheduleDelete()
             throws Exception {
         UUID fakeId = UUID.randomUUID();
-        mockMvc.perform(post("/schedules/delete")
-                        .param("scheduleId",
-                                fakeId.toString())
+        mockMvc.perform(delete("/schedules/" + fakeId)
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
                 .andExpect(status().isOk())
@@ -229,7 +226,7 @@ class ScheduleControllerIntegrationTest {
     void shouldCreateScheduleFromSchedules()
             throws Exception {
         String itemId = getFirstItemId();
-        mockMvc.perform(post("/schedules/create")
+        mockMvc.perform(post("/schedules")
                         .param("itemId", itemId)
                         .param("serviceType",
                                 "HVAC Inspection")
@@ -257,7 +254,7 @@ class ScheduleControllerIntegrationTest {
     void shouldRejectInvalidDateOnCreate()
             throws Exception {
         String itemId = getFirstItemId();
-        mockMvc.perform(post("/schedules/create")
+        mockMvc.perform(post("/schedules")
                         .param("itemId", itemId)
                         .param("serviceType", "Test")
                         .param("nextDueDate", "bad-date")

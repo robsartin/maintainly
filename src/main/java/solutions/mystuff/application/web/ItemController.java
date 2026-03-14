@@ -10,7 +10,6 @@ import solutions.mystuff.domain.model.FrequencyUnit;
 import solutions.mystuff.domain.model.Item;
 import solutions.mystuff.domain.model.LogSanitizer;
 import solutions.mystuff.domain.model.PageResult;
-import solutions.mystuff.domain.model.ServiceSchedule;
 import solutions.mystuff.domain.model.Vendor;
 import solutions.mystuff.domain.port.in.ItemManagement;
 import solutions.mystuff.domain.port.in.ItemQuery;
@@ -24,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation
         .RequestParam;
@@ -98,9 +98,9 @@ public class ItemController {
     }
 
     /** Shows item detail with records and schedules. */
-    @GetMapping("/items/detail")
+    @GetMapping("/items/{id}")
     public String itemDetail(
-            @RequestParam UUID itemId,
+            @PathVariable("id") UUID itemId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             Principal principal, Model model,
@@ -123,7 +123,7 @@ public class ItemController {
     }
 
     /** Creates a new item for the user's organization. */
-    @PostMapping("/items/add")
+    @PostMapping("/items")
     public String addItem(
             @RequestParam String name,
             @RequestParam(required = false)
@@ -149,9 +149,9 @@ public class ItemController {
     }
 
     /** Logs a service record for an item, advancing schedule if not one-off. */
-    @PostMapping("/items/log")
+    @PostMapping("/items/{id}/service-records")
     public String logItemService(
-            @RequestParam UUID itemId,
+            @PathVariable("id") UUID itemId,
             @RequestParam String summary,
             @RequestParam String serviceDate,
             @RequestParam(required = false)
@@ -192,9 +192,9 @@ public class ItemController {
     }
 
     /** Creates a recurring service schedule for an item. */
-    @PostMapping("/items/schedule")
+    @PostMapping("/items/{id}/schedules")
     public String scheduleItemService(
-            @RequestParam UUID itemId,
+            @PathVariable("id") UUID itemId,
             @RequestParam String serviceType,
             @RequestParam String nextDueDate,
             @RequestParam int frequencyInterval,
@@ -219,60 +219,6 @@ public class ItemController {
                     itemId, serviceType, vendor, due,
                     frequencyInterval, frequencyUnit);
             return "redirect:/items";
-        } finally {
-            helper.clearOrgMdc();
-        }
-    }
-
-    /** Marks a scheduled service as completed. */
-    @PostMapping("/items/complete")
-    public String completeSchedule(
-            @RequestParam UUID scheduleId,
-            @RequestParam String summary,
-            @RequestParam String serviceDate,
-            @RequestParam(required = false)
-                    String vendorId,
-            @RequestParam(required = false)
-                    String newVendorName,
-            @RequestParam(required = false)
-                    String newVendorPhone,
-            @RequestParam(required = false)
-                    String techName,
-            Principal principal) {
-        AppUser user = helper.resolveUser(principal);
-        helper.setOrgMdc(user);
-        try {
-            UUID orgId = user.getOrganization().getId();
-            Vendor vendor = resolveVendor(
-                    orgId, vendorId, newVendorName,
-                    newVendorPhone);
-            LocalDate date = InputValidator.parseDate(
-                    serviceDate, "Service date");
-            ServiceSchedule sched =
-                    scheduleService.completeSchedule(
-                            scheduleId, orgId, vendor,
-                            summary, date, techName);
-            return "redirect:/items/detail?itemId="
-                    + sched.getItem().getId();
-        } finally {
-            helper.clearOrgMdc();
-        }
-    }
-
-    /** Skips the current occurrence and advances the due date. */
-    @PostMapping("/items/skip")
-    public String skipSchedule(
-            @RequestParam UUID scheduleId,
-            Principal principal) {
-        AppUser user = helper.resolveUser(principal);
-        helper.setOrgMdc(user);
-        try {
-            UUID orgId = user.getOrganization().getId();
-            ServiceSchedule sched =
-                    scheduleService.skipSchedule(
-                            scheduleId, orgId);
-            return "redirect:/items/detail?itemId="
-                    + sched.getItem().getId();
         } finally {
             helper.clearOrgMdc();
         }
