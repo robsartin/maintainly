@@ -7,6 +7,8 @@ import java.util.Map;
 import solutions.mystuff.domain.model.AppUser;
 import solutions.mystuff.domain.model.UuidV7;
 import solutions.mystuff.domain.port.in.UserResolver;
+import solutions.mystuff.domain.port.in.VendorManagement;
+import solutions.mystuff.domain.port.in.VendorQuery;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.oauth2.client
@@ -30,7 +32,9 @@ class ControllerHelperTest {
     private final UserResolver userResolver =
             mock(UserResolver.class);
     private final ControllerHelper helper =
-            new ControllerHelper(userResolver);
+            new ControllerHelper(userResolver,
+                    mock(VendorManagement.class),
+                    mock(VendorQuery.class));
 
     @Test
     @DisplayName("should extract email from OAuth2 token")

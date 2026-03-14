@@ -2,7 +2,6 @@ package solutions.mystuff.application.web;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
-import java.util.Collections;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.AppUser;
@@ -61,7 +60,8 @@ public class VendorController {
             Principal principal, Model model) {
         AppUser user = helper.resolveUser(principal);
         if (!user.hasOrganization()) {
-            return handleNoOrg(user, model);
+            return helper.handleNoOrg(user, model,
+                    "vendors");
         }
         helper.setOrgMdc(user);
         try {
@@ -231,16 +231,6 @@ public class VendorController {
         } finally {
             helper.clearOrgMdc();
         }
-    }
-
-    private String handleNoOrg(
-            AppUser user, Model model) {
-        log.warn("User {} has no organization",
-                user.getUsername());
-        model.addAttribute("noOrganization", true);
-        model.addAttribute("vendors",
-                Collections.emptyList());
-        return "vendors";
     }
 
     private ResponseEntity<byte[]> vcfResponse(

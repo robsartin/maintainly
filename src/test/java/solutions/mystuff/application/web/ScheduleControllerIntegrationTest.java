@@ -226,8 +226,9 @@ class ScheduleControllerIntegrationTest {
     void shouldCreateScheduleFromSchedules()
             throws Exception {
         String itemId = getFirstItemId();
-        mockMvc.perform(post("/schedules")
-                        .param("itemId", itemId)
+        mockMvc.perform(post("/items/" + itemId
+                        + "/schedules")
+                        .param("redirectTo", "schedules")
                         .param("serviceType",
                                 "HVAC Inspection")
                         .param("nextDueDate", "2026-12-01")
@@ -254,8 +255,8 @@ class ScheduleControllerIntegrationTest {
     void shouldRejectInvalidDateOnCreate()
             throws Exception {
         String itemId = getFirstItemId();
-        mockMvc.perform(post("/schedules")
-                        .param("itemId", itemId)
+        mockMvc.perform(post("/items/" + itemId
+                        + "/schedules")
                         .param("serviceType", "Test")
                         .param("nextDueDate", "bad-date")
                         .param("frequencyInterval", "1")

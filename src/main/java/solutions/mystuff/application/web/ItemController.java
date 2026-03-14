@@ -2,7 +2,6 @@ package solutions.mystuff.application.web;
 
 import java.security.Principal;
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.AppUser;
@@ -15,7 +14,6 @@ import solutions.mystuff.domain.port.in.ItemManagement;
 import solutions.mystuff.domain.port.in.ItemQuery;
 import solutions.mystuff.domain.port.in.ScheduleLifecycle;
 import solutions.mystuff.domain.port.in.RecordCreation;
-import solutions.mystuff.domain.port.in.VendorManagement;
 import solutions.mystuff.domain.port.in.VendorQuery;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -39,13 +37,10 @@ public class ItemController {
 
     private static final Logger log =
             LoggerFactory.getLogger(ItemController.class);
-    private static final String NEW_VENDOR_SENTINEL =
-            "__new__";
 
     private final ControllerHelper helper;
     private final ItemManagement itemService;
     private final ItemQuery itemQuery;
-    private final VendorManagement vendorService;
     private final VendorQuery vendorQuery;
     private final ScheduleLifecycle scheduleService;
     private final RecordCreation recordService;
@@ -54,14 +49,12 @@ public class ItemController {
             ControllerHelper helper,
             ItemManagement itemService,
             ItemQuery itemQuery,
-            VendorManagement vendorService,
             VendorQuery vendorQuery,
             ScheduleLifecycle scheduleService,
             RecordCreation recordService) {
         this.helper = helper;
         this.itemService = itemService;
         this.itemQuery = itemQuery;
-        this.vendorService = vendorService;
         this.vendorQuery = vendorQuery;
         this.scheduleService = scheduleService;
         this.recordService = recordService;
@@ -83,7 +76,8 @@ public class ItemController {
             HttpServletResponse response) {
         AppUser user = helper.resolveUser(principal);
         if (!user.hasOrganization()) {
-            return handleNoOrg(user, model);
+            return helper.handleNoOrg(user, model,
+                    "items");
         }
         helper.setOrgMdc(user);
         try {
@@ -107,7 +101,8 @@ public class ItemController {
             HttpServletResponse response) {
         AppUser user = helper.resolveUser(principal);
         if (!user.hasOrganization()) {
-            return handleNoOrg(user, model);
+            return helper.handleNoOrg(user, model,
+                    "items");
         }
         helper.setOrgMdc(user);
         try {
@@ -171,7 +166,7 @@ public class ItemController {
         try {
             UUID orgId = user.getOrganization().getId();
             Item item = findItem(itemId, orgId);
-            Vendor vendor = resolveVendor(
+            Vendor vendor = helper.resolveVendor(
                     orgId, vendorId, newVendorName,
                     newVendorPhone);
             LocalDate date = InputValidator.parseDate(
@@ -205,12 +200,14 @@ public class ItemController {
                     String newVendorName,
             @RequestParam(required = false)
                     String newVendorPhone,
+            @RequestParam(required = false)
+                    String redirectTo,
             Principal principal) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
         try {
             UUID orgId = user.getOrganization().getId();
-            Vendor vendor = resolveVendor(
+            Vendor vendor = helper.resolveVendor(
                     orgId, vendorId, newVendorName,
                     newVendorPhone);
             LocalDate due = InputValidator.parseDate(
@@ -218,42 +215,13 @@ public class ItemController {
             scheduleService.createSchedule(orgId,
                     itemId, serviceType, vendor, due,
                     frequencyInterval, frequencyUnit);
+            if ("schedules".equals(redirectTo)) {
+                return "redirect:/schedules";
+            }
             return "redirect:/items";
         } finally {
             helper.clearOrgMdc();
         }
-    }
-
-    private Vendor resolveVendor(
-            UUID orgId, String vendorId,
-            String newVendorName,
-            String newVendorPhone) {
-        if (NEW_VENDOR_SENTINEL.equals(vendorId)) {
-            return vendorService.createVendor(
-                    orgId, newVendorName,
-                    newVendorPhone);
-        }
-        if (vendorId != null && !vendorId.isBlank()) {
-            return vendorQuery.findAllVendors(orgId)
-                    .stream()
-                    .filter(v -> v.getId().toString()
-                            .equals(vendorId))
-                    .findFirst()
-                    .orElseThrow(() ->
-                            new IllegalArgumentException(
-                                    "Vendor not found"));
-        }
-        return null;
-    }
-
-    private String handleNoOrg(
-            AppUser user, Model model) {
-        log.warn("User {} has no organization",
-                user.getUsername());
-        model.addAttribute("noOrganization", true);
-        model.addAttribute("items",
-                Collections.emptyList());
-        return "items";
     }
 
     private void addDetailAttrs(

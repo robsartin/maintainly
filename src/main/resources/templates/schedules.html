@@ -137,8 +137,8 @@
                 </tr>
                 <tr th:id="'sched-' + ${s.id}" class="form-row" style="display:none">
                     <td colspan="8">
-                        <form method="post" th:action="@{/schedules}" class="inline-form">
-                            <input type="hidden" name="itemId" th:value="${s.item.id}"/>
+                        <form method="post" th:action="@{/items/{id}/schedules(id=${s.item.id})}" class="inline-form">
+                            <input type="hidden" name="redirectTo" value="schedules"/>
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                             <label>Type <input type="text"
                                     name="serviceType" required
