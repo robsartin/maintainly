@@ -240,7 +240,7 @@
                                     </tr></thead>
                                     <tbody>
                                     <tr th:each="r : ${itemRecords}">
-                                        <td th:text="${r.serviceDate}"></td>
+                                        <td th:text="${r.serviceDate}" style="white-space:nowrap"></td>
                                         <td th:text="${r.serviceType}"></td>
                                         <td th:text="${r.summary}"></td>
                                         <td th:text="${r.description}"></td>
@@ -263,10 +263,11 @@
                                     <th:block th:each="is : ${itemSchedules}">
                                     <tr th:if="${is.active}">
                                         <td th:text="${is.serviceType}"></td>
-                                        <td th:text="${is.nextDueDate}"></td>
+                                        <td th:text="${is.nextDueDate}" style="white-space:nowrap"></td>
                                         <td th:text="'Every ' + ${is.frequencyInterval} + ' ' + ${is.frequencyUnit}"></td>
                                         <td th:text="${is.lastCompletedDate != null
-                                            ? is.lastCompletedDate : 'Never'}"></td>
+                                            ? is.lastCompletedDate : 'Never'}"
+                                            style="white-space:nowrap"></td>
                                         <td class="actions">
                                             <button type="button" class="btn-icon btn-log"
                                                     title="Complete service"
