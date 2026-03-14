@@ -36,6 +36,8 @@ springdoc:
     path: /api-docs
   swagger-ui:
     path: /swagger-ui.html
+  model-and-view-allowed: true
+  packages-to-scan: solutions.mystuff.application.web
 
 logging:
   pattern:

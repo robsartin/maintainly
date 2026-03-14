@@ -12,6 +12,8 @@ import solutions.mystuff.domain.model.VendorData;
 import solutions.mystuff.domain.port.in.VendorImportExport;
 import solutions.mystuff.domain.port.in.VendorManagement;
 import solutions.mystuff.domain.port.in.VendorQuery;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -35,6 +37,8 @@ import org.springframework.web.multipart.MultipartFile;
  * @see VendorImportExport
  */
 @Controller
+@Tag(name = "Vendors",
+        description = "Vendor CRUD, import, and export")
 public class VendorController {
 
     private static final Logger log =
@@ -57,7 +61,7 @@ public class VendorController {
         this.importExport = importExport;
     }
 
-    /** Lists all vendors for the organization. */
+    @Operation(summary = "List vendors")
     @GetMapping("/vendors")
     public String vendors(
             Principal principal, Model model) {
@@ -79,7 +83,7 @@ public class VendorController {
         }
     }
 
-    /** Creates a new vendor. */
+    @Operation(summary = "Create vendor")
     @PostMapping("/vendors")
     public String addVendor(
             @RequestParam String name,
@@ -122,7 +126,7 @@ public class VendorController {
         }
     }
 
-    /** Updates an existing vendor. */
+    @Operation(summary = "Update vendor")
     @PutMapping("/vendors/{id}")
     public String editVendor(
             @PathVariable("id") UUID vendorId,
@@ -167,7 +171,7 @@ public class VendorController {
         }
     }
 
-    /** Deletes a vendor. */
+    @Operation(summary = "Delete vendor")
     @DeleteMapping("/vendors/{id}")
     public String deleteVendor(
             @PathVariable("id") UUID vendorId,
@@ -184,7 +188,9 @@ public class VendorController {
         }
     }
 
-    /** Exports all vendors as a vCard file. */
+    @Operation(summary = "Export all vendors",
+            description = "Downloads all vendors as"
+                    + " a vCard (.vcf) file")
     @GetMapping("/vendors/export")
     public ResponseEntity<byte[]> exportAll(
             Principal principal) {
@@ -201,7 +207,9 @@ public class VendorController {
         }
     }
 
-    /** Exports a single vendor as a vCard file. */
+    @Operation(summary = "Export single vendor",
+            description = "Downloads one vendor as"
+                    + " a vCard (.vcf) file")
     @GetMapping("/vendors/export/{id}")
     public ResponseEntity<byte[]> exportOne(
             @PathVariable("id") UUID id,
@@ -218,7 +226,9 @@ public class VendorController {
         }
     }
 
-    /** Imports vendors from an uploaded vCard file. */
+    @Operation(summary = "Import vendors",
+            description = "Imports vendors from an"
+                    + " uploaded vCard (.vcf) file")
     @PostMapping("/vendors/import")
     public String importVendors(
             @RequestParam("file") MultipartFile file,

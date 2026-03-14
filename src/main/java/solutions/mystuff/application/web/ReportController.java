@@ -12,6 +12,8 @@ import solutions.mystuff.domain.model.ServiceRecord;
 import solutions.mystuff.domain.model.ServiceSchedule;
 import solutions.mystuff.domain.port.in.ItemQuery;
 import solutions.mystuff.domain.port.in.ScheduleQuery;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -36,6 +38,8 @@ import org.springframework.web.bind.annotation
  * @see ItemHistoryPdf
  */
 @Controller
+@Tag(name = "Reports",
+        description = "Report views and PDF exports")
 public class ReportController {
 
     private final ItemQuery itemQuery;
@@ -51,7 +55,7 @@ public class ReportController {
         this.helper = helper;
     }
 
-    /** Renders the reports landing page. */
+    @Operation(summary = "Reports page")
     @GetMapping("/reports")
     public String reports(
             Principal principal, Model model) {
@@ -73,7 +77,9 @@ public class ReportController {
         }
     }
 
-    /** Streams a PDF of schedules due within the cutoff window. */
+    @Operation(summary = "Service summary PDF",
+            description = "Streams a PDF of schedules"
+                    + " due within the cutoff window")
     @GetMapping("/reports/service-summary")
     public void serviceSummary(
             Principal principal,
@@ -102,7 +108,9 @@ public class ReportController {
         }
     }
 
-    /** Streams a PDF of service history for a single item. */
+    @Operation(summary = "Item history PDF",
+            description = "Streams a PDF of service"
+                    + " history for a single item")
     @GetMapping("/reports/item-history")
     public void itemHistory(
             @RequestParam UUID itemId,

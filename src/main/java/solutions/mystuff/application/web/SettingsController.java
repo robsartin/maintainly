@@ -5,6 +5,8 @@ import java.security.Principal;
 import solutions.mystuff.domain.model.AppUser;
 import solutions.mystuff.domain.model.Organization;
 import solutions.mystuff.domain.port.in.ProfileImageUpload;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -33,6 +35,8 @@ import org.springframework.web.multipart.MultipartFile;
  * @see solutions.mystuff.domain.port.in.ProfileImageUpload
  */
 @Controller
+@Tag(name = "Settings",
+        description = "User and organization settings")
 public class SettingsController {
 
     private final ControllerHelper helper;
@@ -45,7 +49,7 @@ public class SettingsController {
         this.imageService = imageService;
     }
 
-    /** Renders the settings page for the current user. */
+    @Operation(summary = "Settings page")
     @GetMapping("/settings")
     public String settings(
             Principal principal, Model model) {
@@ -55,7 +59,7 @@ public class SettingsController {
         return "settings";
     }
 
-    /** Uploads a profile image for the organization. */
+    @Operation(summary = "Upload organization image")
     @PutMapping("/settings/org-image")
     public String uploadOrgImage(
             @RequestParam("file") MultipartFile file,
@@ -70,7 +74,7 @@ public class SettingsController {
         return "redirect:/settings";
     }
 
-    /** Uploads a profile image for the current user. */
+    @Operation(summary = "Upload user image")
     @PutMapping("/settings/user-image")
     public String uploadUserImage(
             @RequestParam("file") MultipartFile file,
@@ -84,7 +88,7 @@ public class SettingsController {
         return "redirect:/settings";
     }
 
-    /** Returns the organization's profile image bytes. */
+    @Operation(summary = "Get organization image")
     @GetMapping("/profile-image/org")
     public ResponseEntity<byte[]> orgImage(
             Principal principal) {
@@ -98,7 +102,7 @@ public class SettingsController {
                 org.getProfileImageType());
     }
 
-    /** Returns the current user's profile image bytes. */
+    @Operation(summary = "Get user image")
     @GetMapping("/profile-image/user")
     public ResponseEntity<byte[]> userImage(
             Principal principal) {

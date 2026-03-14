@@ -18,6 +18,8 @@ import solutions.mystuff.domain.port.in.VendorQuery;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,6 +35,8 @@ import org.springframework.web.bind.annotation
  * @see InputValidator
  */
 @Controller
+@Tag(name = "Items",
+        description = "Item CRUD and service operations")
 public class ItemController {
 
     private static final Logger log =
@@ -60,13 +64,15 @@ public class ItemController {
         this.recordService = recordService;
     }
 
-    /** Redirects root to the schedules page. */
+    @Operation(summary = "Redirect to schedules")
     @GetMapping("/")
     public String home() {
         return "redirect:/schedules";
     }
 
-    /** Lists items with optional search and pagination. */
+    @Operation(summary = "List items",
+            description = "Lists items with optional"
+                    + " search and pagination")
     @GetMapping("/items")
     public String items(
             @RequestParam(required = false) String q,
@@ -91,7 +97,9 @@ public class ItemController {
         }
     }
 
-    /** Shows item detail with records and schedules. */
+    @Operation(summary = "Item detail",
+            description = "Shows item with service"
+                    + " history and schedules")
     @GetMapping("/items/{id}")
     public String itemDetail(
             @PathVariable("id") UUID itemId,
@@ -117,7 +125,7 @@ public class ItemController {
         }
     }
 
-    /** Creates a new item for the user's organization. */
+    @Operation(summary = "Create item")
     @PostMapping("/items")
     public String addItem(
             @RequestParam String name,
@@ -143,7 +151,9 @@ public class ItemController {
         }
     }
 
-    /** Logs a service record for an item, advancing schedule if not one-off. */
+    @Operation(summary = "Log service record",
+            description = "Logs a service visit,"
+                    + " advancing schedule unless one-off")
     @PostMapping("/items/{id}/service-records")
     public String logItemService(
             @PathVariable("id") UUID itemId,
@@ -186,7 +196,9 @@ public class ItemController {
         }
     }
 
-    /** Creates a recurring service schedule for an item. */
+    @Operation(summary = "Create schedule",
+            description = "Creates a recurring service"
+                    + " schedule for an item")
     @PostMapping("/items/{id}/schedules")
     public String scheduleItemService(
             @PathVariable("id") UUID itemId,

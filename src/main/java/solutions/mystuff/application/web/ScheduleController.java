@@ -15,6 +15,8 @@ import solutions.mystuff.domain.port.in.VendorQuery;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -31,6 +33,8 @@ import org.springframework.web.bind.annotation
  * @see InputValidator
  */
 @Controller
+@Tag(name = "Schedules",
+        description = "Service schedule lifecycle")
 public class ScheduleController {
 
     private static final Logger log =
@@ -53,7 +57,9 @@ public class ScheduleController {
         this.scheduleService = scheduleService;
     }
 
-    /** Lists active schedules with pagination. */
+    @Operation(summary = "List schedules",
+            description = "Lists active schedules"
+                    + " with pagination")
     @GetMapping("/schedules")
     public String schedules(
             @RequestParam(defaultValue = "0") int page,
@@ -77,7 +83,9 @@ public class ScheduleController {
         }
     }
 
-    /** Completes a schedule by logging a service record. */
+    @Operation(summary = "Complete schedule",
+            description = "Logs a service record and"
+                    + " advances the due date")
     @PostMapping("/schedules/{id}/completions")
     public String logScheduleService(
             @PathVariable("id") UUID scheduleId,
@@ -117,7 +125,9 @@ public class ScheduleController {
         }
     }
 
-    /** Skips the current occurrence and advances the due date. */
+    @Operation(summary = "Skip schedule",
+            description = "Skips current occurrence"
+                    + " and advances the due date")
     @PostMapping("/schedules/{id}/skip")
     public String skipSchedule(
             @PathVariable("id") UUID scheduleId,
@@ -136,7 +146,8 @@ public class ScheduleController {
         }
     }
 
-    /** Deactivates (soft-deletes) a schedule. */
+    @Operation(summary = "Delete schedule",
+            description = "Deactivates a schedule")
     @DeleteMapping("/schedules/{id}")
     public String deleteSchedule(
             @PathVariable("id") UUID scheduleId,
