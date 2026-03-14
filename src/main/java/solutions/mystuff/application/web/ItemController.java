@@ -106,7 +106,7 @@ public class ItemController {
                     + " index")
             @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Page size"
-                    + " (max 50)")
+                    + " (max 100)")
             @RequestParam(defaultValue = "10") int size,
             Principal principal, Model model,
             HttpServletResponse response) {
@@ -149,7 +149,7 @@ public class ItemController {
                     + " index for the item list")
             @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Page size"
-                    + " (max 50)")
+                    + " (max 100)")
             @RequestParam(defaultValue = "10") int size,
             Principal principal, Model model,
             HttpServletResponse response) {
