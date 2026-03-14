@@ -21,7 +21,7 @@ class LinkHeaderBuilderTest {
         MockHttpServletResponse response =
                 new MockHttpServletResponse();
         PageResult<String> page = new PageResult<>(
-                List.of("a"), 0, 10, 1, 1);
+                List.of("a"), 0, 10, true);
         LinkHeaderBuilder.addLinkHeader(
                 response, "/items", page, "a b");
         String link = response.getHeader("Link");
@@ -36,7 +36,7 @@ class LinkHeaderBuilderTest {
         MockHttpServletResponse response =
                 new MockHttpServletResponse();
         PageResult<String> page = new PageResult<>(
-                List.of("a"), 0, 10, 1, 1);
+                List.of("a"), 0, 10, true);
         LinkHeaderBuilder.addLinkHeader(
                 response, "/items", page, "foo&bar");
         String link = response.getHeader("Link");
@@ -51,7 +51,7 @@ class LinkHeaderBuilderTest {
         MockHttpServletResponse response =
                 new MockHttpServletResponse();
         PageResult<String> page = new PageResult<>(
-                List.of("a"), 0, 10, 1, 1);
+                List.of("a"), 0, 10, true);
         LinkHeaderBuilder.addLinkHeader(
                 response, "/items", page, null);
         String link = response.getHeader("Link");
@@ -65,7 +65,7 @@ class LinkHeaderBuilderTest {
         MockHttpServletResponse response =
                 new MockHttpServletResponse();
         PageResult<String> page = new PageResult<>(
-                List.of("a"), 0, 10, 1, 1);
+                List.of("a"), 0, 10, true);
         LinkHeaderBuilder.addLinkHeader(
                 response, "/items", page, "  ");
         String link = response.getHeader("Link");
@@ -74,18 +74,32 @@ class LinkHeaderBuilderTest {
     }
 
     @Test
-    @DisplayName("should add first and last links")
-    void shouldAddFirstAndLastLinks() {
+    @DisplayName("should add next link when hasNext")
+    void shouldAddNextLink() {
         MockHttpServletResponse response =
                 new MockHttpServletResponse();
         PageResult<String> page = new PageResult<>(
-                List.of("a"), 0, 10, 20, 2);
+                List.of("a"), 0, 10, true);
         LinkHeaderBuilder.addLinkHeader(
                 response, "/items", page, null);
         String link = response.getHeader("Link");
         assertNotNull(link);
-        assertTrue(link.contains("rel=\"first\""));
-        assertTrue(link.contains("rel=\"last\""));
+        assertTrue(link.contains("rel=\"next\""));
+        assertFalse(link.contains("rel=\"prev\""));
+    }
+
+    @Test
+    @DisplayName("should add prev link on later page")
+    void shouldAddPrevLink() {
+        MockHttpServletResponse response =
+                new MockHttpServletResponse();
+        PageResult<String> page = new PageResult<>(
+                List.of("a"), 1, 10, true);
+        LinkHeaderBuilder.addLinkHeader(
+                response, "/items", page, null);
+        String link = response.getHeader("Link");
+        assertNotNull(link);
+        assertTrue(link.contains("rel=\"prev\""));
         assertTrue(link.contains("rel=\"next\""));
     }
 
@@ -95,12 +109,24 @@ class LinkHeaderBuilderTest {
         MockHttpServletResponse response =
                 new MockHttpServletResponse();
         PageResult<String> page = new PageResult<>(
-                List.of("a"), 0, 25, 1, 1);
+                List.of("a"), 0, 25, true);
         LinkHeaderBuilder.addLinkHeader(
                 response, "/items", page, null);
         String link = response.getHeader("Link");
         assertNotNull(link);
         assertTrue(link.contains("size=25"));
-        assertTrue(link.contains("page=0"));
+        assertTrue(link.contains("page=1"));
+    }
+
+    @Test
+    @DisplayName("should omit header when no links needed")
+    void shouldOmitHeaderWhenNoLinks() {
+        MockHttpServletResponse response =
+                new MockHttpServletResponse();
+        PageResult<String> page = new PageResult<>(
+                List.of("a"), 0, 10, false);
+        LinkHeaderBuilder.addLinkHeader(
+                response, "/items", page, null);
+        assertNull(response.getHeader("Link"));
     }
 }

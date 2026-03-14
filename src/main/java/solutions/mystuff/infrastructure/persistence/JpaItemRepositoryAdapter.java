@@ -7,8 +7,8 @@ import java.util.UUID;
 import solutions.mystuff.domain.model.Item;
 import solutions.mystuff.domain.model.PageResult;
 import solutions.mystuff.domain.port.out.ItemRepository;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
@@ -51,9 +51,9 @@ public class JpaItemRepositoryAdapter
     @Override
     public PageResult<Item> findByOrganizationId(
             UUID organizationId, int page, int size) {
-        Page<Item> p = delegate.findByOrganizationId(
+        Slice<Item> s = delegate.findByOrganizationId(
                 organizationId, pageOf(page, size));
-        return PageResultConverter.toPageResult(p);
+        return PageResultConverter.toPageResult(s);
     }
 
     /** {@inheritDoc} */
@@ -69,9 +69,9 @@ public class JpaItemRepositoryAdapter
     public PageResult<Item> searchByOrganizationId(
             UUID organizationId, String query,
             int page, int size) {
-        Page<Item> p = delegate.searchByOrganizationId(
+        Slice<Item> s = delegate.searchByOrganizationId(
                 organizationId, query, pageOf(page, size));
-        return PageResultConverter.toPageResult(p);
+        return PageResultConverter.toPageResult(s);
     }
 
     /** {@inheritDoc} */

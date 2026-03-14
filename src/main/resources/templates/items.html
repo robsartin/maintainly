@@ -391,10 +391,10 @@
                 </th:block>
                 </tbody>
             </table>
-            <nav th:if="${itemPage != null and itemPage.totalPages() > 1}" class="pagination">
+            <nav th:if="${itemPage != null and (itemPage.hasPrevious() or itemPage.hasNext())}" class="pagination">
                 <a th:if="${itemPage.hasPrevious()}"
                    th:href="@{/items(page=${itemPage.page() - 1},size=${itemPage.size()},q=${q})}">Prev</a>
-                <span th:text="'Page ' + (${itemPage.page()} + 1) + ' of ' + ${itemPage.totalPages()}"></span>
+                <span th:text="'Page ' + (${itemPage.page()} + 1)"></span>
                 <a th:if="${itemPage.hasNext()}"
                    th:href="@{/items(page=${itemPage.page() + 1},size=${itemPage.size()},q=${q})}">Next</a>
                 <label class="page-size-label">Show
@@ -402,6 +402,7 @@
                         <option value="10" th:selected="${itemPage.size() == 10}">10</option>
                         <option value="25" th:selected="${itemPage.size() == 25}">25</option>
                         <option value="50" th:selected="${itemPage.size() == 50}">50</option>
+                        <option value="100" th:selected="${itemPage.size() == 100}">100</option>
                     </select>
                 </label>
             </nav>

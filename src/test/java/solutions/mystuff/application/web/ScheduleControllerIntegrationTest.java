@@ -77,9 +77,7 @@ class ScheduleControllerIntegrationTest {
                         .with(user("dev").roles("USER")))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Link",
-                        containsString("rel=\"first\"")))
-                .andExpect(header().string("Link",
-                        containsString("rel=\"last\"")));
+                        containsString("rel=\"next\"")));
     }
 
     @Test

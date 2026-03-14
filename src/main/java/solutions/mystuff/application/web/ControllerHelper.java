@@ -47,7 +47,7 @@ public class ControllerHelper {
                     ControllerHelper.class);
     private static final String MDC_ORG_ID =
             "organizationId";
-    private static final int MAX_PAGE_SIZE = 50;
+    private static final int MAX_PAGE_SIZE = 100;
     private static final String NEW_VENDOR_SENTINEL =
             "__new__";
 

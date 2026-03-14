@@ -192,10 +192,10 @@
                 </th:block>
                 </tbody>
             </table>
-            <nav th:if="${schedPage != null and schedPage.totalPages() > 1}" class="pagination">
+            <nav th:if="${schedPage != null and (schedPage.hasPrevious() or schedPage.hasNext())}" class="pagination">
                 <a th:if="${schedPage.hasPrevious()}"
                    th:href="@{/schedules(page=${schedPage.page() - 1},size=${schedPage.size()})}">Prev</a>
-                <span th:text="'Page ' + (${schedPage.page()} + 1) + ' of ' + ${schedPage.totalPages()}"></span>
+                <span th:text="'Page ' + (${schedPage.page()} + 1)"></span>
                 <a th:if="${schedPage.hasNext()}"
                    th:href="@{/schedules(page=${schedPage.page() + 1},size=${schedPage.size()})}">Next</a>
                 <label class="page-size-label">Show
@@ -203,6 +203,7 @@
                         <option value="10" th:selected="${schedPage.size() == 10}">10</option>
                         <option value="25" th:selected="${schedPage.size() == 25}">25</option>
                         <option value="50" th:selected="${schedPage.size() == 50}">50</option>
+                        <option value="100" th:selected="${schedPage.size() == 100}">100</option>
                     </select>
                 </label>
             </nav>

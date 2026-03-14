@@ -8,8 +8,8 @@ import solutions.mystuff.domain.model.PageResult;
 import solutions.mystuff.domain.model.ServiceSchedule;
 import solutions.mystuff.domain.port.out
         .ServiceScheduleRepository;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -62,11 +62,11 @@ public class JpaScheduleRepositoryAdapter
             findActiveByOrganizationId(
                     UUID organizationId,
                     int page, int size) {
-        Page<ServiceSchedule> p =
+        Slice<ServiceSchedule> s =
                 delegate.findActiveByOrgId(
                         organizationId,
                         PageRequest.of(page, size));
-        return PageResultConverter.toPageResult(p);
+        return PageResultConverter.toPageResult(s);
     }
 
     /** {@inheritDoc} */

@@ -30,7 +30,7 @@ class ScheduleQueryServiceTest {
     @DisplayName("should delegate paginated active query")
     void shouldDelegatePaginated() {
         PageResult<ServiceSchedule> expected =
-                new PageResult<>(List.of(), 0, 10, 0, 0);
+                new PageResult<>(List.of(), 0, 10, false);
         when(schedRepo.findActiveByOrganizationId(
                 orgId, 0, 10)).thenReturn(expected);
         assertEquals(expected,
