@@ -59,7 +59,7 @@ Claude Code has access to all project files and can run builds and tests. When w
 - Ask it to read files before making changes — it follows the project's hexagonal architecture and checkstyle rules automatically.
 - It can run `./mvnw verify` to validate changes against all quality gates (checkstyle, tests, coverage).
 - It creates commits following the project's conventions when asked.
-- The project has no `CLAUDE.md` — Claude learns the codebase conventions from the ADRs in `doc/adr/`, the checkstyle config, and the code itself.
+- The project conventions are documented in `CLAUDE.md` at the project root.
 
 ### Manual editing
 
@@ -252,3 +252,9 @@ Decisions are documented as ADRs in `doc/adr/`. Key decisions:
 - [ADR-0008](doc/adr/0008-organization-based-multi-tenancy.md) — Organization-based multi-tenancy
 - [ADR-0013](doc/adr/0013-use-checkstyle-for-code-quality-enforcement.md) — Checkstyle quality enforcement
 - [ADR-0022](doc/adr/0022-javadoc-standard-with-mermaid-diagrams.md) — Javadoc standard with Mermaid diagrams
+
+## Additional Documentation
+
+- [Contributing Guide](CONTRIBUTING.md) — How to set up, make changes, and submit code
+- [User Guide](doc/USER_GUIDE.md) — End-user documentation for using the application
+- [CLAUDE.md](CLAUDE.md) — Conventions and rules for Claude Code
