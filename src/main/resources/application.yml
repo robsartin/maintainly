@@ -39,6 +39,18 @@ springdoc:
   model-and-view-allowed: true
   packages-to-scan: solutions.mystuff.application.web
 
+app:
+  jwt:
+    secret: dev-only-hmac-secret-key-minimum-32-bytes-long!!
+    expiration: 3600
+  rate-limit:
+    requests-per-second: 10
+    login-requests-per-second: 3
+  cors:
+    allowed-origins:
+      - http://localhost:3000
+      - http://localhost:8080
+
 logging:
   pattern:
     console: "%d{HH:mm:ss.SSS} [%thread] [%X{correlationId:-none}] [org:%X{organizationId:-none}] %-5level %logger{36} - %msg%n"

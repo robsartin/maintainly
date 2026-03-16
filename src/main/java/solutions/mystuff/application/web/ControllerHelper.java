@@ -65,7 +65,7 @@ public class ControllerHelper {
     }
 
     /** Resolves the authenticated principal to an AppUser. */
-    AppUser resolveUser(Principal principal) {
+    public AppUser resolveUser(Principal principal) {
         return userResolver.resolveOrCreate(
                 extractUsername(principal));
     }
@@ -93,7 +93,7 @@ public class ControllerHelper {
     }
 
     /** Sets the organization ID in the MDC for log correlation. */
-    void setOrgMdc(AppUser user) {
+    public void setOrgMdc(AppUser user) {
         if (user.hasOrganization()) {
             MDC.put(MDC_ORG_ID,
                     user.getOrganization().getId()

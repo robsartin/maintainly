@@ -3,6 +3,7 @@ package solutions.mystuff.application.web;
 import java.time.format.DateTimeParseException;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.ui.ConcurrentModel;
@@ -28,7 +29,7 @@ class ControllerErrorAdviceTest {
                         "<script>alert(1)</script>", 0);
         Model model = new ConcurrentModel();
         advice.handleDateParseError(
-                ex, model, itemRequest());
+                ex, model, itemRequest(), mockResponse());
         String error = (String) model.getAttribute("error");
         assertFalse(error.contains("<script>"),
                 "Error must not contain raw user input");
@@ -42,7 +43,7 @@ class ControllerErrorAdviceTest {
                         "parse error", "bad-date", 0);
         Model model = new ConcurrentModel();
         advice.handleDateParseError(
-                ex, model, itemRequest());
+                ex, model, itemRequest(), mockResponse());
         String error = (String) model.getAttribute("error");
         assertEquals(
                 "Invalid date format."
@@ -58,7 +59,7 @@ class ControllerErrorAdviceTest {
                         "Name required");
         Model model = new ConcurrentModel();
         String view = advice.handleIllegalArgument(
-                ex, model, itemRequest());
+                ex, model, itemRequest(), mockResponse());
         assertEquals("items", view);
         assertEquals("Name required",
                 model.getAttribute("error"));
@@ -71,7 +72,7 @@ class ControllerErrorAdviceTest {
                 new RuntimeException("db error");
         Model model = new ConcurrentModel();
         String view = advice.handleRuntimeException(
-                ex, model, itemRequest());
+                ex, model, itemRequest(), mockResponse());
         assertEquals("items", view);
         assertEquals("An unexpected error occurred",
                 model.getAttribute("error"));
@@ -84,7 +85,10 @@ class ControllerErrorAdviceTest {
                 new IllegalArgumentException("bad input");
         Model model = new ConcurrentModel();
         String view = advice.handleIllegalArgument(
-                ex, model, requestForPath("/schedules/abc/completions"));
+                ex, model,
+                requestForPath(
+                        "/schedules/abc/completions"),
+                mockResponse());
         assertEquals("schedules", view);
     }
 
@@ -95,7 +99,9 @@ class ControllerErrorAdviceTest {
                 new IllegalArgumentException("bad input");
         Model model = new ConcurrentModel();
         String view = advice.handleIllegalArgument(
-                ex, model, requestForPath("/settings/org-image"));
+                ex, model,
+                requestForPath("/settings/org-image"),
+                mockResponse());
         assertEquals("redirect:/settings", view);
     }
 
@@ -107,7 +113,8 @@ class ControllerErrorAdviceTest {
         Model model = new ConcurrentModel();
         String view = advice.handleIllegalArgument(
                 ex, model,
-                requestForPath("/vendors/import"));
+                requestForPath("/vendors/import"),
+                mockResponse());
         assertEquals("redirect:/vendors", view);
     }
 
@@ -118,7 +125,9 @@ class ControllerErrorAdviceTest {
                 new IllegalArgumentException("bad input");
         Model model = new ConcurrentModel();
         String view = advice.handleIllegalArgument(
-                ex, model, requestForPath("/reports/item-history"));
+                ex, model,
+                requestForPath("/reports/item-history"),
+                mockResponse());
         assertEquals("reports", view);
     }
 
@@ -132,5 +141,9 @@ class ControllerErrorAdviceTest {
                 mock(HttpServletRequest.class);
         when(req.getRequestURI()).thenReturn(path);
         return req;
+    }
+
+    private HttpServletResponse mockResponse() {
+        return mock(HttpServletResponse.class);
     }
 }

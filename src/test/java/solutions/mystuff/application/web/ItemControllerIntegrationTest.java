@@ -288,7 +288,7 @@ class ItemControllerIntegrationTest {
                         .param("frequencyUnit", "months")
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
-                .andExpect(status().isNotFound())
+                .andExpect(status().isBadRequest())
                 .andExpect(model().attributeExists("error"));
     }
 

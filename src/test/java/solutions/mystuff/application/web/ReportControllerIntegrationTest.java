@@ -85,7 +85,7 @@ class ReportControllerIntegrationTest {
                                         fakeId.toString())
                                 .with(user("dev")
                                         .roles("USER")))
-                .andExpect(status().isOk())
+                .andExpect(status().isNotFound())
                 .andExpect(model().attributeExists(
                         "error"));
     }

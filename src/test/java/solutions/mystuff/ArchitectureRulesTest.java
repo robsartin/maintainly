@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import jakarta.persistence.Entity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RestController;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
@@ -87,6 +88,17 @@ class ArchitectureRulesTest {
                             Controller.class)
                     .should().resideInAPackage(
                             "..application.web..")
+                    .check(classes);
+        }
+
+        @Test
+        @DisplayName("REST controllers should reside in application.web.api")
+        void restControllersInApiPackage() {
+            classes()
+                    .that().areAnnotatedWith(
+                            RestController.class)
+                    .should().resideInAPackage(
+                            "..application.web.api..")
                     .check(classes);
         }
 
