@@ -307,6 +307,54 @@ class ScheduleControllerIntegrationTest {
                 "should have data-toggle-form cancel");
     }
 
+    @Test
+    @DisplayName("should render data-target for edit button")
+    void shouldRenderEditDataTarget()
+            throws Exception {
+        mockMvc.perform(get("/schedules")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(
+                        containsString("data-target=\"edit-")));
+    }
+
+    @Test
+    @DisplayName("should edit an existing schedule")
+    void shouldEditSchedule() throws Exception {
+        String scheduleId = getFirstScheduleId();
+        String vendorId = getFirstVendorId();
+        mockMvc.perform(post("/schedules/" + scheduleId)
+                        .param("serviceType",
+                                "Updated Inspection")
+                        .param("nextDueDate", "2027-01-15")
+                        .param("frequencyInterval", "3")
+                        .param("frequencyUnit", "months")
+                        .param("vendorId", vendorId)
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/schedules"));
+    }
+
+    @Test
+    @DisplayName("should reject edit with invalid schedule")
+    void shouldRejectEditInvalidSchedule()
+            throws Exception {
+        UUID fakeId = UUID.randomUUID();
+        String vendorId = getFirstVendorId();
+        mockMvc.perform(post("/schedules/" + fakeId)
+                        .param("serviceType", "Test")
+                        .param("nextDueDate", "2027-01-15")
+                        .param("frequencyInterval", "1")
+                        .param("frequencyUnit", "years")
+                        .param("vendorId", vendorId)
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isNotFound())
+                .andExpect(model().attributeExists(
+                        "error"));
+    }
+
     @SuppressWarnings("unchecked")
     private String getFirstScheduleId()
             throws Exception {

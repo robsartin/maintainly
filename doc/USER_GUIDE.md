@@ -88,6 +88,13 @@ Click the skip icon to advance the next due date without logging a service recor
 
 Click the calendar+ icon on any schedule row to create an additional schedule for that same item.
 
+### Editing a schedule
+
+1. Click the pencil icon on the schedule row
+2. The edit form expands with the current values pre-filled
+3. Change the service type, vendor, next due date, or frequency as needed
+4. Click **Save**
+
 ### Deleting a schedule
 
 Click the trash icon and confirm. This removes the schedule but does not delete past service records.
@@ -153,7 +160,26 @@ Click the image area to upload your profile photo. It appears in the navigation 
 
 ## REST API
 
-Maintainly also provides a REST API. Interactive documentation is available at:
+Maintainly provides a stateless JWT-secured REST API for programmatic access.
+
+### Authentication
+
+1. `POST /api/auth/token` with `{"username":"...","password":"..."}` to obtain a JWT
+2. Include the token as `Authorization: Bearer <token>` on subsequent requests
+
+### Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/auth/token` | Issue JWT (public) |
+| GET | `/api/items` | List items (paginated) |
+| GET | `/api/items/{id}` | Item detail |
+
+Rate limiting applies to all API endpoints (10 req/sec general, 3 req/sec for token endpoint).
+
+### Documentation
+
+Interactive API documentation is available at:
 
 - **Swagger UI**: `/swagger-ui.html`
 - **OpenAPI spec**: `/api-docs`

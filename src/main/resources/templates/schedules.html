@@ -74,6 +74,16 @@
                                 <line x1="10" y1="16" x2="14" y2="16"/>
                             </svg>
                         </button>
+                        <button type="button" class="btn-icon btn-edit" title="Edit schedule"
+                                th:data-target="'edit-' + ${s.id}"
+>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                 fill="none" stroke="currentColor" stroke-width="2"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                                <path d="m15 5 4 4"/>
+                            </svg>
+                        </button>
                         <form method="post" th:action="@{/schedules/{id}(id=${s.id})}" style="display:inline">
                             <input type="hidden" name="_method" value="DELETE"/>
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
@@ -98,21 +108,7 @@
                             <label>Date <input type="date" name="serviceDate" required/></label>
                             <label>Summary <input type="text" name="summary" required
                                                   placeholder="What was done"/></label>
-                            <label>Vendor
-                                <select name="vendorId" data-vendor-change="true">
-                                    <option value="">None</option>
-                                    <option th:each="v : ${vendors}"
-                                            th:value="${v.id}" th:text="${v.name}"
-                                            th:selected="${s.preferredVendor != null and s.preferredVendor.id.equals(v.id)}"></option>
-                                    <option value="__new__">+ New vendor...</option>
-                                </select>
-                            </label>
-                            <span class="new-vendor-fields" style="display:none">
-                                <label>Name <input type="text" name="newVendorName"
-                                                   placeholder="Vendor name"/></label>
-                                <label>Phone <input type="text" name="newVendorPhone"
-                                                    placeholder="Phone"/></label>
-                            </span>
+                            <th:block th:replace="~{fragments/vendor-select :: vendorFields(${vendors}, ${s.preferredVendor}, false)}"/>
                             <label>Tech <input type="text" name="techName"
                                                placeholder="Technician name"/></label>
                             <button type="submit" class="btn-icon btn-log">
@@ -144,22 +140,7 @@
                                     name="serviceType" required
                                     placeholder="e.g. HVAC Inspection"/>
                             </label>
-                            <label>Vendor
-                                <select name="vendorId" data-vendor-change="true" required>
-                                    <option value="" disabled
-                                            th:selected="${s.preferredVendor == null}">Select vendor</option>
-                                    <option th:each="v : ${vendors}"
-                                            th:value="${v.id}" th:text="${v.name}"
-                                            th:selected="${s.preferredVendor != null and s.preferredVendor.id.equals(v.id)}"></option>
-                                    <option value="__new__">+ New vendor...</option>
-                                </select>
-                            </label>
-                            <span class="new-vendor-fields" style="display:none">
-                                <label>Name <input type="text" name="newVendorName"
-                                                   placeholder="Vendor name"/></label>
-                                <label>Phone <input type="text" name="newVendorPhone"
-                                                    placeholder="Phone"/></label>
-                            </span>
+                            <th:block th:replace="~{fragments/vendor-select :: vendorFields(${vendors}, ${s.preferredVendor}, true)}"/>
                             <label>Next Due <input type="date" name="nextDueDate" required/></label>
                             <label>Every <input type="number" name="frequencyInterval"
                                                 min="1" value="1" required style="width:4rem"/></label>
@@ -179,6 +160,47 @@
                             </button>
                             <button type="button" class="btn-icon btn-cancel" title="Cancel"
                                     th:data-toggle-form="'sched-' + ${s.id}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                     fill="none" stroke="currentColor" stroke-width="2"
+                                     stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"/>
+                                    <line x1="6" y1="6" x2="18" y2="18"/>
+                                </svg>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:id="'edit-' + ${s.id}" class="form-row" style="display:none">
+                    <td colspan="8">
+                        <form method="post" th:action="@{/schedules/{id}(id=${s.id})}" class="inline-form">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <label>Type <input type="text"
+                                    name="serviceType" required
+                                    th:value="${s.serviceType}"/>
+                            </label>
+                            <th:block th:replace="~{fragments/vendor-select :: vendorFields(${vendors}, ${s.preferredVendor}, true)}"/>
+                            <label>Next Due <input type="date" name="nextDueDate" required
+                                    th:value="${s.nextDueDate}"/></label>
+                            <label>Every <input type="number" name="frequencyInterval"
+                                                min="1" required style="width:4rem"
+                                                th:value="${s.frequencyInterval}"/></label>
+                            <label>
+                                <select name="frequencyUnit" required>
+                                    <option th:each="fu : ${frequencyUnits}"
+                                            th:value="${fu}" th:text="${fu}"
+                                            th:selected="${fu == s.frequencyUnit}"></option>
+                                </select>
+                            </label>
+                            <button type="submit" class="btn-icon btn-edit">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                     fill="none" stroke="currentColor" stroke-width="2"
+                                     stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                                Save
+                            </button>
+                            <button type="button" class="btn-icon btn-cancel" title="Cancel"
+                                    th:data-toggle-form="'edit-' + ${s.id}">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                                      fill="none" stroke="currentColor" stroke-width="2"
                                      stroke-linecap="round" stroke-linejoin="round">

@@ -226,6 +226,66 @@ public class ScheduleController {
         return "redirect:/schedules";
     }
 
+    @Operation(summary = "Edit schedule",
+            description = "Updates the service type,"
+                    + " frequency, next due date, and"
+                    + " preferred vendor of an existing"
+                    + " schedule.",
+            responses = {
+                    @ApiResponse(responseCode = "302",
+                            description = "Redirect to"
+                                    + " /schedules"),
+                    @ApiResponse(responseCode = "400",
+                            description = "Validation"
+                                    + " error"),
+                    @ApiResponse(responseCode = "404",
+                            description = "Schedule not"
+                                    + " found")})
+    @PostMapping("/schedules/{id}")
+    public String editSchedule(
+            @Parameter(description = "Schedule UUID")
+            @PathVariable("id") UUID scheduleId,
+            @Parameter(description = "Service type"
+                    + " (required, max 150 chars)",
+                    required = true)
+            @RequestParam String serviceType,
+            @Parameter(description = "Next due date"
+                    + " in ISO format (yyyy-MM-dd)",
+                    required = true)
+            @RequestParam String nextDueDate,
+            @Parameter(description = "Recurrence"
+                    + " interval (>= 1)",
+                    required = true)
+            @RequestParam int frequencyInterval,
+            @Parameter(description = "Recurrence unit")
+            @RequestParam FrequencyUnit frequencyUnit,
+            @Parameter(description = "Existing vendor"
+                    + " UUID, or '__new__' to create")
+            @RequestParam(required = false)
+                    String vendorId,
+            @Parameter(description = "Name for inline"
+                    + " vendor creation")
+            @RequestParam(required = false)
+                    String newVendorName,
+            @Parameter(description = "Phone for inline"
+                    + " vendor creation")
+            @RequestParam(required = false)
+                    String newVendorPhone,
+            Principal principal) {
+        AppUser user = helper.resolveUser(principal);
+        helper.setOrgMdc(user);
+        UUID orgId = user.getOrganization().getId();
+        Vendor vendor = helper.resolveVendor(
+                orgId, vendorId, newVendorName,
+                newVendorPhone);
+        LocalDate due = InputValidator.parseDate(
+                nextDueDate, "Next due date");
+        scheduleService.editSchedule(scheduleId, orgId,
+                serviceType, due, frequencyInterval,
+                frequencyUnit, vendor);
+        return "redirect:/schedules";
+    }
+
     private void loadSchedules(
             UUID orgId, int page, int size,
             Model model, HttpServletResponse response) {
