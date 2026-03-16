@@ -524,6 +524,38 @@ class ItemControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("should render edit button for item schedules")
+    void shouldRenderEditButtonForItemSchedules()
+            throws Exception {
+        String itemId = getFirstItemId();
+        mockMvc.perform(get("/items/" + itemId)
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(
+                        containsString(
+                                "data-target=\"edit-item-sched-")));
+    }
+
+    @Test
+    @DisplayName("should edit schedule from item detail")
+    void shouldEditScheduleFromItemDetail()
+            throws Exception {
+        String scheduleId = getFirstScheduleId();
+        String vendorId = getFirstVendorId();
+        mockMvc.perform(post("/schedules/" + scheduleId)
+                        .param("serviceType",
+                                "Edited From Items")
+                        .param("nextDueDate", "2027-06-01")
+                        .param("frequencyInterval", "2")
+                        .param("frequencyUnit", "years")
+                        .param("vendorId", vendorId)
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/schedules"));
+    }
+
+    @Test
     @DisplayName("should handle invalid schedule on skip")
     void shouldHandleInvalidSkip() throws Exception {
         UUID fakeId = UUID.randomUUID();
