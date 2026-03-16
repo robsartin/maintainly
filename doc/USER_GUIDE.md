@@ -68,7 +68,7 @@ The Schedules page shows all upcoming service, sorted by due date.
 ### Color coding
 
 - **Red** -- overdue (past due date)
-- **Yellow** -- due soon (within 30 days)
+- **Yellow** -- due soon (within 2 weeks)
 - **Green** -- on track
 
 ### Completing a scheduled service
@@ -130,7 +130,7 @@ Exported `.vcf` files can be imported into contacts apps, phones, or other syste
 
 ### Service Due Soon
 
-Generates a PDF showing all overdue service and service due by the end of the current month. Useful for planning and assigning work.
+Generates a PDF showing all overdue service and service coming due soon. In the first half of the month, the report covers through the end of the current month. In the second half, it extends through the end of the following month. Useful for planning and assigning work.
 
 Click the **PDF** button to open the report in a new tab.
 

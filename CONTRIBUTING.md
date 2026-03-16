@@ -1,30 +1,8 @@
 # Contributing to Maintainly
 
-## Prerequisites
-
-- **Java 25** ([Eclipse Temurin](https://adoptium.net/) recommended)
-- **Docker** (for PostgreSQL)
-- **Git**
-
-No separate Maven install needed -- the project includes `./mvnw`.
-
 ## Getting Started
 
-1. Clone the repository and start the dev database:
-
-```bash
-docker run -d --name mystuff-dev-db \
-  -e POSTGRES_DB=mystuffdb -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=test \
-  -p 5434:5432 postgres:17
-```
-
-2. Run the app:
-
-```bash
-./mvnw spring-boot:run
-```
-
-3. Open http://localhost:8080 and log in with `dev` / `dev`.
+See the [README](README.md) for prerequisites, environment setup, and build commands.
 
 ## Making Changes
 
@@ -38,20 +16,15 @@ This runs checkstyle, compiles, runs all tests, checks code coverage (85% minimu
 
 ### Code style
 
-Checkstyle runs automatically at the `validate` phase. Key rules:
-
-- **750 lines** max per file
-- **30 lines** max per method
-- Braces required on all blocks (`if`, `for`, `while`, etc.)
-- No star imports, unused imports, or redundant imports
+Checkstyle runs automatically at the `validate` phase. See the [README](README.md#manual-editing) for the full rules table.
 
 ### Architecture
 
 The project uses hexagonal architecture enforced by ArchUnit tests:
 
-- **Domain** (`domain/`) must not depend on application or infrastructure layers
-- **Application** (`application/web/`) may depend on domain only
-- **Infrastructure** (`infrastructure/`) may depend on domain
+- **Domain** (`domain/`) must not depend on application or infrastructure
+- **Application** (`application/web/`) must not depend on infrastructure
+- **Infrastructure** (`infrastructure/`) may depend on domain and application
 
 See [ADR-0002](doc/adr/0002-use-hexagonal-architecture.md) for details.
 
@@ -65,13 +38,7 @@ See [ADR-0002](doc/adr/0002-use-hexagonal-architecture.md) for details.
 
 ### Javadoc
 
-All production classes require Javadoc with an embedded Mermaid diagram:
-
-- Models and ports: `classDiagram`
-- Controllers and services: `sequenceDiagram`
-- Configuration classes: `flowchart`
-
-See [ADR-0022](doc/adr/0022-javadoc-standard-with-mermaid-diagrams.md) for the full standard.
+All production classes require Javadoc with an embedded Mermaid diagram. See [ADR-0022](doc/adr/0022-javadoc-standard-with-mermaid-diagrams.md) for the full standard.
 
 ### Database changes
 

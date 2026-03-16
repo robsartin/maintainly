@@ -234,12 +234,12 @@ src/main/java/solutions/mystuff/
     persistence/          # JPA repository adapters
 
 src/main/resources/
-  db/migration/           # Flyway SQL migrations (V1–V8)
+  db/migration/           # Flyway SQL migrations
   templates/              # Thymeleaf templates
   static/                 # CSS, JavaScript, images
 
 config/checkstyle/        # Checkstyle rules
-doc/adr/                  # Architecture Decision Records (22 total)
+doc/adr/                  # Architecture Decision Records
 ```
 
 ## Architecture Decisions
