@@ -55,4 +55,6 @@ interface SpringDataItemRepository
 
     Optional<Item> findByIdAndOrganizationId(
             UUID id, UUID organizationId);
+
+    long countByOrganizationId(UUID organizationId);
 }

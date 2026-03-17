@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout :: head}"></head>
+<body>
+<header th:replace="~{layout :: header}"></header>
+<main>
+    <div th:if="${noOrganization}">
+        <p>You are not assigned to an organization.
+           Please contact an administrator.</p>
+    </div>
+    <div th:unless="${noOrganization}">
+        <h1>Dashboard</h1>
+
+        <div class="dashboard-stats">
+            <div class="stat-card stat-overdue">
+                <span class="stat-number"
+                      th:text="${overdueCount}">0</span>
+                <span class="stat-label">Overdue</span>
+            </div>
+            <div class="stat-card stat-due-soon">
+                <span class="stat-number"
+                      th:text="${dueSoonCount}">0</span>
+                <span class="stat-label">Due Soon</span>
+            </div>
+            <div class="stat-card stat-items">
+                <span class="stat-number"
+                      th:text="${totalItems}">0</span>
+                <span class="stat-label">Total Items</span>
+            </div>
+        </div>
+
+        <div class="dashboard-links">
+            <a th:href="@{/schedules}" class="btn">View All Schedules</a>
+            <a th:href="@{/items}" class="btn">View All Items</a>
+        </div>
+
+        <section class="recent-activity">
+            <h2>Recent Activity</h2>
+            <p th:if="${#lists.isEmpty(recentRecords)}">No service records yet.</p>
+            <table th:unless="${#lists.isEmpty(recentRecords)}">
+                <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Item</th>
+                    <th>Service Type</th>
+                    <th>Summary</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="r : ${recentRecords}">
+                    <td th:text="${r.serviceDate}" style="white-space:nowrap"></td>
+                    <td th:text="${r.item.name}"></td>
+                    <td th:text="${r.serviceType}"></td>
+                    <td th:text="${r.summary}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
+</main>
+<style>
+.dashboard-stats {
+    display: flex;
+    gap: 1rem;
+    margin: 1.5rem 0;
+    flex-wrap: wrap;
+}
+.stat-card {
+    flex: 1;
+    min-width: 120px;
+    padding: 1.5rem;
+    border-radius: 8px;
+    text-align: center;
+    background: #e8f5e9;
+}
+.stat-card .stat-number {
+    display: block;
+    font-size: 2.5rem;
+    font-weight: bold;
+    line-height: 1.2;
+}
+.stat-card .stat-label {
+    display: block;
+    font-size: 0.9rem;
+    color: #555;
+    margin-top: 0.25rem;
+}
+.stat-overdue {
+    background: #ffebee;
+}
+.stat-overdue .stat-number {
+    color: #b71c1c;
+}
+.stat-due-soon {
+    background: #fffde7;
+}
+.stat-due-soon .stat-number {
+    color: #f57f17;
+}
+.stat-items .stat-number {
+    color: #1b5e20;
+}
+.dashboard-links {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+}
+.dashboard-links .btn {
+    padding: 0.5rem 1rem;
+    background: #2196F3;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+}
+.dashboard-links .btn:hover {
+    background: #1976D2;
+}
+.recent-activity {
+    margin-top: 1rem;
+}
+</style>
+</body>
+</html>

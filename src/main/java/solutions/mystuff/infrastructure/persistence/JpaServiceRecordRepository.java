@@ -86,4 +86,21 @@ public interface JpaServiceRecordRepository
         return findTopItemsByCostPage(orgId,
                 PageRequest.of(0, limit));
     }
+
+    /** Paginated helper for recent records. */
+    @Query("SELECT r FROM ServiceRecord r "
+            + "JOIN FETCH r.item "
+            + "LEFT JOIN FETCH r.vendor "
+            + "WHERE r.organizationId = :orgId "
+            + "ORDER BY r.serviceDate DESC")
+    List<ServiceRecord> findRecentByOrgId(
+            @Param("orgId") UUID organizationId,
+            org.springframework.data.domain.Pageable pageable);
+
+    @Override
+    default List<ServiceRecord> findRecentByOrganizationId(
+            UUID organizationId, int limit) {
+        return findRecentByOrgId(organizationId,
+                PageRequest.of(0, limit));
+    }
 }

@@ -69,16 +69,6 @@ public class ItemController {
         this.recordService = recordService;
     }
 
-    @Operation(summary = "Redirect to schedules",
-            responses = @ApiResponse(
-                    responseCode = "302",
-                    description = "Redirects to"
-                            + " /schedules"))
-    @GetMapping("/")
-    public String home() {
-        return "redirect:/schedules";
-    }
-
     @Operation(summary = "List items",
             description = "Returns a paginated list of"
                     + " items with optional full-text"

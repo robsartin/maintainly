@@ -1,5 +1,6 @@
 package solutions.mystuff.domain.port.out;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -18,6 +19,8 @@ import solutions.mystuff.domain.model.ServiceSchedule;
  *         +findActiveByOrganizationId(UUID, int, int) PageResult~ServiceSchedule~
  *         +findByIdAndOrganizationId(UUID, UUID) Optional~ServiceSchedule~
  *         +findByItemIdAndOrganizationId(UUID, UUID) List~ServiceSchedule~
+ *         +countActiveBeforeDate(UUID, LocalDate) long
+ *         +countActiveBetweenDates(UUID, LocalDate, LocalDate) long
  *         +save(ServiceSchedule) ServiceSchedule
  *     }
  *     JpaScheduleRepositoryAdapter ..|> ServiceScheduleRepository
@@ -50,6 +53,15 @@ public interface ServiceScheduleRepository {
     List<ServiceSchedule>
             findByItemIdAndOrganizationId(
                     UUID itemId, UUID organizationId);
+
+    /** Count active schedules with next due date before the given date. */
+    long countActiveBeforeDate(
+            UUID organizationId, LocalDate date);
+
+    /** Count active schedules with next due date between two dates (exclusive, inclusive). */
+    long countActiveBetweenDates(
+            UUID organizationId,
+            LocalDate from, LocalDate to);
 
     /** Persist a new or updated service schedule. */
     ServiceSchedule save(ServiceSchedule schedule);

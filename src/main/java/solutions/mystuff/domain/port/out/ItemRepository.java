@@ -18,6 +18,7 @@ import solutions.mystuff.domain.model.PageResult;
  *         +searchByOrganizationId(UUID, String) List~Item~
  *         +searchByOrganizationId(UUID, String, int, int) PageResult~Item~
  *         +findByIdAndOrganizationId(UUID, UUID) Optional~Item~
+ *         +countByOrganizationId(UUID) long
  *         +save(Item) Item
  *     }
  *     JpaItemRepositoryAdapter ..|> ItemRepository
@@ -46,6 +47,9 @@ public interface ItemRepository {
     /** Find a single item by ID scoped to an organization. */
     Optional<Item> findByIdAndOrganizationId(
             UUID id, UUID organizationId);
+
+    /** Count all items belonging to an organization. */
+    long countByOrganizationId(UUID organizationId);
 
     /** Persist a new or updated item. */
     Item save(Item item);

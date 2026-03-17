@@ -1,5 +1,6 @@
 package solutions.mystuff.infrastructure.persistence;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -67,4 +68,22 @@ interface SpringDataScheduleRepository
             findByItemIdAndOrgId(
                     @Param("itemId") UUID itemId,
                     @Param("orgId") UUID organizationId);
+
+    @Query("SELECT COUNT(s) FROM ServiceSchedule s "
+            + "WHERE s.organizationId = :orgId "
+            + "AND s.active = true "
+            + "AND s.nextDueDate < :date")
+    long countActiveBeforeDate(
+            @Param("orgId") UUID organizationId,
+            @Param("date") LocalDate date);
+
+    @Query("SELECT COUNT(s) FROM ServiceSchedule s "
+            + "WHERE s.organizationId = :orgId "
+            + "AND s.active = true "
+            + "AND s.nextDueDate > :fromDate "
+            + "AND s.nextDueDate <= :toDate")
+    long countActiveBetweenDates(
+            @Param("orgId") UUID organizationId,
+            @Param("fromDate") LocalDate from,
+            @Param("toDate") LocalDate to);
 }

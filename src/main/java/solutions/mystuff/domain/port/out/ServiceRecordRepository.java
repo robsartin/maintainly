@@ -15,6 +15,7 @@ import solutions.mystuff.domain.model.ServiceRecord;
  *     class ServiceRecordRepository {
  *         +findByItemIdAndOrganizationId(UUID, UUID) List~ServiceRecord~
  *         +findByOrganizationId(UUID) List~ServiceRecord~
+ *         +findRecentByOrganizationId(UUID, int) List~ServiceRecord~
  *         +save(ServiceRecord) ServiceRecord
  *     }
  *     JpaServiceRecordRepository ..|> ServiceRecordRepository
@@ -31,6 +32,10 @@ public interface ServiceRecordRepository {
     /** Find all service records for an organization. */
     List<ServiceRecord> findByOrganizationId(
             UUID organizationId);
+
+    /** Find the most recent service records for an organization. */
+    List<ServiceRecord> findRecentByOrganizationId(
+            UUID organizationId, int limit);
 
     /** Persist a new or updated service record. */
     ServiceRecord save(ServiceRecord record);
