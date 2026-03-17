@@ -16,3 +16,4 @@ replay_pid*
 *.iml
 .DS_Store
 .env
+.CLAUDE.md.swp

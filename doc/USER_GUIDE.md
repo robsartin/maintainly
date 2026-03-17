@@ -172,10 +172,8 @@ Maintainly provides a stateless JWT-secured REST API for programmatic access.
 | Method | Path | Description |
 |--------|------|-------------|
 | POST | `/api/auth/token` | Issue JWT (public) |
-| GET | `/api/items` | List items (paginated) |
-| GET | `/api/items/{id}` | Item detail |
 
-Rate limiting applies to all API endpoints (10 req/sec general, 3 req/sec for token endpoint).
+Rate limiting applies to all API endpoints (10 req/sec general, 3 req/sec for token endpoint). Additional resource endpoints will be added as needed.
 
 ### Documentation
 
