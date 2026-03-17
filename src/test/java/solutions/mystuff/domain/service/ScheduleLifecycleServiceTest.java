@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import solutions.mystuff.domain.model.FrequencyUnit;
 import solutions.mystuff.domain.model.Item;
+import solutions.mystuff.domain.model.NotFoundException;
 import solutions.mystuff.domain.model.ServiceSchedule;
 import solutions.mystuff.domain.model.Vendor;
 import solutions.mystuff.domain.port.in.ItemQuery;
@@ -56,9 +57,11 @@ class ScheduleLifecycleServiceTest {
                 any(ServiceSchedule.class)))
                 .thenAnswer(i -> i.getArgument(0));
 
+        Vendor vendor = new Vendor();
+        vendor.setName("Acme");
         ServiceSchedule result =
                 service.createSchedule(orgId, itemId,
-                        "Filter Change", null,
+                        "Filter Change", vendor,
                         LocalDate.of(2026, 6, 1),
                         3, FrequencyUnit.months);
 
@@ -66,6 +69,8 @@ class ScheduleLifecycleServiceTest {
                 .isEqualTo("Filter Change");
         assertThat(result.getFrequencyInterval())
                 .isEqualTo(3);
+        assertThat(result.getPreferredVendor())
+                .isEqualTo(vendor);
     }
 
     @Test
@@ -201,6 +206,39 @@ class ScheduleLifecycleServiceTest {
     }
 
     @Test
+    @DisplayName("should reject schedule without vendor")
+    void shouldRejectScheduleWithoutVendor() {
+        assertThatThrownBy(() ->
+                service.createSchedule(orgId,
+                        UUID.randomUUID(), "Test", null,
+                        LocalDate.now(), 1,
+                        FrequencyUnit.months))
+                .isInstanceOf(
+                        IllegalArgumentException.class)
+                .hasMessageContaining(
+                        "Vendor is required");
+    }
+
+    @Test
+    @DisplayName("should reject edit without vendor")
+    void shouldRejectEditWithoutVendor() {
+        UUID schedId = UUID.randomUUID();
+        ServiceSchedule sched = buildSchedule();
+        when(schedRepo.findByIdAndOrganizationId(
+                schedId, orgId))
+                .thenReturn(Optional.of(sched));
+
+        assertThatThrownBy(() ->
+                service.editSchedule(schedId, orgId,
+                        "Updated", LocalDate.now(),
+                        1, FrequencyUnit.months, null))
+                .isInstanceOf(
+                        IllegalArgumentException.class)
+                .hasMessageContaining(
+                        "Vendor is required");
+    }
+
+    @Test
     @DisplayName("should throw when schedule not found")
     void shouldThrowWhenNotFound() {
         UUID schedId = UUID.randomUUID();
@@ -211,7 +249,7 @@ class ScheduleLifecycleServiceTest {
         assertThatThrownBy(() ->
                 service.skipSchedule(schedId, orgId))
                 .isInstanceOf(
-                        IllegalArgumentException.class)
+                        NotFoundException.class)
                 .hasMessage("Schedule not found");
     }
 

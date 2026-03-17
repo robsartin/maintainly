@@ -11,6 +11,7 @@ import java.util.UUID;
 import javax.imageio.ImageIO;
 
 import solutions.mystuff.domain.model.AppUser;
+import solutions.mystuff.domain.model.NotFoundException;
 import solutions.mystuff.domain.model.Organization;
 import solutions.mystuff.domain.port.in.ProfileImageUpload;
 import solutions.mystuff.domain.port.out.AppUserRepository;
@@ -66,7 +67,7 @@ public class ProfileImageServiceImpl
                 imageData, contentType);
         Organization org = orgRepo.findById(orgId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
+                        new NotFoundException(
                                 "Organization not found"));
         org.setProfileImage(resized);
         org.setProfileImageType(contentType);
@@ -83,14 +84,14 @@ public class ProfileImageServiceImpl
                 imageData, contentType);
         AppUser user = userRepo.findById(userId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
+                        new NotFoundException(
                                 "User not found"));
         user.setProfileImage(resized);
         user.setProfileImageType(contentType);
         userRepo.save(user);
     }
 
-    /** Validates size and resizes the image to 128x128. */
+    /** Validates size and resizes the image to exactly 128x128. */
     byte[] resizeImage(
             byte[] imageData, String contentType) {
         if (imageData.length > MAX_BYTES) {
@@ -105,11 +106,11 @@ public class ProfileImageServiceImpl
                 throw new IllegalArgumentException(
                         "Cannot read image data");
             }
-            if (original.getWidth() <= MAX_SIZE
-                    && original.getHeight() <= MAX_SIZE) {
+            if (original.getWidth() == MAX_SIZE
+                    && original.getHeight() == MAX_SIZE) {
                 return imageData;
             }
-            BufferedImage scaled = scaleImage(original);
+            BufferedImage scaled = scaleAndCrop(original);
             return writeImage(scaled, contentType);
         } catch (IOException e) {
             throw new IllegalArgumentException(
@@ -125,17 +126,18 @@ public class ProfileImageServiceImpl
         }
     }
 
-    private BufferedImage scaleImage(
+    private BufferedImage scaleAndCrop(
             BufferedImage original) {
         int w = original.getWidth();
         int h = original.getHeight();
-        double scale = Math.min(
+        double scale = Math.max(
                 (double) MAX_SIZE / w,
                 (double) MAX_SIZE / h);
-        int newW = (int) (w * scale);
-        int newH = (int) (h * scale);
+        int scaledW = (int) Math.ceil(w * scale);
+        int scaledH = (int) Math.ceil(h * scale);
         BufferedImage scaled = new BufferedImage(
-                newW, newH, original.getType() != 0
+                scaledW, scaledH,
+                original.getType() != 0
                         ? original.getType()
                         : BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = scaled.createGraphics();
@@ -143,9 +145,13 @@ public class ProfileImageServiceImpl
                 RenderingHints.KEY_INTERPOLATION,
                 RenderingHints
                         .VALUE_INTERPOLATION_BILINEAR);
-        g.drawImage(original, 0, 0, newW, newH, null);
+        g.drawImage(original, 0, 0,
+                scaledW, scaledH, null);
         g.dispose();
-        return scaled;
+        int x = (scaledW - MAX_SIZE) / 2;
+        int y = (scaledH - MAX_SIZE) / 2;
+        return scaled.getSubimage(
+                x, y, MAX_SIZE, MAX_SIZE);
     }
 
     private byte[] writeImage(

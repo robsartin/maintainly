@@ -75,6 +75,10 @@ public class Vendor extends OrgOwnedEntity {
     @Column(length = 2000)
     private String notes;
 
+    @Column(name = "system_managed",
+            nullable = false)
+    private boolean systemManaged;
+
     @OneToMany(mappedBy = "vendor",
             cascade = CascadeType.ALL,
             orphanRemoval = true)
@@ -167,6 +171,15 @@ public class Vendor extends OrgOwnedEntity {
 
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    /** Returns true if this vendor is system-managed and cannot be edited. */
+    public boolean isSystemManaged() {
+        return systemManaged;
+    }
+
+    public void setSystemManaged(boolean systemManaged) {
+        this.systemManaged = systemManaged;
     }
 
     public List<VendorAltPhone> getAltPhones() {

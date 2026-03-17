@@ -9,56 +9,58 @@
 
     <section class="settings-section">
         <h3>Organization Logo</h3>
-        <div class="image-preview">
-            <img th:if="${organization != null and organization.hasProfileImage()}"
-                 th:src="@{/profile-image/org}"
-                 alt="Organization logo"
-                 class="profile-image-preview"/>
-            <span th:unless="${organization != null and organization.hasProfileImage()}"
-                  class="no-image">No logo uploaded</span>
-        </div>
         <form th:if="${organization != null}"
               th:action="@{/settings/org-image}"
               method="post"
               enctype="multipart/form-data"
               class="upload-form">
+            <input type="hidden" name="_method" value="PUT"/>
             <input type="hidden"
                    th:name="${_csrf.parameterName}"
                    th:value="${_csrf.token}"/>
-            <label>
-                Select image (PNG or JPEG, max 128x128):
+            <div class="image-upload-target"
+                 data-image-upload="true">
+                <img th:if="${organization.hasProfileImage()}"
+                     th:src="@{/profile-image/org}"
+                     alt="Organization logo"
+                     class="profile-image-preview"/>
+                <span th:unless="${organization.hasProfileImage()}"
+                      class="no-image-placeholder">Click to upload</span>
+                <span class="upload-hint">Click to change</span>
                 <input type="file" name="file"
                        accept="image/png,image/jpeg"
-                       required/>
-            </label>
-            <button type="submit">Upload</button>
+                       class="file-input-hidden"
+                       data-auto-submit="true"/>
+            </div>
+            <p class="upload-help">PNG or JPEG, resized to 128x128</p>
         </form>
     </section>
 
     <section class="settings-section">
         <h3>User Profile Image</h3>
-        <div class="image-preview">
-            <img th:if="${user.hasProfileImage()}"
-                 th:src="@{/profile-image/user}"
-                 alt="User profile image"
-                 class="profile-image-preview"/>
-            <span th:unless="${user.hasProfileImage()}"
-                  class="no-image">No image uploaded</span>
-        </div>
         <form th:action="@{/settings/user-image}"
               method="post"
               enctype="multipart/form-data"
               class="upload-form">
+            <input type="hidden" name="_method" value="PUT"/>
             <input type="hidden"
                    th:name="${_csrf.parameterName}"
                    th:value="${_csrf.token}"/>
-            <label>
-                Select image (PNG or JPEG, max 128x128):
+            <div class="image-upload-target"
+                 data-image-upload="true">
+                <img th:if="${user.hasProfileImage()}"
+                     th:src="@{/profile-image/user}"
+                     alt="User profile image"
+                     class="profile-image-preview"/>
+                <span th:unless="${user.hasProfileImage()}"
+                      class="no-image-placeholder">Click to upload</span>
+                <span class="upload-hint">Click to change</span>
                 <input type="file" name="file"
                        accept="image/png,image/jpeg"
-                       required/>
-            </label>
-            <button type="submit">Upload</button>
+                       class="file-input-hidden"
+                       data-auto-submit="true"/>
+            </div>
+            <p class="upload-help">PNG or JPEG, resized to 128x128</p>
         </form>
     </section>
 </main>

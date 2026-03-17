@@ -40,7 +40,7 @@ class ItemQueryServiceTest {
     @DisplayName("should delegate findByOrganization")
     void shouldDelegateFindByOrg() {
         PageResult<Item> expected = new PageResult<>(
-                List.of(), 0, 10, 0, 0);
+                List.of(), 0, 10, false);
         when(itemRepo.findByOrganizationId(
                 orgId, 0, 10)).thenReturn(expected);
         assertEquals(expected,
@@ -51,7 +51,7 @@ class ItemQueryServiceTest {
     @DisplayName("should delegate searchByOrganization")
     void shouldDelegateSearch() {
         PageResult<Item> expected = new PageResult<>(
-                List.of(), 0, 10, 0, 0);
+                List.of(), 0, 10, false);
         when(itemRepo.searchByOrganizationId(
                 orgId, "test", 0, 10))
                 .thenReturn(expected);

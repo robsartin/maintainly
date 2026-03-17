@@ -9,3 +9,14 @@ spring:
     open-in-view: false
   flyway:
     enabled: true
+
+app:
+  jwt:
+    secret: test-only-hmac-secret-key-minimum-32-bytes-long!!
+    expiration: 3600
+  rate-limit:
+    requests-per-second: 1000
+    login-requests-per-second: 1000
+  cors:
+    allowed-origins:
+      - http://localhost:8080

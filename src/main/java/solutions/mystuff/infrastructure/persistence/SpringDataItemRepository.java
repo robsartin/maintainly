@@ -5,8 +5,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.Item;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -29,7 +29,7 @@ interface SpringDataItemRepository
 
     List<Item> findByOrganizationId(UUID organizationId);
 
-    Page<Item> findByOrganizationId(
+    Slice<Item> findByOrganizationId(
             UUID organizationId, Pageable pageable);
 
     @Query("SELECT i FROM Item i "
@@ -42,19 +42,13 @@ interface SpringDataItemRepository
             @Param("orgId") UUID organizationId,
             @Param("q") String query);
 
-    @Query(value = "SELECT i FROM Item i "
-            + "WHERE i.organizationId = :orgId "
-            + "AND (LOWER(i.name) LIKE "
-            + "LOWER(CONCAT('%', :q, '%')) "
-            + "OR LOWER(i.location) LIKE "
-            + "LOWER(CONCAT('%', :q, '%')))",
-            countQuery = "SELECT count(i) FROM Item i "
+    @Query("SELECT i FROM Item i "
             + "WHERE i.organizationId = :orgId "
             + "AND (LOWER(i.name) LIKE "
             + "LOWER(CONCAT('%', :q, '%')) "
             + "OR LOWER(i.location) LIKE "
             + "LOWER(CONCAT('%', :q, '%')))")
-    Page<Item> searchByOrganizationId(
+    Slice<Item> searchByOrganizationId(
             @Param("orgId") UUID organizationId,
             @Param("q") String query,
             Pageable pageable);

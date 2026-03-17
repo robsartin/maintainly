@@ -17,24 +17,21 @@ final class LinkHeaderBuilder {
     private LinkHeaderBuilder() {
     }
 
-    /** Builds and sets the Link header with first/last/prev/next rels. */
+    /** Builds and sets the Link header with prev/next rels. */
     static void addLinkHeader(
             HttpServletResponse response,
             String basePath,
             PageResult<?> page, String q) {
         StringBuilder link = new StringBuilder();
-        int size = page.size();
-        appendLink(link, basePath, 0, size, q, "first");
-        appendLink(link, basePath,
-                Math.max(0, page.totalPages() - 1),
-                size, q, "last");
         if (page.hasPrevious()) {
             appendLink(link, basePath,
-                    page.page() - 1, size, q, "prev");
+                    page.page() - 1, page.size(),
+                    q, "prev");
         }
         if (page.hasNext()) {
             appendLink(link, basePath,
-                    page.page() + 1, size, q, "next");
+                    page.page() + 1, page.size(),
+                    q, "next");
         }
         if (!link.isEmpty()) {
             response.addHeader("Link",

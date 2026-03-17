@@ -60,9 +60,10 @@ public class SampleDataConfiguration {
             }
             log.info("Loading sample data");
             Organization org = createOrg(orgRepo);
-            assignDevUser(userRepo, org);
-            createSampleEntities(itemRepo,
-                    vendorRepo, scheduleRepo,
+            assignUser(userRepo, "dev", org);
+            assignUser(userRepo,
+                    "rob.sartin@gmail.com", org);
+            seed(itemRepo, vendorRepo, scheduleRepo,
                     org.getId());
             log.info("Created sample org {}",
                     org.getId());
@@ -78,223 +79,175 @@ public class SampleDataConfiguration {
         return orgRepo.save(org);
     }
 
-    private void assignDevUser(
+    private void assignUser(
             AppUserRepository userRepo,
-            Organization org) {
-        AppUser dev = userRepo.findByUsername("dev")
+            String username, Organization org) {
+        AppUser user = userRepo.findByUsername(username)
                 .orElseGet(() -> {
                     AppUser u = new AppUser(
-                            UuidV7.generate(), "dev");
+                            UuidV7.generate(), username);
                     return userRepo.save(u);
                 });
-        dev.setOrganization(org);
-        userRepo.save(dev);
+        user.setOrganization(org);
+        userRepo.save(user);
     }
 
-    private void createSampleEntities(
+    private void seed(
             ItemRepository itemRepo,
             VendorRepository vendorRepo,
             ServiceScheduleRepository scheduleRepo,
             UUID orgId) {
-        String hvac = "HVAC Inspection";
-        String plumb = "Plumbing Check";
-        String elec = "Electrical Inspection";
-        String filter = "Filter Replacement";
-        String gen = "General Maintenance";
-        Vendor abc = createVendor(vendorRepo, orgId,
-                "ABC Maintenance", "555-0100");
-        Vendor quick = createVendor(vendorRepo, orgId,
-                "QuickFix Services", "555-0200");
-        createOriginalItems(itemRepo, scheduleRepo,
-                orgId, hvac, plumb, abc);
-        createAdditionalItems(itemRepo, scheduleRepo,
-                orgId, hvac, plumb, elec, filter, gen,
-                abc, quick);
+        Ctx ctx = new Ctx(itemRepo, scheduleRepo, orgId,
+                createUnknownVendor(vendorRepo, orgId),
+                createVendor(vendorRepo, orgId,
+                        "ABC Maintenance", "555-0100"),
+                createVendor(vendorRepo, orgId,
+                        "QuickFix Services", "555-0200"));
+        seedOriginal(ctx);
+        seedMechanical(ctx);
+        seedBuilding(ctx);
+        seedFacility(ctx);
     }
 
-    private void createOriginalItems(
-            ItemRepository itemRepo,
-            ServiceScheduleRepository scheduleRepo,
-            UUID orgId, String hvac,
-            String plumb, Vendor abc) {
-        Item furnace = createItem(itemRepo, orgId,
-                "Main Furnace", "Basement",
-                "Carrier", "58STA", 2020,
+    private void seedOriginal(Ctx c) {
+        Item furnace = item(c, "Main Furnace",
+                "Basement", "Carrier", "58STA", 2020,
                 "CR-58STA-20-4471");
-        Item waterHeater = createItem(itemRepo, orgId,
-                "Water Heater", "Utility Room",
-                "Rheem", "PROG50", 2021,
+        Item wh = item(c, "Water Heater",
+                "Utility Room", "Rheem", "PROG50", 2021,
                 "RH-P50-21-8832");
-        sched(scheduleRepo, orgId, furnace, hvac, abc,
+        sched(c, furnace, "HVAC Inspection", c.abc,
                 FrequencyUnit.months, 6, 3);
-        sched(scheduleRepo, orgId, waterHeater, plumb,
-                null, FrequencyUnit.years, 1, -2);
+        sched(c, wh, "Plumbing Check", c.unknown,
+                FrequencyUnit.years, 1, -2);
     }
 
-    private void createAdditionalItems(
-            ItemRepository itemRepo,
-            ServiceScheduleRepository scheduleRepo,
-            UUID orgId, String hvac,
-            String plumb, String elec,
-            String filter, String gen,
-            Vendor abc, Vendor quick) {
-        createMechanicalItems(itemRepo, scheduleRepo,
-                orgId, hvac, plumb, elec, filter, gen,
-                abc, quick);
-        createBuildingItems(itemRepo, scheduleRepo,
-                orgId, hvac, plumb, elec, filter, gen,
-                abc, quick);
-    }
-
-    private void createMechanicalItems(
-            ItemRepository ir,
-            ServiceScheduleRepository sr,
-            UUID o, String hvac,
-            String plumb, String elec,
-            String filter, String gen,
-            Vendor abc, Vendor quick) {
-        Item ac = createItem(ir, o, "Central AC",
-                "Roof", "Trane", "XR15", 2019,
+    private void seedMechanical(Ctx c) {
+        Item ac = item(c, "Central AC", "Roof",
+                "Trane", "XR15", 2019,
                 "TR-XR15-19-2201");
-        sched(sr, o, ac, hvac, abc,
+        sched(c, ac, "HVAC Inspection", c.abc,
                 FrequencyUnit.months, 6, 10);
-        sched(sr, o, ac, filter, null,
+        sched(c, ac, "Filter Replacement", c.unknown,
                 FrequencyUnit.months, 3, -5);
-        Item gen1 = createItem(ir, o,
-                "Backup Generator", "Parking Garage",
-                "Generac", "QT070", 2022,
-                "GN-QT-22-1190");
-        sched(sr, o, gen1, gen, abc,
+        Item gen = item(c, "Backup Generator",
+                "Parking Garage", "Generac", "QT070",
+                2022, "GN-QT-22-1190");
+        sched(c, gen, "General Maintenance", c.abc,
                 FrequencyUnit.months, 3, 15);
-        Item boiler = createItem(ir, o,
-                "Steam Boiler", "Basement Mech Room",
-                "Weil-McLain", "SVF", 2017,
-                "WM-SVF-17-0098");
-        sched(sr, o, boiler, hvac, abc,
+        Item boiler = item(c, "Steam Boiler",
+                "Basement Mech Room", "Weil-McLain",
+                "SVF", 2017, "WM-SVF-17-0098");
+        sched(c, boiler, "HVAC Inspection", c.abc,
                 FrequencyUnit.years, 1, -30);
-        sched(sr, o, boiler, gen, null,
-                FrequencyUnit.months, 6, 45);
+        sched(c, boiler, "General Maintenance",
+                c.unknown, FrequencyUnit.months, 6, 45);
     }
 
-    private void createBuildingItems(
-            ItemRepository ir,
-            ServiceScheduleRepository sr,
-            UUID o, String hvac,
-            String plumb, String elec,
-            String filter, String gen,
-            Vendor abc, Vendor quick) {
-        Item pump = createItem(ir, o, "Sump Pump",
-                "Basement", "Zoeller", "M53", 2023,
+    private void seedBuilding(Ctx c) {
+        Item pump = item(c, "Sump Pump", "Basement",
+                "Zoeller", "M53", 2023,
                 "ZL-M53-23-6621");
-        sched(sr, o, pump, plumb, quick,
+        sched(c, pump, "Plumbing Check", c.quick,
                 FrequencyUnit.months, 6, 20);
-        Item comp = createItem(ir, o,
-                "Air Compressor", "Workshop",
-                "Ingersoll Rand", "SS3", 2021,
-                "IR-SS3-21-4455");
-        sched(sr, o, comp, gen, null,
-                FrequencyUnit.months, 6, -10);
-        sched(sr, o, comp, filter, abc,
+        Item comp = item(c, "Air Compressor",
+                "Workshop", "Ingersoll Rand", "SS3",
+                2021, "IR-SS3-21-4455");
+        sched(c, comp, "General Maintenance",
+                c.unknown, FrequencyUnit.months, 6, -10);
+        sched(c, comp, "Filter Replacement", c.abc,
                 FrequencyUnit.months, 1, 7);
-        Item elev = createItem(ir, o,
-                "Elevator #1", "Lobby",
-                "Otis", "Gen3", 2018, "OT-G3-18-7744");
-        sched(sr, o, elev, gen, quick,
+        Item elev = item(c, "Elevator #1", "Lobby",
+                "Otis", "Gen3", 2018,
+                "OT-G3-18-7744");
+        sched(c, elev, "General Maintenance", c.quick,
                 FrequencyUnit.months, 1, 5);
-        sched(sr, o, elev, elec, quick,
-                FrequencyUnit.years, 1, 60);
-        createFacilityItems(ir, sr, o, hvac, plumb,
-                elec, filter, gen, abc, quick);
+        sched(c, elev, "Electrical Inspection",
+                c.quick, FrequencyUnit.years, 1, 60);
     }
 
-    private void createFacilityItems(
-            ItemRepository ir,
-            ServiceScheduleRepository sr,
-            UUID o, String hvac,
-            String plumb, String elec,
-            String filter, String gen,
-            Vendor abc, Vendor quick) {
-        Item panel = createItem(ir, o,
-                "Main Electrical Panel", "Utility Room",
-                "Square D", "QO142", 2015,
-                "SD-QO-15-3300");
-        sched(sr, o, panel, elec, quick,
-                FrequencyUnit.years, 1, 90);
-        Item sprink = createItem(ir, o,
-                "Fire Sprinkler System", "Building Wide",
-                "Viking", "VK100", 2016,
-                "VK-100-16-8877");
-        sched(sr, o, sprink, gen, quick,
-                FrequencyUnit.years, 1, 120);
-        Item roof = createItem(ir, o,
-                "Rooftop HVAC Unit", "Roof",
-                "Lennox", "LRP14", 2020,
+    private void seedFacility(Ctx c) {
+        Item panel = item(c, "Main Electrical Panel",
+                "Utility Room", "Square D", "QO142",
+                2015, "SD-QO-15-3300");
+        sched(c, panel, "Electrical Inspection",
+                c.quick, FrequencyUnit.years, 1, 90);
+        Item sprink = item(c, "Fire Sprinkler System",
+                "Building Wide", "Viking", "VK100",
+                2016, "VK-100-16-8877");
+        sched(c, sprink, "General Maintenance",
+                c.quick, FrequencyUnit.years, 1, 120);
+        Item roof = item(c, "Rooftop HVAC Unit",
+                "Roof", "Lennox", "LRP14", 2020,
                 "LX-LRP-20-5533");
-        sched(sr, o, roof, hvac, abc,
+        sched(c, roof, "HVAC Inspection", c.abc,
                 FrequencyUnit.months, 6, -15);
-        sched(sr, o, roof, filter, null,
+        sched(c, roof, "Filter Replacement", c.unknown,
                 FrequencyUnit.months, 3, 8);
-        Item soft = createItem(ir, o,
-                "Water Softener", "Utility Room",
-                "Culligan", "HE1.25", 2022,
-                "CG-HE-22-9910");
-        sched(sr, o, soft, plumb, null,
+        Item soft = item(c, "Water Softener",
+                "Utility Room", "Culligan", "HE1.25",
+                2022, "CG-HE-22-9910");
+        sched(c, soft, "Plumbing Check", c.unknown,
                 FrequencyUnit.months, 6, 30);
     }
 
-    private void sched(
-            ServiceScheduleRepository repo, UUID orgId,
-            Item item, String type, Vendor vendor,
-            FrequencyUnit unit, int interval,
-            int daysFromNow) {
-        createSchedule(repo, orgId, item, type, vendor,
-                unit, interval,
-                LocalDate.now().plusDays(daysFromNow));
+    private Item item(Ctx c, String name,
+            String location, String manufacturer,
+            String model, int year, String serial) {
+        Item i = new Item();
+        i.setId(UuidV7.generate());
+        i.setOrganizationId(c.orgId);
+        i.setName(name);
+        i.setLocation(location);
+        i.setManufacturer(manufacturer);
+        i.setModelName(model);
+        i.setModelYear(year);
+        i.setSerialNumber(serial);
+        return c.items.save(i);
     }
 
-    private Vendor createVendor(
-            VendorRepository vendorRepo, UUID orgId,
-            String name, String phone) {
-        Vendor vendor = new Vendor();
-        vendor.setId(UuidV7.generate());
-        vendor.setOrganizationId(orgId);
-        vendor.setName(name);
-        vendor.setPhone(phone);
-        return vendorRepo.save(vendor);
-    }
-
-    private Item createItem(
-            ItemRepository repo, UUID orgId,
-            String name, String location,
-            String manufacturer, String model,
-            int year, String serialNumber) {
-        Item item = new Item();
-        item.setId(UuidV7.generate());
-        item.setOrganizationId(orgId);
-        item.setName(name);
-        item.setLocation(location);
-        item.setManufacturer(manufacturer);
-        item.setModelName(model);
-        item.setModelYear(year);
-        item.setSerialNumber(serialNumber);
-        return repo.save(item);
-    }
-
-    private void createSchedule(
-            ServiceScheduleRepository repo, UUID orgId,
-            Item item, String type,
+    private void sched(Ctx c, Item item, String type,
             Vendor vendor, FrequencyUnit unit,
-            int interval, LocalDate nextDue) {
+            int interval, int daysFromNow) {
+        LocalDate due =
+                LocalDate.now().plusDays(daysFromNow);
         ServiceSchedule s = new ServiceSchedule();
         s.setId(UuidV7.generate());
-        s.setOrganizationId(orgId);
+        s.setOrganizationId(c.orgId);
         s.setItem(item);
         s.setServiceType(type);
         s.setPreferredVendor(vendor);
         s.setFrequencyUnit(unit);
         s.setFrequencyInterval(interval);
-        s.setFirstDueDate(nextDue);
-        s.setNextDueDate(nextDue);
-        repo.save(s);
+        s.setFirstDueDate(due);
+        s.setNextDueDate(due);
+        c.schedules.save(s);
+    }
+
+    private Vendor createUnknownVendor(
+            VendorRepository repo, UUID orgId) {
+        Vendor v = new Vendor();
+        v.setOrganizationId(orgId);
+        v.setName("Unknown Vendor");
+        v.setSystemManaged(true);
+        return repo.save(v);
+    }
+
+    private Vendor createVendor(
+            VendorRepository repo, UUID orgId,
+            String name, String phone) {
+        Vendor v = new Vendor();
+        v.setId(UuidV7.generate());
+        v.setOrganizationId(orgId);
+        v.setName(name);
+        v.setPhone(phone);
+        return repo.save(v);
+    }
+
+    private record Ctx(
+            ItemRepository items,
+            ServiceScheduleRepository schedules,
+            UUID orgId,
+            Vendor unknown, Vendor abc, Vendor quick) {
     }
 }

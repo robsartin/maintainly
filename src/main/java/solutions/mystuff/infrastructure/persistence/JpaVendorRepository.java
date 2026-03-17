@@ -7,6 +7,7 @@ import java.util.UUID;
 import solutions.mystuff.domain.model.Vendor;
 import solutions.mystuff.domain.port.out.VendorRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -30,6 +31,10 @@ public interface JpaVendorRepository
         VendorRepository {
 
     @Override
+    @Query("SELECT DISTINCT v FROM Vendor v"
+            + " LEFT JOIN FETCH v.altPhones"
+            + " WHERE v.organizationId = :organizationId"
+            + " ORDER BY v.name")
     List<Vendor> findByOrganizationId(
             UUID organizationId);
 

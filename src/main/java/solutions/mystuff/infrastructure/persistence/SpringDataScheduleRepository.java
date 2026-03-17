@@ -5,8 +5,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.ServiceSchedule;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -29,7 +29,6 @@ interface SpringDataScheduleRepository
 
     @Query("SELECT s FROM ServiceSchedule s "
             + "JOIN FETCH s.item "
-
             + "LEFT JOIN FETCH s.preferredVendor "
             + "WHERE s.organizationId = :orgId "
             + "ORDER BY s.nextDueDate ASC NULLS LAST")
@@ -39,7 +38,6 @@ interface SpringDataScheduleRepository
 
     @Query("SELECT s FROM ServiceSchedule s "
             + "JOIN FETCH s.item "
-
             + "LEFT JOIN FETCH s.preferredVendor "
             + "WHERE s.organizationId = :orgId "
             + "AND s.active = true "
@@ -47,18 +45,13 @@ interface SpringDataScheduleRepository
     List<ServiceSchedule> findActiveByOrgId(
             @Param("orgId") UUID organizationId);
 
-    @Query(value = "SELECT s FROM ServiceSchedule s "
+    @Query("SELECT s FROM ServiceSchedule s "
             + "JOIN FETCH s.item "
-
             + "LEFT JOIN FETCH s.preferredVendor "
             + "WHERE s.organizationId = :orgId "
             + "AND s.active = true "
-            + "ORDER BY s.nextDueDate ASC NULLS LAST",
-            countQuery = "SELECT count(s) "
-            + "FROM ServiceSchedule s "
-            + "WHERE s.organizationId = :orgId "
-            + "AND s.active = true")
-    Page<ServiceSchedule> findActiveByOrgId(
+            + "ORDER BY s.nextDueDate ASC NULLS LAST")
+    Slice<ServiceSchedule> findActiveByOrgId(
             @Param("orgId") UUID organizationId,
             Pageable pageable);
 
@@ -66,7 +59,6 @@ interface SpringDataScheduleRepository
             UUID id, UUID organizationId);
 
     @Query("SELECT s FROM ServiceSchedule s "
-
             + "LEFT JOIN FETCH s.preferredVendor "
             + "WHERE s.item.id = :itemId "
             + "AND s.organizationId = :orgId "

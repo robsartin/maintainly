@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import solutions.mystuff.domain.model.FrequencyUnit;
 import solutions.mystuff.domain.model.Item;
+import solutions.mystuff.domain.model.NotFoundException;
 import solutions.mystuff.domain.model.ServiceSchedule;
 import solutions.mystuff.domain.model.Vendor;
 import solutions.mystuff.domain.port.in.RecordCreation;
@@ -76,6 +77,7 @@ public class ScheduleLifecycleService
             FrequencyUnit frequencyUnit) {
         validateScheduleFields(serviceType,
                 frequencyInterval);
+        requireVendor(vendor);
         Item item = findItem(itemId, orgId);
         ServiceSchedule sched = new ServiceSchedule();
         sched.setOrganizationId(orgId);
@@ -144,6 +146,7 @@ public class ScheduleLifecycleService
             Vendor vendor) {
         validateScheduleFields(serviceType,
                 frequencyInterval);
+        requireVendor(vendor);
         ServiceSchedule sched =
                 findSchedule(scheduleId, orgId);
         sched.setServiceType(serviceType.trim());
@@ -204,7 +207,7 @@ public class ScheduleLifecycleService
                 .findByIdAndOrganizationId(
                         scheduleId, orgId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
+                        new NotFoundException(
                                 "Schedule not found"));
     }
 
@@ -213,8 +216,15 @@ public class ScheduleLifecycleService
                 .findByIdAndOrganizationId(
                         itemId, orgId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
+                        new NotFoundException(
                                 "Item not found"));
+    }
+
+    private void requireVendor(Vendor vendor) {
+        if (vendor == null) {
+            throw new IllegalArgumentException(
+                    "Vendor is required for schedules");
+        }
     }
 
     private void validateScheduleFields(

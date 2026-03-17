@@ -1,10 +1,14 @@
 package solutions.mystuff.domain.service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
+import solutions.mystuff.domain.model.NotFoundException;
+import solutions.mystuff.domain.model.ParsedAltPhone;
 import solutions.mystuff.domain.model.Validation;
 import solutions.mystuff.domain.model.Vendor;
+import solutions.mystuff.domain.model.VendorAltPhone;
 import solutions.mystuff.domain.model.VendorData;
 import solutions.mystuff.domain.port.in.VendorManagement;
 import solutions.mystuff.domain.port.in.VendorQuery;
@@ -63,7 +67,8 @@ public class VendorManagementService
             VendorData data) {
         Validation.requireNotBlank(
                 data.name(), "Vendor name");
-        Vendor vendor = findVendor(orgId, vendorId);
+        Vendor vendor = requireVendor(orgId, vendorId);
+        rejectSystemManaged(vendor);
         applyFields(vendor, data);
         return vendorRepository.save(vendor);
     }
@@ -71,7 +76,8 @@ public class VendorManagementService
     @Override
     public void deleteVendor(
             UUID orgId, UUID vendorId) {
-        findVendor(orgId, vendorId);
+        Vendor vendor = requireVendor(orgId, vendorId);
+        rejectSystemManaged(vendor);
         vendorRepository.deleteByIdAndOrganizationId(
                 vendorId, orgId);
     }
@@ -81,6 +87,15 @@ public class VendorManagementService
     public List<Vendor> findAllVendors(UUID orgId) {
         return vendorRepository
                 .findByOrganizationId(orgId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<Vendor> findVendor(
+            UUID vendorId, UUID orgId) {
+        return vendorRepository
+                .findByIdAndOrganizationId(
+                        vendorId, orgId);
     }
 
     private Vendor newVendor(UUID orgId) {
@@ -105,16 +120,51 @@ public class VendorManagementService
         v.setCountry(trimOrNull(data.country()));
         v.setWebsite(trimOrNull(data.website()));
         v.setNotes(trimOrNull(data.notes()));
+        syncAltPhones(v, data);
     }
 
-    private Vendor findVendor(
+    private void syncAltPhones(
+            Vendor v, VendorData data) {
+        v.getAltPhones().clear();
+        if (data.altPhones() == null) {
+            return;
+        }
+        for (ParsedAltPhone ap : data.altPhones()) {
+            if (ap.phone() == null
+                    || ap.phone().isBlank()) {
+                continue;
+            }
+            Validation.requireMaxLength(
+                    ap.phone(), "Alt phone",
+                    VendorFieldLimits.MAX_PHONE);
+            Validation.requireMaxLength(
+                    ap.label(), "Alt phone label",
+                    VendorFieldLimits.MAX_LABEL);
+            VendorAltPhone alt = new VendorAltPhone();
+            alt.setVendor(v);
+            alt.setOrganizationId(v.getOrganizationId());
+            alt.setPhone(ap.phone().trim());
+            alt.setLabel(trimOrNull(ap.label()));
+            v.getAltPhones().add(alt);
+        }
+    }
+
+    private Vendor requireVendor(
             UUID orgId, UUID vendorId) {
         return vendorRepository
                 .findByIdAndOrganizationId(
                         vendorId, orgId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
+                        new NotFoundException(
                                 "Vendor not found"));
+    }
+
+    private void rejectSystemManaged(Vendor vendor) {
+        if (vendor.isSystemManaged()) {
+            throw new IllegalArgumentException(
+                    "Cannot modify a system-managed"
+                            + " vendor");
+        }
     }
 
     private String trimOrNull(String value) {

@@ -8,10 +8,16 @@ import java.util.UUID;
 
 import solutions.mystuff.domain.model.AppUser;
 import solutions.mystuff.domain.model.Item;
+import solutions.mystuff.domain.model.NotFoundException;
 import solutions.mystuff.domain.model.ServiceRecord;
 import solutions.mystuff.domain.model.ServiceSchedule;
 import solutions.mystuff.domain.port.in.ItemQuery;
 import solutions.mystuff.domain.port.in.ScheduleQuery;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -36,6 +42,8 @@ import org.springframework.web.bind.annotation
  * @see ItemHistoryPdf
  */
 @Controller
+@Tag(name = "Reports",
+        description = "Report views and PDF exports")
 public class ReportController {
 
     private final ItemQuery itemQuery;
@@ -51,7 +59,15 @@ public class ReportController {
         this.helper = helper;
     }
 
-    /** Renders the reports landing page. */
+    @Operation(summary = "Reports page",
+            description = "Renders the reports landing"
+                    + " page with a list of items for"
+                    + " which history PDFs can be"
+                    + " generated. Model attributes:"
+                    + " items (List<Item>).",
+            responses = @ApiResponse(
+                    responseCode = "200",
+                    description = "HTML reports page"))
     @GetMapping("/reports")
     public String reports(
             Principal principal, Model model) {
@@ -61,19 +77,28 @@ public class ReportController {
             return "reports";
         }
         helper.setOrgMdc(user);
-        try {
-            UUID orgId = user.getOrganization().getId();
-            helper.addUserAttrs(user, model);
-            model.addAttribute("items",
-                    itemQuery.findAllByOrganization(
-                            orgId));
-            return "reports";
-        } finally {
-            helper.clearOrgMdc();
-        }
+        UUID orgId = user.getOrganization().getId();
+        helper.addUserAttrs(user, model);
+        model.addAttribute("items",
+                itemQuery.findAllByOrganization(
+                        orgId));
+        return "reports";
     }
 
-    /** Streams a PDF of schedules due within the cutoff window. */
+    @Operation(summary = "Service summary PDF",
+            description = "Streams a PDF listing all"
+                    + " schedules due by end of the"
+                    + " current or next month."
+                    + " Includes item name, service"
+                    + " type, vendor, due date, and"
+                    + " last completed date.",
+            responses = @ApiResponse(
+                    responseCode = "200",
+                    description = "PDF document"
+                            + " download",
+                    content = @Content(
+                            mediaType = "application"
+                                    + "/pdf")))
     @GetMapping("/reports/service-summary")
     public void serviceSummary(
             Principal principal,
@@ -87,24 +112,40 @@ public class ReportController {
             return;
         }
         helper.setOrgMdc(user);
-        try {
-            UUID orgId = user.getOrganization().getId();
-            LocalDate cutoff = dueSoonCutoff();
-            List<ServiceSchedule> schedules =
-                    filterDueSoon(orgId, cutoff);
-            String orgName = user.getOrganization()
-                    .getName();
-            ServiceSummaryPdf.write(
-                    response, schedules, cutoff,
-                    orgName, user.getUsername());
-        } finally {
-            helper.clearOrgMdc();
-        }
+        UUID orgId = user.getOrganization().getId();
+        LocalDate cutoff = dueSoonCutoff();
+        List<ServiceSchedule> schedules =
+                filterDueSoon(orgId, cutoff);
+        String orgName = user.getOrganization()
+                .getName();
+        ServiceSummaryPdf.write(
+                response, schedules, cutoff,
+                orgName, user.getUsername());
     }
 
-    /** Streams a PDF of service history for a single item. */
+    @Operation(summary = "Item history PDF",
+            description = "Streams a PDF of the full"
+                    + " service history for a single"
+                    + " item. Includes all service"
+                    + " records (date, type, summary,"
+                    + " vendor, tech) and active"
+                    + " schedules.",
+            responses = {
+                    @ApiResponse(responseCode = "200",
+                            description = "PDF document"
+                                    + " download",
+                            content = @Content(
+                                    mediaType
+                                            = "application"
+                                            + "/pdf")),
+                    @ApiResponse(responseCode = "404",
+                            description = "Item not"
+                                    + " found")})
     @GetMapping("/reports/item-history")
     public void itemHistory(
+            @Parameter(description = "Item UUID for"
+                    + " which to generate the history"
+                    + " report")
             @RequestParam UUID itemId,
             Principal principal,
             HttpServletResponse response)
@@ -117,12 +158,8 @@ public class ReportController {
             return;
         }
         helper.setOrgMdc(user);
-        try {
-            writeItemHistoryPdf(
-                    user, itemId, response);
-        } finally {
-            helper.clearOrgMdc();
-        }
+        writeItemHistoryPdf(
+                user, itemId, response);
     }
 
     private void writeItemHistoryPdf(
@@ -133,7 +170,7 @@ public class ReportController {
         Item item = itemQuery
                 .findByIdAndOrganization(itemId, orgId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
+                        new NotFoundException(
                                 "Item not found"));
         List<ServiceRecord> records =
                 itemQuery.findRecordsByItem(

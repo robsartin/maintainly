@@ -1,4 +1,8 @@
 spring:
+  mvc:
+    hiddenmethod:
+      filter:
+        enabled: true
   servlet:
     multipart:
       max-file-size: 512KB
@@ -32,6 +36,20 @@ springdoc:
     path: /api-docs
   swagger-ui:
     path: /swagger-ui.html
+  model-and-view-allowed: true
+  packages-to-scan: solutions.mystuff.application.web
+
+app:
+  jwt:
+    secret: dev-only-hmac-secret-key-minimum-32-bytes-long!!
+    expiration: 3600
+  rate-limit:
+    requests-per-second: 10
+    login-requests-per-second: 3
+  cors:
+    allowed-origins:
+      - http://localhost:3000
+      - http://localhost:8080
 
 logging:
   pattern:

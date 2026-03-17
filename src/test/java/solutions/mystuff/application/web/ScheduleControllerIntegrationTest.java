@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.ServiceSchedule;
+import solutions.mystuff.domain.model.Vendor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -75,17 +77,15 @@ class ScheduleControllerIntegrationTest {
                         .with(user("dev").roles("USER")))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Link",
-                        containsString("rel=\"first\"")))
-                .andExpect(header().string("Link",
-                        containsString("rel=\"last\"")));
+                        containsString("rel=\"next\"")));
     }
 
     @Test
     @DisplayName("should log service for a schedule")
     void shouldLogServiceForSchedule() throws Exception {
         String scheduleId = getFirstScheduleId();
-        mockMvc.perform(post("/schedules/log")
-                        .param("scheduleId", scheduleId)
+        mockMvc.perform(post("/schedules/" + scheduleId
+                        + "/completions")
                         .param("summary", "Routine check")
                         .param("serviceDate", "2026-03-10")
                         .param("techName", "John")
@@ -100,14 +100,13 @@ class ScheduleControllerIntegrationTest {
     void shouldHandleInvalidScheduleId()
             throws Exception {
         UUID fakeId = UUID.randomUUID();
-        mockMvc.perform(post("/schedules/log")
-                        .param("scheduleId",
-                                fakeId.toString())
+        mockMvc.perform(post("/schedules/" + fakeId
+                        + "/completions")
                         .param("summary", "Test")
                         .param("serviceDate", "2026-04-15")
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
-                .andExpect(status().isOk())
+                .andExpect(status().isNotFound())
                 .andExpect(model().attributeExists("error"));
     }
 
@@ -115,8 +114,7 @@ class ScheduleControllerIntegrationTest {
     @DisplayName("should delete a schedule")
     void shouldDeleteSchedule() throws Exception {
         String scheduleId = getFirstScheduleId();
-        mockMvc.perform(post("/schedules/delete")
-                        .param("scheduleId", scheduleId)
+        mockMvc.perform(delete("/schedules/" + scheduleId)
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
                 .andExpect(status().is3xxRedirection())
@@ -128,12 +126,10 @@ class ScheduleControllerIntegrationTest {
     void shouldHandleInvalidScheduleDelete()
             throws Exception {
         UUID fakeId = UUID.randomUUID();
-        mockMvc.perform(post("/schedules/delete")
-                        .param("scheduleId",
-                                fakeId.toString())
+        mockMvc.perform(delete("/schedules/" + fakeId)
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
-                .andExpect(status().isOk())
+                .andExpect(status().isNotFound())
                 .andExpect(model().attributeExists("error"));
     }
 
@@ -229,8 +225,30 @@ class ScheduleControllerIntegrationTest {
     void shouldCreateScheduleFromSchedules()
             throws Exception {
         String itemId = getFirstItemId();
-        mockMvc.perform(post("/schedules/create")
-                        .param("itemId", itemId)
+        String vendorId = getFirstVendorId();
+        mockMvc.perform(post("/items/" + itemId
+                        + "/schedules")
+                        .param("redirectTo", "schedules")
+                        .param("serviceType",
+                                "HVAC Inspection")
+                        .param("nextDueDate", "2026-12-01")
+                        .param("frequencyInterval", "6")
+                        .param("frequencyUnit", "months")
+                        .param("vendorId", vendorId)
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/schedules"));
+    }
+
+    @Test
+    @DisplayName("should reject schedule without vendor")
+    void shouldRejectScheduleWithoutVendor()
+            throws Exception {
+        String itemId = getFirstItemId();
+        mockMvc.perform(post("/items/" + itemId
+                        + "/schedules")
+                        .param("redirectTo", "schedules")
                         .param("serviceType",
                                 "HVAC Inspection")
                         .param("nextDueDate", "2026-12-01")
@@ -238,8 +256,9 @@ class ScheduleControllerIntegrationTest {
                         .param("frequencyUnit", "months")
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/schedules"));
+                .andExpect(status().isBadRequest())
+                .andExpect(model().attributeExists(
+                        "error"));
     }
 
     @Test
@@ -257,15 +276,15 @@ class ScheduleControllerIntegrationTest {
     void shouldRejectInvalidDateOnCreate()
             throws Exception {
         String itemId = getFirstItemId();
-        mockMvc.perform(post("/schedules/create")
-                        .param("itemId", itemId)
+        mockMvc.perform(post("/items/" + itemId
+                        + "/schedules")
                         .param("serviceType", "Test")
                         .param("nextDueDate", "bad-date")
                         .param("frequencyInterval", "1")
                         .param("frequencyUnit", "months")
                         .with(user("dev").roles("USER"))
                         .with(csrf()))
-                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest())
                 .andExpect(model().attributeExists(
                         "error"));
     }
@@ -288,6 +307,54 @@ class ScheduleControllerIntegrationTest {
                 "should have data-toggle-form cancel");
     }
 
+    @Test
+    @DisplayName("should render data-target for edit button")
+    void shouldRenderEditDataTarget()
+            throws Exception {
+        mockMvc.perform(get("/schedules")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(
+                        containsString("data-target=\"edit-")));
+    }
+
+    @Test
+    @DisplayName("should edit an existing schedule")
+    void shouldEditSchedule() throws Exception {
+        String scheduleId = getFirstScheduleId();
+        String vendorId = getFirstVendorId();
+        mockMvc.perform(post("/schedules/" + scheduleId)
+                        .param("serviceType",
+                                "Updated Inspection")
+                        .param("nextDueDate", "2027-01-15")
+                        .param("frequencyInterval", "3")
+                        .param("frequencyUnit", "months")
+                        .param("vendorId", vendorId)
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/schedules"));
+    }
+
+    @Test
+    @DisplayName("should reject edit with invalid schedule")
+    void shouldRejectEditInvalidSchedule()
+            throws Exception {
+        UUID fakeId = UUID.randomUUID();
+        String vendorId = getFirstVendorId();
+        mockMvc.perform(post("/schedules/" + fakeId)
+                        .param("serviceType", "Test")
+                        .param("nextDueDate", "2027-01-15")
+                        .param("frequencyInterval", "1")
+                        .param("frequencyUnit", "years")
+                        .param("vendorId", vendorId)
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isNotFound())
+                .andExpect(model().attributeExists(
+                        "error"));
+    }
+
     @SuppressWarnings("unchecked")
     private String getFirstScheduleId()
             throws Exception {
@@ -308,6 +375,14 @@ class ScheduleControllerIntegrationTest {
             throws Exception {
         return (List<ServiceSchedule>)
                 getScheduleModel("schedules");
+    }
+
+    @SuppressWarnings("unchecked")
+    private String getFirstVendorId()
+            throws Exception {
+        return ((List<Vendor>)
+                getScheduleModel("vendors"))
+                .get(0).getId().toString();
     }
 
     private Object getScheduleModel(String attr)

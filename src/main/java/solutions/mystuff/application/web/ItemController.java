@@ -2,28 +2,31 @@ package solutions.mystuff.application.web;
 
 import java.security.Principal;
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.AppUser;
 import solutions.mystuff.domain.model.FrequencyUnit;
 import solutions.mystuff.domain.model.Item;
 import solutions.mystuff.domain.model.LogSanitizer;
+import solutions.mystuff.domain.model.NotFoundException;
 import solutions.mystuff.domain.model.PageResult;
-import solutions.mystuff.domain.model.ServiceSchedule;
 import solutions.mystuff.domain.model.Vendor;
 import solutions.mystuff.domain.port.in.ItemManagement;
 import solutions.mystuff.domain.port.in.ItemQuery;
 import solutions.mystuff.domain.port.in.ScheduleLifecycle;
 import solutions.mystuff.domain.port.in.RecordCreation;
-import solutions.mystuff.domain.port.in.VendorManagement;
 import solutions.mystuff.domain.port.in.VendorQuery;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation
         .RequestParam;
@@ -35,17 +38,16 @@ import org.springframework.web.bind.annotation
  * @see InputValidator
  */
 @Controller
+@Tag(name = "Items",
+        description = "Item CRUD and service operations")
 public class ItemController {
 
     private static final Logger log =
             LoggerFactory.getLogger(ItemController.class);
-    private static final String NEW_VENDOR_SENTINEL =
-            "__new__";
 
     private final ControllerHelper helper;
     private final ItemManagement itemService;
     private final ItemQuery itemQuery;
-    private final VendorManagement vendorService;
     private final VendorQuery vendorQuery;
     private final ScheduleLifecycle scheduleService;
     private final RecordCreation recordService;
@@ -54,260 +56,316 @@ public class ItemController {
             ControllerHelper helper,
             ItemManagement itemService,
             ItemQuery itemQuery,
-            VendorManagement vendorService,
             VendorQuery vendorQuery,
             ScheduleLifecycle scheduleService,
             RecordCreation recordService) {
         this.helper = helper;
         this.itemService = itemService;
         this.itemQuery = itemQuery;
-        this.vendorService = vendorService;
         this.vendorQuery = vendorQuery;
         this.scheduleService = scheduleService;
         this.recordService = recordService;
     }
 
-    /** Redirects root to the schedules page. */
+    @Operation(summary = "Redirect to schedules",
+            responses = @ApiResponse(
+                    responseCode = "302",
+                    description = "Redirects to"
+                            + " /schedules"))
     @GetMapping("/")
     public String home() {
         return "redirect:/schedules";
     }
 
-    /** Lists items with optional search and pagination. */
+    @Operation(summary = "List items",
+            description = "Returns a paginated list of"
+                    + " items with optional full-text"
+                    + " search. Model attributes:"
+                    + " items (List<Item>),"
+                    + " itemPage (PageResult),"
+                    + " vendors (List<Vendor>),"
+                    + " frequencyUnits (FrequencyUnit[])."
+                    + " Includes Link header for"
+                    + " pagination.",
+            responses = {
+                    @ApiResponse(responseCode = "200",
+                            description = "HTML page with"
+                                    + " item table"),
+                    @ApiResponse(responseCode = "200",
+                            description = "No-org warning"
+                                    + " if user lacks an"
+                                    + " organization")})
     @GetMapping("/items")
     public String items(
+            @Parameter(description = "Search query to"
+                    + " filter items by name, location,"
+                    + " manufacturer, model, or serial"
+                    + " number")
             @RequestParam(required = false) String q,
+            @Parameter(description = "Zero-based page"
+                    + " index")
             @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Page size"
+                    + " (max 100)")
             @RequestParam(defaultValue = "10") int size,
             Principal principal, Model model,
             HttpServletResponse response) {
         AppUser user = helper.resolveUser(principal);
         if (!user.hasOrganization()) {
-            return handleNoOrg(user, model);
+            return helper.handleNoOrg(user, model,
+                    "items");
         }
         helper.setOrgMdc(user);
-        try {
-            UUID orgId = user.getOrganization().getId();
-            loadItems(q, orgId, page, size,
-                    model, response);
-            helper.addUserAttrs(user, model);
-            return "items";
-        } finally {
-            helper.clearOrgMdc();
-        }
+        UUID orgId = user.getOrganization().getId();
+        loadItems(q, orgId, page, size,
+                model, response);
+        helper.addUserAttrs(user, model);
+        return "items";
     }
 
-    /** Shows item detail with records and schedules. */
-    @GetMapping("/items/detail")
+    @Operation(summary = "Item detail",
+            description = "Shows the item list with"
+                    + " one item expanded to show its"
+                    + " service history and active"
+                    + " schedules. Additional model"
+                    + " attributes: selectedItemId"
+                    + " (UUID), itemRecords"
+                    + " (List<ServiceRecord>),"
+                    + " itemSchedules"
+                    + " (List<ServiceSchedule>).",
+            responses = {
+                    @ApiResponse(responseCode = "200",
+                            description = "HTML page with"
+                                    + " item detail"
+                                    + " expanded"),
+                    @ApiResponse(responseCode = "404",
+                            description = "Item not"
+                                    + " found")})
+    @GetMapping("/items/{id}")
     public String itemDetail(
-            @RequestParam UUID itemId,
+            @Parameter(description = "Item UUID")
+            @PathVariable("id") UUID itemId,
+            @Parameter(description = "Zero-based page"
+                    + " index for the item list")
             @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Page size"
+                    + " (max 100)")
             @RequestParam(defaultValue = "10") int size,
             Principal principal, Model model,
             HttpServletResponse response) {
         AppUser user = helper.resolveUser(principal);
         if (!user.hasOrganization()) {
-            return handleNoOrg(user, model);
+            return helper.handleNoOrg(user, model,
+                    "items");
         }
         helper.setOrgMdc(user);
-        try {
-            UUID orgId = user.getOrganization().getId();
-            loadItems(null, orgId, page, size,
-                    model, response);
-            helper.addUserAttrs(user, model);
-            addDetailAttrs(model, itemId, orgId);
-            return "items";
-        } finally {
-            helper.clearOrgMdc();
-        }
+        UUID orgId = user.getOrganization().getId();
+        loadItems(null, orgId, page, size,
+                model, response);
+        helper.addUserAttrs(user, model);
+        addDetailAttrs(model, itemId, orgId);
+        return "items";
     }
 
-    /** Creates a new item for the user's organization. */
-    @PostMapping("/items/add")
+    @Operation(summary = "Create item",
+            description = "Creates a new item in the"
+                    + " user's organization. Redirects"
+                    + " to /items on success.",
+            responses = {
+                    @ApiResponse(responseCode = "302",
+                            description = "Redirect to"
+                                    + " /items on"
+                                    + " success"),
+                    @ApiResponse(responseCode = "400",
+                            description = "Validation"
+                                    + " error (blank"
+                                    + " name, exceeds"
+                                    + " max length)")})
+    @PostMapping("/items")
     public String addItem(
+            @Parameter(description = "Item name"
+                    + " (required, max 200 chars)",
+                    required = true)
             @RequestParam String name,
+            @Parameter(description = "Where the item"
+                    + " is located (max 200 chars)")
             @RequestParam(required = false)
                     String location,
+            @Parameter(description = "Manufacturer"
+                    + " name (max 200 chars)")
             @RequestParam(required = false)
                     String manufacturer,
+            @Parameter(description = "Model name"
+                    + " (max 200 chars)")
             @RequestParam(required = false)
                     String modelName,
+            @Parameter(description = "Serial number"
+                    + " (max 100 chars)")
             @RequestParam(required = false)
                     String serialNumber,
             Principal principal) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
-        try {
-            UUID orgId = user.getOrganization().getId();
-            itemService.createItem(orgId, name,
-                    location, manufacturer,
-                    modelName, serialNumber);
-            return "redirect:/items";
-        } finally {
-            helper.clearOrgMdc();
-        }
+        UUID orgId = user.getOrganization().getId();
+        itemService.createItem(orgId, name,
+                location, manufacturer,
+                modelName, serialNumber);
+        return "redirect:/items";
     }
 
-    /** Logs a service record for an item, advancing schedule if not one-off. */
-    @PostMapping("/items/log")
+    @Operation(summary = "Log service record",
+            description = "Logs a service visit for an"
+                    + " item. If oneOff is false"
+                    + " (default), advances the next"
+                    + " active schedule. Vendor is"
+                    + " optional for visits. Supply"
+                    + " either an existing vendorId or"
+                    + " '__new__' with newVendorName.",
+            responses = {
+                    @ApiResponse(responseCode = "302",
+                            description = "Redirect to"
+                                    + " /items on"
+                                    + " success"),
+                    @ApiResponse(responseCode = "400",
+                            description = "Validation"
+                                    + " error (blank"
+                                    + " summary, bad"
+                                    + " date)"),
+                    @ApiResponse(responseCode = "404",
+                            description = "Item not"
+                                    + " found")})
+    @PostMapping("/items/{id}/service-records")
     public String logItemService(
-            @RequestParam UUID itemId,
+            @Parameter(description = "Item UUID")
+            @PathVariable("id") UUID itemId,
+            @Parameter(description = "What was done"
+                    + " (required)", required = true)
             @RequestParam String summary,
+            @Parameter(description = "Date of service"
+                    + " in ISO format (yyyy-MM-dd)",
+                    required = true,
+                    example = "2026-06-15")
             @RequestParam String serviceDate,
+            @Parameter(description = "Existing vendor"
+                    + " UUID, or '__new__' to create"
+                    + " inline")
             @RequestParam(required = false)
                     String vendorId,
+            @Parameter(description = "Name for inline"
+                    + " vendor creation (required when"
+                    + " vendorId is '__new__')")
             @RequestParam(required = false)
                     String newVendorName,
+            @Parameter(description = "Phone for inline"
+                    + " vendor creation")
             @RequestParam(required = false)
                     String newVendorPhone,
+            @Parameter(description = "Technician name")
             @RequestParam(required = false)
                     String techName,
+            @Parameter(description = "If true, logs"
+                    + " without advancing any schedule")
             @RequestParam(required = false,
                     defaultValue = "false")
                     boolean oneOff,
             Principal principal) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
-        try {
-            UUID orgId = user.getOrganization().getId();
-            Item item = findItem(itemId, orgId);
-            Vendor vendor = resolveVendor(
-                    orgId, vendorId, newVendorName,
-                    newVendorPhone);
-            LocalDate date = InputValidator.parseDate(
-                    serviceDate, "Service date");
-            if (oneOff) {
-                recordService.createRecord(orgId, item,
-                        null, null, vendor, summary,
-                        date, techName);
-            } else {
-                scheduleService.completeNextForItem(
-                        orgId, itemId, vendor,
-                        summary, date, techName);
-            }
-            return "redirect:/items";
-        } finally {
-            helper.clearOrgMdc();
+        UUID orgId = user.getOrganization().getId();
+        Item item = findItem(itemId, orgId);
+        Vendor vendor = helper.resolveVendor(
+                orgId, vendorId, newVendorName,
+                newVendorPhone);
+        LocalDate date = InputValidator.parseDate(
+                serviceDate, "Service date");
+        if (oneOff) {
+            recordService.createRecord(orgId, item,
+                    null, null, vendor, summary,
+                    date, techName);
+        } else {
+            scheduleService.completeNextForItem(
+                    orgId, itemId, vendor,
+                    summary, date, techName);
         }
+        return "redirect:/items";
     }
 
-    /** Creates a recurring service schedule for an item. */
-    @PostMapping("/items/schedule")
+    @Operation(summary = "Create schedule",
+            description = "Creates a recurring service"
+                    + " schedule for an item. Vendor is"
+                    + " required. Supply either an"
+                    + " existing vendorId or '__new__'"
+                    + " with newVendorName.",
+            responses = {
+                    @ApiResponse(responseCode = "302",
+                            description = "Redirect to"
+                                    + " /items (or"
+                                    + " /schedules if"
+                                    + " redirectTo="
+                                    + "'schedules')"),
+                    @ApiResponse(responseCode = "400",
+                            description = "Validation"
+                                    + " error (blank"
+                                    + " type, bad date,"
+                                    + " missing"
+                                    + " vendor)")})
+    @PostMapping("/items/{id}/schedules")
     public String scheduleItemService(
-            @RequestParam UUID itemId,
+            @Parameter(description = "Item UUID")
+            @PathVariable("id") UUID itemId,
+            @Parameter(description = "Service type"
+                    + " label (required, max 150"
+                    + " chars)",
+                    required = true,
+                    example = "HVAC Inspection")
             @RequestParam String serviceType,
+            @Parameter(description = "First due date"
+                    + " in ISO format (yyyy-MM-dd)",
+                    required = true,
+                    example = "2026-09-01")
             @RequestParam String nextDueDate,
+            @Parameter(description = "Recurrence"
+                    + " interval (>= 1)",
+                    required = true, example = "6")
             @RequestParam int frequencyInterval,
+            @Parameter(description = "Recurrence unit:"
+                    + " days, weeks, months, or years",
+                    required = true)
             @RequestParam FrequencyUnit frequencyUnit,
+            @Parameter(description = "Existing vendor"
+                    + " UUID, or '__new__' to create"
+                    + " inline (required)")
             @RequestParam(required = false)
                     String vendorId,
+            @Parameter(description = "Name for inline"
+                    + " vendor creation")
             @RequestParam(required = false)
                     String newVendorName,
+            @Parameter(description = "Phone for inline"
+                    + " vendor creation")
             @RequestParam(required = false)
                     String newVendorPhone,
+            @Parameter(description = "Set to"
+                    + " 'schedules' to redirect there"
+                    + " instead of /items")
+            @RequestParam(required = false)
+                    String redirectTo,
             Principal principal) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
-        try {
-            UUID orgId = user.getOrganization().getId();
-            Vendor vendor = resolveVendor(
-                    orgId, vendorId, newVendorName,
-                    newVendorPhone);
-            LocalDate due = InputValidator.parseDate(
-                    nextDueDate, "Next due date");
-            scheduleService.createSchedule(orgId,
-                    itemId, serviceType, vendor, due,
-                    frequencyInterval, frequencyUnit);
-            return "redirect:/items";
-        } finally {
-            helper.clearOrgMdc();
+        UUID orgId = user.getOrganization().getId();
+        Vendor vendor = helper.resolveVendor(
+                orgId, vendorId, newVendorName,
+                newVendorPhone);
+        LocalDate due = InputValidator.parseDate(
+                nextDueDate, "Next due date");
+        scheduleService.createSchedule(orgId,
+                itemId, serviceType, vendor, due,
+                frequencyInterval, frequencyUnit);
+        if ("schedules".equals(redirectTo)) {
+            return "redirect:/schedules";
         }
-    }
-
-    /** Marks a scheduled service as completed. */
-    @PostMapping("/items/complete")
-    public String completeSchedule(
-            @RequestParam UUID scheduleId,
-            @RequestParam String summary,
-            @RequestParam String serviceDate,
-            @RequestParam(required = false)
-                    String vendorId,
-            @RequestParam(required = false)
-                    String newVendorName,
-            @RequestParam(required = false)
-                    String newVendorPhone,
-            @RequestParam(required = false)
-                    String techName,
-            Principal principal) {
-        AppUser user = helper.resolveUser(principal);
-        helper.setOrgMdc(user);
-        try {
-            UUID orgId = user.getOrganization().getId();
-            Vendor vendor = resolveVendor(
-                    orgId, vendorId, newVendorName,
-                    newVendorPhone);
-            LocalDate date = InputValidator.parseDate(
-                    serviceDate, "Service date");
-            ServiceSchedule sched =
-                    scheduleService.completeSchedule(
-                            scheduleId, orgId, vendor,
-                            summary, date, techName);
-            return "redirect:/items/detail?itemId="
-                    + sched.getItem().getId();
-        } finally {
-            helper.clearOrgMdc();
-        }
-    }
-
-    /** Skips the current occurrence and advances the due date. */
-    @PostMapping("/items/skip")
-    public String skipSchedule(
-            @RequestParam UUID scheduleId,
-            Principal principal) {
-        AppUser user = helper.resolveUser(principal);
-        helper.setOrgMdc(user);
-        try {
-            UUID orgId = user.getOrganization().getId();
-            ServiceSchedule sched =
-                    scheduleService.skipSchedule(
-                            scheduleId, orgId);
-            return "redirect:/items/detail?itemId="
-                    + sched.getItem().getId();
-        } finally {
-            helper.clearOrgMdc();
-        }
-    }
-
-    private Vendor resolveVendor(
-            UUID orgId, String vendorId,
-            String newVendorName,
-            String newVendorPhone) {
-        if (NEW_VENDOR_SENTINEL.equals(vendorId)) {
-            return vendorService.createVendor(
-                    orgId, newVendorName,
-                    newVendorPhone);
-        }
-        if (vendorId != null && !vendorId.isBlank()) {
-            return vendorQuery.findAllVendors(orgId)
-                    .stream()
-                    .filter(v -> v.getId().toString()
-                            .equals(vendorId))
-                    .findFirst()
-                    .orElseThrow(() ->
-                            new IllegalArgumentException(
-                                    "Vendor not found"));
-        }
-        return null;
-    }
-
-    private String handleNoOrg(
-            AppUser user, Model model) {
-        log.warn("User {} has no organization",
-                user.getUsername());
-        model.addAttribute("noOrganization", true);
-        model.addAttribute("items",
-                Collections.emptyList());
-        return "items";
+        return "redirect:/items";
     }
 
     private void addDetailAttrs(
@@ -352,7 +410,7 @@ public class ItemController {
         return itemQuery
                 .findByIdAndOrganization(itemId, orgId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
+                        new NotFoundException(
                                 "Item not found"));
     }
 }

@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import solutions.mystuff.domain.model.NotFoundException;
+import solutions.mystuff.domain.model.ParsedAltPhone;
 import solutions.mystuff.domain.model.Vendor;
 import solutions.mystuff.domain.model.VendorData;
 import solutions.mystuff.domain.port.out.VendorRepository;
@@ -82,7 +84,7 @@ class VendorManagementServiceTest {
                 "Updated", "555-9999", "new@test.com",
                 "456 Oak", "Apt 2", "Chicago", "IL",
                 "60601", "US", "https://updated.com",
-                "Great vendor");
+                "Great vendor", List.of());
         Vendor result = service.updateVendor(
                 orgId, vendorId, data);
 
@@ -111,7 +113,7 @@ class VendorManagementServiceTest {
                 "New Corp", "555-1111", "info@new.com",
                 "789 Pine", null, "Boston", "MA",
                 "02101", "US", "https://new.com",
-                "Notes here");
+                "Notes here", List.of());
         Vendor result = service.createVendor(
                 orgId, data);
 
@@ -129,7 +131,8 @@ class VendorManagementServiceTest {
         UUID vendorId = UUID.randomUUID();
         VendorData data = new VendorData(
                 "  ", null, null, null, null,
-                null, null, null, null, null, null);
+                null, null, null, null, null, null,
+                List.of());
         assertThatThrownBy(() ->
                 service.updateVendor(
                         orgId, vendorId, data))
@@ -148,12 +151,13 @@ class VendorManagementServiceTest {
 
         VendorData data = new VendorData(
                 "Name", null, null, null, null,
-                null, null, null, null, null, null);
+                null, null, null, null, null, null,
+                List.of());
         assertThatThrownBy(() ->
                 service.updateVendor(
                         orgId, vendorId, data))
                 .isInstanceOf(
-                        IllegalArgumentException.class)
+                        NotFoundException.class)
                 .hasMessage("Vendor not found");
     }
 
@@ -182,7 +186,7 @@ class VendorManagementServiceTest {
         assertThatThrownBy(() ->
                 service.deleteVendor(orgId, vendorId))
                 .isInstanceOf(
-                        IllegalArgumentException.class)
+                        NotFoundException.class)
                 .hasMessage("Vendor not found");
     }
 
@@ -198,6 +202,92 @@ class VendorManagementServiceTest {
                 service.findAllVendors(orgId);
 
         assertThat(result).hasSize(2);
+    }
+
+    @Test
+    @DisplayName("should create vendor with alt phones")
+    void shouldCreateWithAltPhones() {
+        when(repo.save(any(Vendor.class)))
+                .thenAnswer(i -> i.getArgument(0));
+
+        List<ParsedAltPhone> altPhones = List.of(
+                new ParsedAltPhone("555-2222", "mobile"),
+                new ParsedAltPhone("555-3333", null));
+        VendorData data = new VendorData(
+                "Alt Corp", "555-1111", null,
+                null, null, null, null,
+                null, null, null, null, altPhones);
+        Vendor result = service.createVendor(
+                orgId, data);
+
+        assertThat(result.getAltPhones()).hasSize(2);
+        assertThat(result.getAltPhones().get(0)
+                .getPhone()).isEqualTo("555-2222");
+        assertThat(result.getAltPhones().get(0)
+                .getLabel()).isEqualTo("mobile");
+        assertThat(result.getAltPhones().get(1)
+                .getLabel()).isNull();
+    }
+
+    @Test
+    @DisplayName("should update vendor alt phones")
+    void shouldUpdateAltPhones() {
+        UUID vendorId = UUID.randomUUID();
+        Vendor existing = existingVendor(vendorId);
+        when(repo.findByIdAndOrganizationId(
+                vendorId, orgId))
+                .thenReturn(Optional.of(existing));
+        when(repo.save(any(Vendor.class)))
+                .thenAnswer(i -> i.getArgument(0));
+
+        List<ParsedAltPhone> altPhones = List.of(
+                new ParsedAltPhone("555-4444", "work"));
+        VendorData data = new VendorData(
+                "Updated", null, null,
+                null, null, null, null,
+                null, null, null, null, altPhones);
+        Vendor result = service.updateVendor(
+                orgId, vendorId, data);
+
+        assertThat(result.getAltPhones()).hasSize(1);
+        assertThat(result.getAltPhones().get(0)
+                .getPhone()).isEqualTo("555-4444");
+    }
+
+    @Test
+    @DisplayName("should skip blank alt phones")
+    void shouldSkipBlankAltPhones() {
+        when(repo.save(any(Vendor.class)))
+                .thenAnswer(i -> i.getArgument(0));
+
+        List<ParsedAltPhone> altPhones = List.of(
+                new ParsedAltPhone("  ", "mobile"),
+                new ParsedAltPhone("555-5555", null));
+        VendorData data = new VendorData(
+                "Corp", null, null,
+                null, null, null, null,
+                null, null, null, null, altPhones);
+        Vendor result = service.createVendor(
+                orgId, data);
+
+        assertThat(result.getAltPhones()).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("should reject alt phone exceeding max length")
+    void shouldRejectLongAltPhone() {
+        String longPhone = "x".repeat(51);
+        List<ParsedAltPhone> altPhones = List.of(
+                new ParsedAltPhone(longPhone, null));
+        VendorData data = new VendorData(
+                "Corp", null, null,
+                null, null, null, null,
+                null, null, null, null, altPhones);
+        assertThatThrownBy(() ->
+                service.createVendor(orgId, data))
+                .isInstanceOf(
+                        IllegalArgumentException.class)
+                .hasMessageContaining("maximum length");
     }
 
     private Vendor existingVendor(UUID vendorId) {
