@@ -1,10 +1,13 @@
 package solutions.mystuff.infrastructure.persistence;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
+import solutions.mystuff.domain.model.ItemCostSummary;
 import solutions.mystuff.domain.model.ServiceRecord;
 import solutions.mystuff.domain.port.out.ServiceRecordRepository;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -48,4 +51,39 @@ public interface JpaServiceRecordRepository
             + "ORDER BY r.serviceDate DESC")
     List<ServiceRecord> findByOrganizationId(
             @Param("orgId") UUID organizationId);
+
+    @Override
+    @Query("SELECT COALESCE(SUM(r.cost), 0)"
+            + " FROM ServiceRecord r"
+            + " WHERE r.organizationId = :orgId"
+            + " AND YEAR(r.serviceDate) = :year")
+    BigDecimal sumCostByOrganizationAndYear(
+            @Param("orgId") UUID orgId,
+            @Param("year") int year);
+
+    @Override
+    @Query("SELECT COALESCE(SUM(r.cost), 0)"
+            + " FROM ServiceRecord r"
+            + " WHERE r.organizationId = :orgId")
+    BigDecimal sumCostByOrganization(
+            @Param("orgId") UUID orgId);
+
+    /** Paginated helper for top items by cost. */
+    @Query("SELECT new solutions.mystuff.domain.model"
+            + ".ItemCostSummary(r.item.id, r.item.name,"
+            + " SUM(r.cost))"
+            + " FROM ServiceRecord r"
+            + " WHERE r.organizationId = :orgId"
+            + " GROUP BY r.item.id, r.item.name"
+            + " ORDER BY SUM(r.cost) DESC")
+    List<ItemCostSummary> findTopItemsByCostPage(
+            @Param("orgId") UUID orgId,
+            org.springframework.data.domain.Pageable page);
+
+    @Override
+    default List<ItemCostSummary> findTopItemsByCost(
+            UUID orgId, int limit) {
+        return findTopItemsByCostPage(orgId,
+                PageRequest.of(0, limit));
+    }
 }

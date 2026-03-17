@@ -69,8 +69,8 @@ public class ServiceRecord extends OrgOwnedEntity {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(precision = 12, scale = 2)
-    private BigDecimal cost;
+    @Column(precision = 12, scale = 2, nullable = false)
+    private BigDecimal cost = BigDecimal.ZERO;
 
     @Column(name = "technician_name", length = 200)
     private String technicianName;
