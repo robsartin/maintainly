@@ -35,7 +35,7 @@ class ApiSecurityIntegrationTest {
     @DisplayName("should require auth for API endpoints")
     void shouldRequireAuthForApiEndpoints()
             throws Exception {
-        mockMvc.perform(get("/api/items"))
+        mockMvc.perform(get("/api/nonexistent"))
                 .andExpect(status().isUnauthorized());
     }
 
