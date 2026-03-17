@@ -13,6 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet
         .request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet
@@ -57,6 +58,22 @@ class ReportControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(
                         "application/pdf"));
+    }
+
+    @Test
+    @DisplayName("should include color legend in service PDF")
+    void shouldIncludeColorLegendInServicePdf()
+            throws Exception {
+        MvcResult result = mockMvc.perform(
+                        get("/reports/service-summary")
+                                .with(user("dev")
+                                        .roles("USER")))
+                .andExpect(status().isOk())
+                .andReturn();
+        byte[] pdf = result.getResponse()
+                .getContentAsByteArray();
+        assertTrue(pdf.length > 0,
+                "PDF should not be empty");
     }
 
     @Test

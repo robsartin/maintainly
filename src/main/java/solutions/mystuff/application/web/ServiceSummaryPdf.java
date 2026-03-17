@@ -8,13 +8,16 @@ import com.lowagie.text.Document;
 import com.lowagie.text.Element;
 import com.lowagie.text.PageSize;
 import com.lowagie.text.Paragraph;
+import com.lowagie.text.Phrase;
+import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
 import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * Generates a PDF report of service schedules due soon
- * using OpenPDF.
+ * using OpenPDF. Rows are color-coded by urgency:
+ * red (overdue), yellow (due soon), green (on track).
  *
  * @see ReportController
  * @see PdfHelper
@@ -46,7 +49,10 @@ final class ServiceSummaryPdf {
                     "No service due.",
                     PdfHelper.BODY_FONT));
         } else {
-            doc.add(buildTable(schedules));
+            LocalDate today = LocalDate.now();
+            LocalDate soon = today.plusWeeks(2);
+            addLegend(doc);
+            doc.add(buildTable(schedules, today, soon));
         }
         doc.close();
     }
@@ -68,12 +74,44 @@ final class ServiceSummaryPdf {
                                 PdfHelper.FMT),
                 PdfHelper.BODY_FONT);
         gen.setAlignment(Element.ALIGN_RIGHT);
-        gen.setSpacingAfter(12);
+        gen.setSpacingAfter(6);
         doc.add(gen);
     }
 
+    private static void addLegend(Document doc)
+            throws Exception {
+        PdfPTable legend = new PdfPTable(6);
+        legend.setWidthPercentage(50);
+        legend.setHorizontalAlignment(
+                Element.ALIGN_LEFT);
+        addLegendEntry(legend, PdfHelper.ROW_OVERDUE,
+                "Overdue");
+        addLegendEntry(legend, PdfHelper.ROW_SOON,
+                "Due within 2 weeks");
+        addLegendEntry(legend, PdfHelper.ROW_OK,
+                "On track");
+        legend.setSpacingAfter(8);
+        doc.add(legend);
+    }
+
+    private static void addLegendEntry(
+            PdfPTable table, java.awt.Color color,
+            String label) {
+        PdfPCell swatch = new PdfPCell(new Phrase(" "));
+        swatch.setBackgroundColor(color);
+        swatch.setFixedHeight(12);
+        swatch.setBorderWidth(0.5f);
+        table.addCell(swatch);
+        PdfPCell text = new PdfPCell(
+                new Phrase(label, PdfHelper.BODY_FONT));
+        text.setBorderWidth(0);
+        text.setPaddingLeft(4);
+        table.addCell(text);
+    }
+
     private static PdfPTable buildTable(
-            List<ServiceSchedule> schedules)
+            List<ServiceSchedule> schedules,
+            LocalDate today, LocalDate soon)
             throws Exception {
         PdfPTable table = new PdfPTable(
                 new float[]{3, 2, 2, 2, 2, 2, 2});
@@ -83,30 +121,35 @@ final class ServiceSummaryPdf {
                 "Next Due", "Frequency",
                 "Last Completed");
         for (ServiceSchedule s : schedules) {
-            addRow(table, s);
+            addRow(table, s, today, soon);
         }
         return table;
     }
 
     private static void addRow(
-            PdfPTable table, ServiceSchedule s) {
+            PdfPTable table, ServiceSchedule s,
+            LocalDate today, LocalDate soon) {
+        java.awt.Color bg = PdfHelper.rowColor(
+                s.getNextDueDate(), today, soon);
         PdfHelper.addCell(table,
-                s.getItem().getName());
+                s.getItem().getName(), bg);
         PdfHelper.addCell(table,
                 PdfHelper.safe(
-                        s.getItem().getLocation()));
-        PdfHelper.addCell(table, s.getServiceType());
+                        s.getItem().getLocation()), bg);
+        PdfHelper.addCell(table,
+                s.getServiceType(), bg);
         PdfHelper.addCell(table,
                 s.getPreferredVendor() != null
                         ? s.getPreferredVendor().getName()
-                        : "");
-        PdfHelper.addCell(table,
-                PdfHelper.fmtDate(s.getNextDueDate()));
-        PdfHelper.addCell(table,
-                "Every " + s.getFrequencyInterval()
-                        + " " + s.getFrequencyUnit());
+                        : "", bg);
         PdfHelper.addCell(table,
                 PdfHelper.fmtDate(
-                        s.getLastCompletedDate()));
+                        s.getNextDueDate()), bg);
+        PdfHelper.addCell(table,
+                "Every " + s.getFrequencyInterval()
+                        + " " + s.getFrequencyUnit(), bg);
+        PdfHelper.addCell(table,
+                PdfHelper.fmtDate(
+                        s.getLastCompletedDate()), bg);
     }
 }
