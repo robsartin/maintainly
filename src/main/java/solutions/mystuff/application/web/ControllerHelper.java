@@ -48,7 +48,8 @@ public class ControllerHelper {
     private static final String MDC_ORG_ID =
             "organizationId";
     private static final int MAX_PAGE_SIZE = 100;
-    private static final String NEW_VENDOR_SENTINEL =
+    /** Sentinel value for inline vendor creation in forms. */
+    public static final String NEW_VENDOR_SENTINEL =
             "__new__";
 
     private final UserResolver userResolver;
