@@ -26,27 +26,54 @@ Hexagonal architecture enforced by ArchUnit (see [ADR-0002](doc/adr/0002-use-hex
 
 Only add libraries when highly useful. Every addition increases attack surface, build time, and upgrade burden.
 
-### Compile Dependencies
+### Direct Compile Dependencies (declared in pom.xml)
 
-| Library | Purpose | Pulled in by |
-|---------|---------|-------------|
-| Spring Boot 4.0.3 Starters | Framework (web, JPA, security, actuator, validation, Thymeleaf, Flyway) | Direct |
-| `thymeleaf-extras-springsecurity6` | `sec:` attributes in templates (authorize, authentication) | Direct |
-| `spring-boot-starter-oauth2-client` | Google OAuth2 login in production | Direct |
-| `spring-boot-starter-oauth2-resource-server` | JWT encode/decode (`NimbusJwtEncoder`/`Decoder`) for REST API | Direct |
-| `micrometer-registry-prometheus` | Prometheus metrics export at `/actuator/prometheus` | Direct |
-| `springdoc-openapi-starter-webmvc-ui` 2.8.8 | Swagger UI + OpenAPI spec generation at `/swagger-ui.html` | Direct |
-| `postgresql` | PostgreSQL JDBC driver | Direct (runtime) |
-| `flyway-database-postgresql` | PostgreSQL-specific Flyway migration support | Direct |
-| `openpdf` 2.0.4 | PDF report generation (service summary, item history) | Direct |
-| Hibernate ORM 7.2 | JPA implementation | Via `spring-boot-starter-data-jpa` |
-| Nimbus JOSE JWT | JWT signing/verification (HMAC-SHA256) | Via `oauth2-resource-server` |
-| Jackson 3.x | JSON serialization for REST API | Via `spring-boot-starter-webmvc` |
-| HikariCP | JDBC connection pool | Via `spring-boot-starter-data-jpa` |
-| Logback + SLF4J | Logging | Via `spring-boot-starter` |
-| Tomcat Embed | Servlet container | Via `spring-boot-starter-webmvc` |
+| Library | Purpose |
+|---------|---------|
+| `spring-boot-starter-webmvc` | Spring MVC web framework, Tomcat, Jackson |
+| `spring-boot-starter-data-jpa` | JPA/Hibernate, HikariCP connection pool |
+| `spring-boot-starter-validation` | Bean validation (Hibernate Validator) |
+| `spring-boot-starter-actuator` | Health, info, and metrics endpoints |
+| `spring-boot-starter-thymeleaf` | Server-rendered HTML templates |
+| `thymeleaf-extras-springsecurity6` | `sec:` attributes in templates |
+| `spring-boot-starter-security` | Authentication, authorization, CSRF |
+| `spring-boot-starter-oauth2-client` | Google OAuth2 login in production |
+| `spring-boot-starter-oauth2-resource-server` | JWT encode/decode for REST API |
+| `micrometer-registry-prometheus` | Prometheus metrics export |
+| `springdoc-openapi-starter-webmvc-ui` 2.8.8 | Swagger UI + OpenAPI spec |
+| `postgresql` (runtime) | PostgreSQL JDBC driver |
+| `spring-boot-starter-flyway` | Database migration framework |
+| `flyway-database-postgresql` | PostgreSQL-specific Flyway dialect |
+| `openpdf` 2.0.4 | PDF report generation |
 
-### Test Dependencies
+### Key Indirect Dependencies (transitive, managed by Spring Boot BOM)
+
+| Library | Version | Purpose | Pulled in by |
+|---------|---------|---------|-------------|
+| Hibernate ORM | 7.2.4 | JPA implementation, SQL generation | `starter-data-jpa` |
+| HikariCP | 7.0.2 | JDBC connection pool | `starter-data-jpa` |
+| Spring Data JPA | 4.0.3 | Repository abstraction, query derivation | `starter-data-jpa` |
+| Spring Security | 7.0.3 | Core security (config, web, crypto, OAuth2) | `starter-security` |
+| Nimbus JOSE JWT | 10.4 | JWT signing/verification (HMAC-SHA256) | `oauth2-resource-server` |
+| Nimbus OAuth2 OIDC SDK | 11.26.1 | OpenID Connect client support | `oauth2-client` |
+| Jackson | 3.0.4 (core) / 2.20.2 (dataformat) | JSON serialization, YAML config | `starter-webmvc`, `flyway` |
+| Tomcat Embed | 11.0.18 | Servlet container (core, EL, WebSocket) | `starter-webmvc` |
+| Thymeleaf | 3.1.3 | Template engine (includes attoparser, unbescape) | `starter-thymeleaf` |
+| Logback | 1.5.32 | Logging implementation | `starter-logging` |
+| SLF4J | 2.0.17 | Logging API (includes jul-to-slf4j, log4j-to-slf4j bridges) | `starter-logging` |
+| Flyway Core | 11.14.1 | Migration engine | `starter-flyway` |
+| Micrometer | 1.16.3 | Metrics collection (core, observation, commons) | `starter-actuator` |
+| Prometheus Client | 1.4.3 | Metrics exposition (model, config, text formats) | `micrometer-registry-prometheus` |
+| Hibernate Validator | 9.0.1 | Bean validation implementation | `starter-validation` |
+| Swagger / OpenAPI | 2.2.30 | API annotations, models, core | `springdoc-openapi` |
+| AspectJ Weaver | 1.9.25 | AOP proxy support for `@Transactional` | `starter-data-jpa` |
+| ANTLR4 Runtime | 4.13.2 | HQL/JPQL query parsing | `spring-data-jpa` |
+| SnakeYAML | 2.5 | YAML configuration parsing | `spring-boot-starter` |
+| Byte Buddy | 1.17.8 | Runtime class generation (Hibernate proxies) | `hibernate-core` |
+| JAXB Runtime | 4.0.6 | XML binding (Hibernate metadata) | `hibernate-core` |
+| Jakarta APIs | 3.x | Persistence, Validation, Transaction, Annotation, Inject | Spring Boot BOM |
+
+### Direct Test Dependencies
 
 | Library | Purpose |
 |---------|---------|
@@ -57,9 +84,9 @@ Only add libraries when highly useful. Every addition increases attack surface, 
 
 ### Frontend (no build step)
 
-| Library | Purpose | Loaded via |
+| Library | Version | Loaded via |
 |---------|---------|-----------|
-| htmx 2.0.4 | Lightweight AJAX for dynamic UI | CDN (`<script>` in layout.html) |
+| htmx | 2.0.4 | CDN `<script>` in layout.html |
 
 ## Workflow After Commits
 
