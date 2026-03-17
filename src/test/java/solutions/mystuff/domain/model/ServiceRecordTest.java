@@ -27,7 +27,7 @@ class ServiceRecordTest {
         assertNull(r.getServiceDate());
         assertNull(r.getSummary());
         assertNull(r.getDescription());
-        assertNull(r.getCost());
+        assertEquals(BigDecimal.ZERO, r.getCost());
     }
 
     @Test

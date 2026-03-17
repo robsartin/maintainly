@@ -49,14 +49,19 @@ public class ReportController {
     private final ItemQuery itemQuery;
     private final ScheduleQuery scheduleQuery;
     private final ControllerHelper helper;
+    private final solutions.mystuff.domain.port.in
+            .CostQuery costQuery;
 
     public ReportController(
             ItemQuery itemQuery,
             ScheduleQuery scheduleQuery,
-            ControllerHelper helper) {
+            ControllerHelper helper,
+            solutions.mystuff.domain.port.in
+                    .CostQuery costQuery) {
         this.itemQuery = itemQuery;
         this.scheduleQuery = scheduleQuery;
         this.helper = helper;
+        this.costQuery = costQuery;
     }
 
     @Operation(summary = "Reports page",
@@ -82,6 +87,7 @@ public class ReportController {
         model.addAttribute("items",
                 itemQuery.findAllByOrganization(
                         orgId));
+        addCostSummary(orgId, model);
         return "reports";
     }
 
@@ -204,5 +210,17 @@ public class ReportController {
                                 .plusMonths(1)
                         : YearMonth.from(today);
         return target.atEndOfMonth();
+    }
+
+    private void addCostSummary(
+            UUID orgId, Model model) {
+        int year = LocalDate.now().getYear();
+        model.addAttribute("currentYear", year);
+        model.addAttribute("totalSpendThisYear",
+                costQuery.totalSpendForYear(orgId, year));
+        model.addAttribute("totalSpendAllTime",
+                costQuery.totalSpendAllTime(orgId));
+        model.addAttribute("topItemsByCost",
+                costQuery.topItemsByCost(orgId, 5));
     }
 }

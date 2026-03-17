@@ -1,8 +1,10 @@
 package solutions.mystuff.domain.port.out;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
+import solutions.mystuff.domain.model.ItemCostSummary;
 import solutions.mystuff.domain.model.ServiceRecord;
 
 /**
@@ -32,4 +34,15 @@ public interface ServiceRecordRepository {
 
     /** Persist a new or updated service record. */
     ServiceRecord save(ServiceRecord record);
+
+    /** Sum of cost for an organization in a given year. */
+    BigDecimal sumCostByOrganizationAndYear(
+            UUID orgId, int year);
+
+    /** Sum of cost for an organization across all time. */
+    BigDecimal sumCostByOrganization(UUID orgId);
+
+    /** Top items by total cost, limited. */
+    List<ItemCostSummary> findTopItemsByCost(
+            UUID orgId, int limit);
 }
