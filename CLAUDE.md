@@ -257,11 +257,24 @@ Transitive dependencies, managed by Spring Boot 4.0.3 BOM unless version noted.
 |---------|---------|-----------|
 | htmx | 2.0.4 | CDN `<script>` in layout.html |
 
-## Workflow After Commits
+## Development Workflow
 
-After every commit, push and rebuild/rerun docker:
+All changes go through pull requests — no direct commits to `main` ([ADR-0028](doc/adr/0028-require-pull-requests-for-all-changes.md)).
+
 ```bash
-git push && docker compose up -d --build app
+# 1. Create a branch
+git checkout -b descriptive-branch-name
+
+# 2. Work, commit, push
+git push -u origin descriptive-branch-name
+
+# 3. After each commit, rebuild docker for local testing
+docker compose up -d --build app
+
+# 4. Create PR when ready
+gh pr create
+
+# 5. Merge after CI passes (merge commit, not squash)
 ```
 
 ## ADRs
