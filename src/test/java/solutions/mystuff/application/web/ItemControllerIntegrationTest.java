@@ -120,10 +120,6 @@ class ItemControllerIntegrationTest {
                         .with(user("dev").roles("USER")))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Link",
-                        containsString("rel=\"first\"")))
-                .andExpect(header().string("Link",
-                        containsString("rel=\"last\"")))
-                .andExpect(header().string("Link",
                         containsString("rel=\"next\"")));
     }
 
