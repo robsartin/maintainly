@@ -37,9 +37,9 @@ final class PdfHelper {
     /** Overdue row: muted red, dark in B&W. */
     static final java.awt.Color ROW_OVERDUE =
             new java.awt.Color(248, 200, 200);
-    /** Due soon row: muted gold, medium in B&W. */
+    /** Due soon row: muted gold, midpoint in B&W. */
     static final java.awt.Color ROW_SOON =
-            new java.awt.Color(255, 240, 190);
+            new java.awt.Color(252, 230, 180);
     /** On track row: muted green, lightest in B&W. */
     static final java.awt.Color ROW_OK =
             new java.awt.Color(235, 255, 235);
