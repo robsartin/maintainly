@@ -11,6 +11,13 @@ DELETE FROM vendor_alt_phones WHERE organization_id = '019cf8ad-cb21-74ec-b48b-8
 DELETE FROM items            WHERE organization_id = '019cf8ad-cb21-74ec-b48b-8962a510ac3f';
 DELETE FROM vendors          WHERE organization_id = '019cf8ad-cb21-74ec-b48b-8962a510ac3f';
 
+-- Assign rob.sartin@gmail.com to this org (creates user if absent)
+INSERT INTO app_users (id, username, organization_id, created_at, updated_at)
+VALUES (gen_random_uuid(), 'rob.sartin@gmail.com',
+        '019cf8ad-cb21-74ec-b48b-8962a510ac3f', NOW(), NOW())
+ON CONFLICT (username) DO UPDATE
+    SET organization_id = EXCLUDED.organization_id;
+
 -- ============================================================
 -- Vendors (7: 1 system-managed Unknown + 6 real)
 -- ============================================================

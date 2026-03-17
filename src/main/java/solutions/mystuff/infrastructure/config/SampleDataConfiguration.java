@@ -61,6 +61,8 @@ public class SampleDataConfiguration {
             log.info("Loading sample data");
             Organization org = createOrg(orgRepo);
             assignDevUser(userRepo, org);
+            assignUser(userRepo,
+                    "rob.sartin@gmail.com", org);
             createSampleEntities(itemRepo,
                     vendorRepo, scheduleRepo,
                     org.getId());
@@ -81,14 +83,20 @@ public class SampleDataConfiguration {
     private void assignDevUser(
             AppUserRepository userRepo,
             Organization org) {
-        AppUser dev = userRepo.findByUsername("dev")
+        assignUser(userRepo, "dev", org);
+    }
+
+    private void assignUser(
+            AppUserRepository userRepo,
+            String username, Organization org) {
+        AppUser user = userRepo.findByUsername(username)
                 .orElseGet(() -> {
                     AppUser u = new AppUser(
-                            UuidV7.generate(), "dev");
+                            UuidV7.generate(), username);
                     return userRepo.save(u);
                 });
-        dev.setOrganization(org);
-        userRepo.save(dev);
+        user.setOrganization(org);
+        userRepo.save(user);
     }
 
     private void createSampleEntities(
