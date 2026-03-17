@@ -102,7 +102,7 @@ public class ControllerHelper {
     }
 
     /** Clamps page size between 1 and the configured maximum. */
-    int clampSize(int size) {
+    public int clampSize(int size) {
         return Math.max(1, Math.min(size, MAX_PAGE_SIZE));
     }
 
@@ -118,10 +118,7 @@ public class ControllerHelper {
         }
         if (vendorId != null && !vendorId.isBlank()) {
             UUID id = UUID.fromString(vendorId);
-            return vendorQuery.findAllVendors(orgId)
-                    .stream()
-                    .filter(v -> v.getId().equals(id))
-                    .findFirst()
+            return vendorQuery.findVendor(id, orgId)
                     .orElseThrow(() ->
                             new NotFoundException(
                                     "Vendor not found"));

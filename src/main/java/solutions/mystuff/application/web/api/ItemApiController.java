@@ -42,8 +42,6 @@ public class ItemApiController {
     private static final Logger log =
             LoggerFactory.getLogger(
                     ItemApiController.class);
-    private static final int MAX_PAGE_SIZE = 100;
-
     private final ControllerHelper helper;
     private final ItemQuery itemQuery;
 
@@ -65,8 +63,7 @@ public class ItemApiController {
         helper.setOrgMdc(user);
         UUID orgId = user.getOrganization().getId();
         int safePage = Math.max(0, page);
-        int safeSize = Math.max(1,
-                Math.min(size, MAX_PAGE_SIZE));
+        int safeSize = helper.clampSize(size);
         log.info("API list items page={}", safePage);
         PageResult<Item> result =
                 itemQuery.findByOrganization(

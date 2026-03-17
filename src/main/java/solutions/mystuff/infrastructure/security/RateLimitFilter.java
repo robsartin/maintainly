@@ -2,6 +2,7 @@ package solutions.mystuff.infrastructure.security;
 
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -17,7 +18,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
  *
  * <p>Login endpoints receive a tighter limit than general API
  * requests. Publishes {@link RateLimitExceededEvent} when a
- * client exceeds the allowed rate.
+ * client exceeds the allowed rate. Stale buckets are cleaned
+ * up periodically during request processing.
  *
  * <div class="mermaid">
  * sequenceDiagram
@@ -42,11 +44,19 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     private static final String AUTH_PATH =
             "/api/auth/token";
+    private static final String X_FORWARDED_FOR =
+            "X-Forwarded-For";
+    private static final long CLEANUP_INTERVAL_NANOS =
+            60_000_000_000L;
+    private static final long STALE_THRESHOLD_NANOS =
+            300_000_000_000L;
 
     private final RateLimitProperties properties;
     private final ApplicationEventPublisher publisher;
     private final ConcurrentHashMap<String, long[]> buckets =
             new ConcurrentHashMap<>();
+    private final AtomicLong lastCleanup =
+            new AtomicLong(System.nanoTime());
 
     /** Creates a rate limit filter with the given config. */
     public RateLimitFilter(
@@ -62,7 +72,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain chain)
             throws ServletException, IOException {
-        String ip = request.getRemoteAddr();
+        cleanupIfDue();
+        String ip = resolveClientIp(request);
         int limit = resolveLimit(request);
         if (!tryConsume(ip, limit)) {
             publisher.publishEvent(
@@ -71,6 +82,16 @@ public class RateLimitFilter extends OncePerRequestFilter {
             return;
         }
         chain.doFilter(request, response);
+    }
+
+    private String resolveClientIp(
+            HttpServletRequest request) {
+        String forwarded =
+                request.getHeader(X_FORWARDED_FOR);
+        if (forwarded != null && !forwarded.isBlank()) {
+            return forwarded.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 
     private int resolveLimit(HttpServletRequest request) {
@@ -111,8 +132,17 @@ public class RateLimitFilter extends OncePerRequestFilter {
             bucket[0] = Math.min(limit, bucket[0] + refill);
             bucket[1] = nowNanos;
         }
-        bucket[0]--;
+        bucket[0] = Math.max(-1, bucket[0] - 1);
         return bucket;
+    }
+
+    private void cleanupIfDue() {
+        long now = System.nanoTime();
+        long last = lastCleanup.get();
+        if (now - last > CLEANUP_INTERVAL_NANOS
+                && lastCleanup.compareAndSet(last, now)) {
+            cleanup(STALE_THRESHOLD_NANOS);
+        }
     }
 
     /** Removes stale bucket entries older than the threshold. */

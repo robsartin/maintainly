@@ -74,10 +74,7 @@ final class PdfHelper {
 
     static void addCell(
             PdfPTable table, String text) {
-        PdfPCell cell = new PdfPCell(
-                new Phrase(text, BODY_FONT));
-        cell.setPadding(4);
-        table.addCell(cell);
+        addCell(table, text, null);
     }
 
     static void addCell(

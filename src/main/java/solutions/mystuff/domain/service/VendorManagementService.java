@@ -1,6 +1,7 @@
 package solutions.mystuff.domain.service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.NotFoundException;
@@ -66,7 +67,7 @@ public class VendorManagementService
             VendorData data) {
         Validation.requireNotBlank(
                 data.name(), "Vendor name");
-        Vendor vendor = findVendor(orgId, vendorId);
+        Vendor vendor = requireVendor(orgId, vendorId);
         rejectSystemManaged(vendor);
         applyFields(vendor, data);
         return vendorRepository.save(vendor);
@@ -75,7 +76,7 @@ public class VendorManagementService
     @Override
     public void deleteVendor(
             UUID orgId, UUID vendorId) {
-        Vendor vendor = findVendor(orgId, vendorId);
+        Vendor vendor = requireVendor(orgId, vendorId);
         rejectSystemManaged(vendor);
         vendorRepository.deleteByIdAndOrganizationId(
                 vendorId, orgId);
@@ -86,6 +87,15 @@ public class VendorManagementService
     public List<Vendor> findAllVendors(UUID orgId) {
         return vendorRepository
                 .findByOrganizationId(orgId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<Vendor> findVendor(
+            UUID vendorId, UUID orgId) {
+        return vendorRepository
+                .findByIdAndOrganizationId(
+                        vendorId, orgId);
     }
 
     private Vendor newVendor(UUID orgId) {
@@ -139,7 +149,7 @@ public class VendorManagementService
         }
     }
 
-    private Vendor findVendor(
+    private Vendor requireVendor(
             UUID orgId, UUID vendorId) {
         return vendorRepository
                 .findByIdAndOrganizationId(

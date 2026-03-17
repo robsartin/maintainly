@@ -1,8 +1,6 @@
 package solutions.mystuff.infrastructure.security;
 
 import solutions.mystuff.domain.port.in.ApiTokenService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication
@@ -37,10 +35,6 @@ import org.springframework.stereotype.Service;
 public class ApiTokenServiceImpl
         implements ApiTokenService {
 
-    private static final Logger log =
-            LoggerFactory.getLogger(
-                    ApiTokenServiceImpl.class);
-
     private final AuthenticationManager authManager;
     private final JwtTokenService tokenService;
     private final ApplicationEventPublisher publisher;
@@ -64,8 +58,6 @@ public class ApiTokenServiceImpl
                 new UsernamePasswordAuthenticationToken(
                         username, password));
         String token = tokenService.generateToken(
-                auth.getName());
-        log.info("JWT issued for user={}",
                 auth.getName());
         publisher.publishEvent(
                 new JwtTokenIssuedEvent(auth.getName()));

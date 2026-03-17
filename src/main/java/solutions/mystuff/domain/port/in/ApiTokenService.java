@@ -13,8 +13,7 @@ public interface ApiTokenService {
      * @param username the username
      * @param password the password
      * @return signed token string
-     * @throws org.springframework.security.authentication
-     *         .BadCredentialsException if credentials are invalid
+     * @throws RuntimeException if credentials are invalid
      */
     String issueToken(String username, String password);
 }
