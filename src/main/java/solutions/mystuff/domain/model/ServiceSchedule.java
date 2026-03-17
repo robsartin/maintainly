@@ -48,7 +48,8 @@ public class ServiceSchedule extends OrgOwnedEntity {
     private String serviceType;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "preferred_vendor_id")
+    @JoinColumn(name = "preferred_vendor_id",
+            nullable = false)
     private Vendor preferredVendor;
 
     @Enumerated(EnumType.STRING)

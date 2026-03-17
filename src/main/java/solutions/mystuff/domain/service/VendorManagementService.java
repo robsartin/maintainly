@@ -67,6 +67,7 @@ public class VendorManagementService
         Validation.requireNotBlank(
                 data.name(), "Vendor name");
         Vendor vendor = findVendor(orgId, vendorId);
+        rejectSystemManaged(vendor);
         applyFields(vendor, data);
         return vendorRepository.save(vendor);
     }
@@ -74,7 +75,8 @@ public class VendorManagementService
     @Override
     public void deleteVendor(
             UUID orgId, UUID vendorId) {
-        findVendor(orgId, vendorId);
+        Vendor vendor = findVendor(orgId, vendorId);
+        rejectSystemManaged(vendor);
         vendorRepository.deleteByIdAndOrganizationId(
                 vendorId, orgId);
     }
@@ -145,6 +147,14 @@ public class VendorManagementService
                 .orElseThrow(() ->
                         new NotFoundException(
                                 "Vendor not found"));
+    }
+
+    private void rejectSystemManaged(Vendor vendor) {
+        if (vendor.isSystemManaged()) {
+            throw new IllegalArgumentException(
+                    "Cannot modify a system-managed"
+                            + " vendor");
+        }
     }
 
     private String trimOrNull(String value) {

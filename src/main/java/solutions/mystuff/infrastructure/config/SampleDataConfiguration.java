@@ -101,22 +101,25 @@ public class SampleDataConfiguration {
         String elec = "Electrical Inspection";
         String filter = "Filter Replacement";
         String gen = "General Maintenance";
+        Vendor unknown = createUnknownVendor(
+                vendorRepo, orgId);
         Vendor abc = createVendor(vendorRepo, orgId,
                 "ABC Maintenance", "555-0100");
         Vendor quick = createVendor(vendorRepo, orgId,
                 "QuickFix Services", "555-0200");
         createOriginalItems(itemRepo, scheduleRepo,
-                orgId, hvac, plumb, abc);
+                orgId, hvac, plumb, abc, unknown);
         createAdditionalItems(itemRepo, scheduleRepo,
                 orgId, hvac, plumb, elec, filter, gen,
-                abc, quick);
+                abc, quick, unknown);
     }
 
     private void createOriginalItems(
             ItemRepository itemRepo,
             ServiceScheduleRepository scheduleRepo,
             UUID orgId, String hvac,
-            String plumb, Vendor abc) {
+            String plumb, Vendor abc,
+            Vendor unknown) {
         Item furnace = createItem(itemRepo, orgId,
                 "Main Furnace", "Basement",
                 "Carrier", "58STA", 2020,
@@ -128,7 +131,7 @@ public class SampleDataConfiguration {
         sched(scheduleRepo, orgId, furnace, hvac, abc,
                 FrequencyUnit.months, 6, 3);
         sched(scheduleRepo, orgId, waterHeater, plumb,
-                null, FrequencyUnit.years, 1, -2);
+                unknown, FrequencyUnit.years, 1, -2);
     }
 
     private void createAdditionalItems(
@@ -137,13 +140,14 @@ public class SampleDataConfiguration {
             UUID orgId, String hvac,
             String plumb, String elec,
             String filter, String gen,
-            Vendor abc, Vendor quick) {
+            Vendor abc, Vendor quick,
+            Vendor unknown) {
         createMechanicalItems(itemRepo, scheduleRepo,
                 orgId, hvac, plumb, elec, filter, gen,
-                abc, quick);
+                abc, quick, unknown);
         createBuildingItems(itemRepo, scheduleRepo,
                 orgId, hvac, plumb, elec, filter, gen,
-                abc, quick);
+                abc, quick, unknown);
     }
 
     private void createMechanicalItems(
@@ -152,13 +156,14 @@ public class SampleDataConfiguration {
             UUID o, String hvac,
             String plumb, String elec,
             String filter, String gen,
-            Vendor abc, Vendor quick) {
+            Vendor abc, Vendor quick,
+            Vendor unknown) {
         Item ac = createItem(ir, o, "Central AC",
                 "Roof", "Trane", "XR15", 2019,
                 "TR-XR15-19-2201");
         sched(sr, o, ac, hvac, abc,
                 FrequencyUnit.months, 6, 10);
-        sched(sr, o, ac, filter, null,
+        sched(sr, o, ac, filter, unknown,
                 FrequencyUnit.months, 3, -5);
         Item gen1 = createItem(ir, o,
                 "Backup Generator", "Parking Garage",
@@ -172,7 +177,7 @@ public class SampleDataConfiguration {
                 "WM-SVF-17-0098");
         sched(sr, o, boiler, hvac, abc,
                 FrequencyUnit.years, 1, -30);
-        sched(sr, o, boiler, gen, null,
+        sched(sr, o, boiler, gen, unknown,
                 FrequencyUnit.months, 6, 45);
     }
 
@@ -182,7 +187,8 @@ public class SampleDataConfiguration {
             UUID o, String hvac,
             String plumb, String elec,
             String filter, String gen,
-            Vendor abc, Vendor quick) {
+            Vendor abc, Vendor quick,
+            Vendor unknown) {
         Item pump = createItem(ir, o, "Sump Pump",
                 "Basement", "Zoeller", "M53", 2023,
                 "ZL-M53-23-6621");
@@ -192,7 +198,7 @@ public class SampleDataConfiguration {
                 "Air Compressor", "Workshop",
                 "Ingersoll Rand", "SS3", 2021,
                 "IR-SS3-21-4455");
-        sched(sr, o, comp, gen, null,
+        sched(sr, o, comp, gen, unknown,
                 FrequencyUnit.months, 6, -10);
         sched(sr, o, comp, filter, abc,
                 FrequencyUnit.months, 1, 7);
@@ -204,7 +210,8 @@ public class SampleDataConfiguration {
         sched(sr, o, elev, elec, quick,
                 FrequencyUnit.years, 1, 60);
         createFacilityItems(ir, sr, o, hvac, plumb,
-                elec, filter, gen, abc, quick);
+                elec, filter, gen, abc, quick,
+                unknown);
     }
 
     private void createFacilityItems(
@@ -213,7 +220,8 @@ public class SampleDataConfiguration {
             UUID o, String hvac,
             String plumb, String elec,
             String filter, String gen,
-            Vendor abc, Vendor quick) {
+            Vendor abc, Vendor quick,
+            Vendor unknown) {
         Item panel = createItem(ir, o,
                 "Main Electrical Panel", "Utility Room",
                 "Square D", "QO142", 2015,
@@ -232,13 +240,13 @@ public class SampleDataConfiguration {
                 "LX-LRP-20-5533");
         sched(sr, o, roof, hvac, abc,
                 FrequencyUnit.months, 6, -15);
-        sched(sr, o, roof, filter, null,
+        sched(sr, o, roof, filter, unknown,
                 FrequencyUnit.months, 3, 8);
         Item soft = createItem(ir, o,
                 "Water Softener", "Utility Room",
                 "Culligan", "HE1.25", 2022,
                 "CG-HE-22-9910");
-        sched(sr, o, soft, plumb, null,
+        sched(sr, o, soft, plumb, unknown,
                 FrequencyUnit.months, 6, 30);
     }
 
@@ -250,6 +258,15 @@ public class SampleDataConfiguration {
         createSchedule(repo, orgId, item, type, vendor,
                 unit, interval,
                 LocalDate.now().plusDays(daysFromNow));
+    }
+
+    private Vendor createUnknownVendor(
+            VendorRepository vendorRepo, UUID orgId) {
+        Vendor unknown = new Vendor();
+        unknown.setOrganizationId(orgId);
+        unknown.setName("Unknown Vendor");
+        unknown.setSystemManaged(true);
+        return vendorRepo.save(unknown);
     }
 
     private Vendor createVendor(

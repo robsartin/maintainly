@@ -160,7 +160,8 @@
                 <td th:text="${vendor.city}"></td>
                 <td th:text="${vendor.website}"></td>
                 <td class="actions">
-                    <button type="button" class="btn-icon" title="Edit vendor"
+                    <button th:unless="${vendor.systemManaged}"
+                            type="button" class="btn-icon" title="Edit vendor"
                             th:data-toggle-form="'edit-' + ${vendor.id}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
                              viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -179,7 +180,8 @@
                             <line x1="12" y1="15" x2="12" y2="3"/>
                         </svg>
                     </a>
-                    <form th:action="@{/vendors/{id}(id=${vendor.id})}" method="post" style="display:inline">
+                    <form th:unless="${vendor.systemManaged}"
+                          th:action="@{/vendors/{id}(id=${vendor.id})}" method="post" style="display:inline">
                         <input type="hidden" name="_method" value="DELETE"/>
                         <input type="hidden" th:name="${_csrf.parameterName}"
                                th:value="${_csrf.token}"/>
