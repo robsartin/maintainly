@@ -1,5 +1,6 @@
 package solutions.mystuff.domain.port.in;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -13,7 +14,7 @@ import solutions.mystuff.domain.model.Vendor;
  * <div class="mermaid">
  * classDiagram
  *     class RecordCreation {
- *         +createRecord(UUID, Item, String, ServiceSchedule, Vendor, String, LocalDate, String) void
+ *         +createRecord(UUID, Item, String, ServiceSchedule, Vendor, String, LocalDate, String, BigDecimal) void
  *     }
  *     RecordCreationService ..|> RecordCreation
  * </div>
@@ -33,5 +34,5 @@ public interface RecordCreation {
             String serviceType,
             ServiceSchedule schedule, Vendor vendor,
             String summary, LocalDate serviceDate,
-            String techName);
+            String techName, BigDecimal cost);
 }

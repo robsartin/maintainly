@@ -102,6 +102,9 @@
                             <th:block th:replace="~{fragments/vendor-select :: vendorFields(${vendors}, null, false)}"/>
                             <label>Tech <input type="text" name="techName"
                                                placeholder="Technician name"/></label>
+                            <label>Cost <input type="number" name="cost"
+                                               step="0.01" min="0"
+                                               placeholder="0.00"/></label>
                             <button type="submit" class="btn-icon btn-log">
                                 <svg th:replace="~{fragments/icons :: icon-checkmark}"></svg>
                                 Save
@@ -153,6 +156,8 @@
                                     <thead><tr>
                                         <th>Date</th><th>Service Type</th>
                                         <th>Summary</th><th>Details</th>
+                                        <th>Vendor</th><th>Technician</th>
+                                        <th>Cost</th>
                                     </tr></thead>
                                     <tbody>
                                     <tr th:each="r : ${itemRecords}">
@@ -160,6 +165,9 @@
                                         <td th:text="${r.serviceType}"></td>
                                         <td th:text="${r.summary}"></td>
                                         <td th:text="${r.description}"></td>
+                                        <td th:text="${r.vendor != null ? r.vendor.name : ''}"></td>
+                                        <td th:text="${r.technicianName != null ? r.technicianName : ''}"></td>
+                                        <td th:text="${r.cost != null and r.cost.compareTo(T(java.math.BigDecimal).ZERO) != 0 ? '$' + #numbers.formatDecimal(r.cost, 1, 2) : ''}"></td>
                                     </tr>
                                     </tbody>
                                 </table>
@@ -231,6 +239,10 @@
                                                 <label>Tech <input type="text"
                                                     name="techName"
                                                     placeholder="Technician name"/></label>
+                                                <label>Cost <input type="number"
+                                                    name="cost" step="0.01"
+                                                    min="0"
+                                                    placeholder="0.00"/></label>
                                                 <button type="submit"
                                                         class="btn-icon btn-log">
                                                     <svg th:replace="~{fragments/icons :: icon-checkmark}"></svg>

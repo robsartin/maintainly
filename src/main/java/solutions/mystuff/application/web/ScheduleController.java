@@ -1,5 +1,6 @@
 package solutions.mystuff.application.web;
 
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -148,6 +149,10 @@ public class ScheduleController {
             @Parameter(description = "Technician name")
             @RequestParam(required = false)
                     String techName,
+            @Parameter(description = "Cost of the"
+                    + " service (optional)")
+            @RequestParam(required = false)
+                    BigDecimal cost,
             @Parameter(description = "Set to 'item' to"
                     + " redirect to the item detail"
                     + " instead of /schedules")
@@ -165,7 +170,7 @@ public class ScheduleController {
         ServiceSchedule sched =
                 scheduleService.completeSchedule(
                         scheduleId, orgId, vendor,
-                        summary, date, techName);
+                        summary, date, techName, cost);
         if ("item".equals(redirectTo)) {
             return "redirect:/items/"
                     + sched.getItem().getId();

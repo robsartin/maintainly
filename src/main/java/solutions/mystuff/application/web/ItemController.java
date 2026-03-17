@@ -1,5 +1,6 @@
 package solutions.mystuff.application.web;
 
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -268,6 +269,10 @@ public class ItemController {
             @RequestParam(required = false,
                     defaultValue = "false")
                     boolean oneOff,
+            @Parameter(description = "Cost of the"
+                    + " service (optional)")
+            @RequestParam(required = false)
+                    BigDecimal cost,
             Principal principal) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
@@ -281,11 +286,11 @@ public class ItemController {
         if (oneOff) {
             recordService.createRecord(orgId, item,
                     null, null, vendor, summary,
-                    date, techName);
+                    date, techName, cost);
         } else {
             scheduleService.completeNextForItem(
                     orgId, itemId, vendor,
-                    summary, date, techName);
+                    summary, date, techName, cost);
         }
         return "redirect:/items";
     }

@@ -1,5 +1,6 @@
 package solutions.mystuff.domain.service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -54,7 +55,7 @@ public class RecordCreationService
             String serviceType,
             ServiceSchedule schedule, Vendor vendor,
             String summary, LocalDate serviceDate,
-            String techName) {
+            String techName, BigDecimal cost) {
         validateSummary(summary);
         validateTechName(techName);
         ServiceRecord record = new ServiceRecord();
@@ -68,6 +69,8 @@ public class RecordCreationService
         if (techName != null && !techName.isBlank()) {
             record.setTechnicianName(techName.trim());
         }
+        record.setCost(
+                cost != null ? cost : BigDecimal.ZERO);
         recordRepo.save(record);
         log.info("Saved service record for item {}",
                 item.getId());

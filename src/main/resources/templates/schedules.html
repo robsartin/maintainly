@@ -83,6 +83,9 @@
                             <th:block th:replace="~{fragments/vendor-select :: vendorFields(${vendors}, ${s.preferredVendor}, false)}"/>
                             <label>Tech <input type="text" name="techName"
                                                placeholder="Technician name"/></label>
+                            <label>Cost <input type="number" name="cost"
+                                               step="0.01" min="0"
+                                               placeholder="0.00"/></label>
                             <button type="submit" class="btn-icon btn-log">
                                 <svg th:replace="~{fragments/icons :: icon-checkmark}"></svg>
                                 Save
