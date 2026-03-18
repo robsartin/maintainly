@@ -7,6 +7,7 @@ import java.util.UUID;
 import solutions.mystuff.domain.model.FrequencyUnit;
 import solutions.mystuff.domain.model.Item;
 import solutions.mystuff.domain.model.NotFoundException;
+import solutions.mystuff.domain.model.ServiceCompletion;
 import solutions.mystuff.domain.model.ServiceSchedule;
 import solutions.mystuff.domain.model.Vendor;
 import solutions.mystuff.domain.port.in.ItemQuery;
@@ -112,13 +113,15 @@ class ScheduleLifecycleServiceTest {
                 .thenAnswer(i -> i.getArgument(0));
 
         LocalDate date = LocalDate.of(2026, 3, 10);
-        service.completeSchedule(schedId, orgId,
-                null, "Done", date, null, null);
+        ServiceCompletion completion =
+                new ServiceCompletion(null, "Done",
+                        date, null, null);
+        service.completeSchedule(
+                schedId, orgId, completion);
 
         verify(recordCreation).createRecord(
-                eq(orgId), any(), any(), eq(sched),
-                eq(null), eq("Done"), eq(date),
-                eq(null), eq(null));
+                eq(orgId), any(), eq(sched),
+                eq(completion));
         verify(schedRepo).save(sched);
     }
 

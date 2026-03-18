@@ -1,6 +1,5 @@
 package solutions.mystuff.domain.service;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
@@ -9,6 +8,7 @@ import java.util.UUID;
 import solutions.mystuff.domain.model.FrequencyUnit;
 import solutions.mystuff.domain.model.Item;
 import solutions.mystuff.domain.model.NotFoundException;
+import solutions.mystuff.domain.model.ServiceCompletion;
 import solutions.mystuff.domain.model.ServiceSchedule;
 import solutions.mystuff.domain.model.Vendor;
 import solutions.mystuff.domain.port.in.RecordCreation;
@@ -101,17 +101,13 @@ public class ScheduleLifecycleService
     @Transactional
     public ServiceSchedule completeSchedule(
             UUID scheduleId, UUID orgId,
-            Vendor vendor, String summary,
-            LocalDate serviceDate, String techName,
-            BigDecimal cost) {
+            ServiceCompletion completion) {
         ServiceSchedule sched =
                 findSchedule(scheduleId, orgId);
         recordCreation.createRecord(orgId,
-                sched.getItem(),
-                sched.getServiceType(), sched,
-                vendor, summary, serviceDate,
-                techName, cost);
-        sched.advanceNextDueDate(serviceDate);
+                sched.getItem(), sched, completion);
+        sched.advanceNextDueDate(
+                completion.serviceDate());
         ServiceSchedule saved =
                 scheduleRepo.save(sched);
         log.info("Completed schedule {}", scheduleId);
@@ -178,9 +174,8 @@ public class ScheduleLifecycleService
     @Override
     @Transactional
     public void completeNextForItem(
-            UUID orgId, UUID itemId, Vendor vendor,
-            String summary, LocalDate serviceDate,
-            String techName, BigDecimal cost) {
+            UUID orgId, UUID itemId,
+            ServiceCompletion completion) {
         List<ServiceSchedule> schedules =
                 itemQuery.findSchedulesByItem(
                         itemId, orgId);
@@ -192,14 +187,12 @@ public class ScheduleLifecycleService
                                 : LocalDate.MAX))
                 .orElse(null);
         if (next != null) {
-            completeSchedule(next.getId(), orgId,
-                    vendor, summary, serviceDate,
-                    techName, cost);
+            completeSchedule(
+                    next.getId(), orgId, completion);
         } else {
             Item item = findItem(itemId, orgId);
-            recordCreation.createRecord(orgId, item,
-                    null, null, vendor, summary,
-                    serviceDate, techName, cost);
+            recordCreation.createRecord(
+                    orgId, item, null, completion);
         }
     }
 

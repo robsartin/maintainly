@@ -1,12 +1,10 @@
 package solutions.mystuff.domain.port.in;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.Item;
+import solutions.mystuff.domain.model.ServiceCompletion;
 import solutions.mystuff.domain.model.ServiceSchedule;
-import solutions.mystuff.domain.model.Vendor;
 
 /**
  * Inbound port for creating service records.
@@ -14,7 +12,7 @@ import solutions.mystuff.domain.model.Vendor;
  * <div class="mermaid">
  * classDiagram
  *     class RecordCreation {
- *         +createRecord(UUID, Item, String, ServiceSchedule, Vendor, String, LocalDate, String, BigDecimal) void
+ *         +createRecord(UUID, Item, ServiceSchedule, ServiceCompletion) void
  *     }
  *     RecordCreationService ..|> RecordCreation
  * </div>
@@ -26,13 +24,15 @@ public interface RecordCreation {
     /**
      * Create a new service record (visit) for the given item.
      *
+     * <p>When a schedule is provided, the service type is
+     * extracted from it. For one-off records (no schedule),
+     * the service type is null.
+     *
      * <p>Vendor and techName are optional but encouraged for
      * traceability. Unlike schedules, visits do not require
      * a vendor.
      */
     void createRecord(UUID orgId, Item item,
-            String serviceType,
-            ServiceSchedule schedule, Vendor vendor,
-            String summary, LocalDate serviceDate,
-            String techName, BigDecimal cost);
+            ServiceSchedule schedule,
+            ServiceCompletion completion);
 }
