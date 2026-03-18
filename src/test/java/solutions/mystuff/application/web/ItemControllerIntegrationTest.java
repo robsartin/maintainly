@@ -26,6 +26,8 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet
+        .request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
@@ -755,6 +757,109 @@ class ItemControllerIntegrationTest {
         assertTrue(html.contains(
                 "data-toggle-form=\"add-item-form\""),
                 "should have cancel for add form");
+    }
+
+    @Test
+    @DisplayName("should update an existing item")
+    void shouldUpdateItem() throws Exception {
+        String itemId = getFirstItemId();
+        mockMvc.perform(put("/items/" + itemId)
+                        .param("name", "Updated Widget")
+                        .param("location", "Kitchen")
+                        .param("category", "Appliance")
+                        .param("modelNumber", "MN-42")
+                        .param("modelYear", "2025")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/items"));
+    }
+
+    @Test
+    @DisplayName("should reject blank name on update")
+    void shouldRejectBlankNameOnUpdate()
+            throws Exception {
+        String itemId = getFirstItemId();
+        mockMvc.perform(put("/items/" + itemId)
+                        .param("name", "  ")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isBadRequest())
+                .andExpect(model().attributeExists(
+                        "error"));
+    }
+
+    @Test
+    @DisplayName("should handle invalid item on update")
+    void shouldHandleInvalidItemOnUpdate()
+            throws Exception {
+        UUID fakeId = UUID.randomUUID();
+        mockMvc.perform(put("/items/" + fakeId)
+                        .param("name", "Test")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isNotFound())
+                .andExpect(model().attributeExists(
+                        "error"));
+    }
+
+    @Test
+    @DisplayName("should render edit button for items")
+    void shouldRenderEditButtonForItems()
+            throws Exception {
+        mockMvc.perform(get("/items")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(
+                        containsString(
+                                "data-target=\"edit-item-")));
+    }
+
+    @Test
+    @DisplayName("should render category column")
+    void shouldRenderCategoryColumn()
+            throws Exception {
+        mockMvc.perform(get("/items")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(
+                        containsString(
+                                "<th>Category</th>")));
+    }
+
+    @Test
+    @DisplayName("should render category datalist")
+    void shouldRenderCategoryDatalist()
+            throws Exception {
+        mockMvc.perform(get("/items")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(
+                        containsString(
+                                "id=\"category-suggestions"
+                        )));
+    }
+
+    @Test
+    @DisplayName("should create item with all fields")
+    void shouldCreateItemWithAllFields()
+            throws Exception {
+        mockMvc.perform(post("/items")
+                        .param("name", "Full Item")
+                        .param("location", "Basement")
+                        .param("manufacturer", "Acme")
+                        .param("modelName", "Z-100")
+                        .param("modelNumber", "MN-100")
+                        .param("modelYear", "2024")
+                        .param("serialNumber", "SN-001")
+                        .param("category", "Plumbing")
+                        .param("purchaseDate",
+                                "2024-06-15")
+                        .param("notes", "Test notes")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/items"));
     }
 
     @SuppressWarnings("unchecked")

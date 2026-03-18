@@ -26,6 +26,15 @@
                 </a>
             </form>
         </section>
+        <datalist id="category-suggestions">
+            <option value="HVAC"/>
+            <option value="Plumbing"/>
+            <option value="Electrical"/>
+            <option value="Appliance"/>
+            <option value="Roofing"/>
+            <option value="Landscaping"/>
+            <option value="General"/>
+        </datalist>
         <section id="item-list">
             <div class="section-header">
                 <h2>Items</h2>
@@ -42,12 +51,22 @@
                                        placeholder="Item name"/></label>
                     <label>Location <input type="text" name="location"
                                            placeholder="Location"/></label>
+                    <label>Category <input type="text" name="category"
+                                           placeholder="Category" list="category-suggestions"/></label>
                     <label>Manufacturer <input type="text" name="manufacturer"
                                                placeholder="Manufacturer"/></label>
                     <label>Model <input type="text" name="modelName"
                                         placeholder="Model name"/></label>
+                    <label>Model # <input type="text" name="modelNumber"
+                                          placeholder="Model number"/></label>
+                    <label>Year <input type="number" name="modelYear"
+                                       placeholder="Year" min="1900" max="2100"
+                                       style="width:5rem"/></label>
                     <label>Serial # <input type="text" name="serialNumber"
                                            placeholder="Serial number"/></label>
+                    <label>Purchased <input type="date" name="purchaseDate"/></label>
+                    <label>Notes <input type="text" name="notes"
+                                        placeholder="Notes"/></label>
                     <button type="submit" class="btn-icon btn-add">
                         <svg th:replace="~{fragments/icons :: icon-save}"></svg>
                         Save
@@ -64,6 +83,7 @@
                 <tr>
                     <th>Name</th>
                     <th>Location</th>
+                    <th>Category</th>
                     <th>Manufacturer</th>
                     <th>Model</th>
                     <th>Serial #</th>
@@ -77,10 +97,15 @@
                     th:data-navigate="@{/items/{id}(id=${item.id})}">
                     <td th:text="${item.name}"></td>
                     <td th:text="${item.location}"></td>
+                    <td th:text="${item.category}"></td>
                     <td th:text="${item.manufacturer}"></td>
                     <td th:text="${item.modelName}"></td>
                     <td th:text="${item.serialNumber}"></td>
                     <td class="actions">
+                        <button type="button" class="btn-icon btn-edit" title="Edit item"
+                                th:data-target="'edit-item-' + ${item.id}">
+                            <svg th:replace="~{fragments/icons :: icon-pencil}"></svg>
+                        </button>
                         <button type="button" class="btn-icon btn-log" title="One-off service"
                                 th:data-target="'item-oneoff-' + ${item.id}">
                             <svg th:replace="~{fragments/icons :: icon-wrench}"></svg>
@@ -91,8 +116,46 @@
                         </button>
                     </td>
                 </tr>
+                <tr th:id="'edit-item-' + ${item.id}" class="form-row" style="display:none">
+                    <td colspan="7">
+                        <form th:action="@{/items/{id}(id=${item.id})}" method="post" class="inline-form">
+                            <input type="hidden" name="_method" value="PUT"/>
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <label>Name <input type="text" name="name" required
+                                               th:value="${item.name}" maxlength="200"/></label>
+                            <label>Location <input type="text" name="location"
+                                                   th:value="${item.location}" maxlength="200"/></label>
+                            <label>Category <input type="text" name="category"
+                                                   th:value="${item.category}" maxlength="100"
+                                                   list="category-suggestions"/></label>
+                            <label>Manufacturer <input type="text" name="manufacturer"
+                                                       th:value="${item.manufacturer}" maxlength="200"/></label>
+                            <label>Model <input type="text" name="modelName"
+                                                th:value="${item.modelName}" maxlength="200"/></label>
+                            <label>Model # <input type="text" name="modelNumber"
+                                                  th:value="${item.modelNumber}" maxlength="200"/></label>
+                            <label>Year <input type="number" name="modelYear"
+                                               th:value="${item.modelYear}" min="1900" max="2100"
+                                               style="width:5rem"/></label>
+                            <label>Serial # <input type="text" name="serialNumber"
+                                                   th:value="${item.serialNumber}" maxlength="200"/></label>
+                            <label>Purchased <input type="date" name="purchaseDate"
+                                                    th:value="${item.purchaseDate}"/></label>
+                            <label>Notes <input type="text" name="notes"
+                                                th:value="${item.notes}"/></label>
+                            <button type="submit" class="btn-icon btn-add">
+                                <svg th:replace="~{fragments/icons :: icon-save}"></svg>
+                                Save
+                            </button>
+                            <button type="button" class="btn-icon btn-cancel" title="Cancel"
+                                    th:data-toggle-form="'edit-item-' + ${item.id}">
+                                <svg th:replace="~{fragments/icons :: icon-cancel}"></svg>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
                 <tr th:id="'item-oneoff-' + ${item.id}" class="form-row" style="display:none">
-                    <td colspan="6">
+                    <td colspan="7">
                         <form method="post" th:action="@{/items/{id}/service-records(id=${item.id})}" class="inline-form">
                             <input type="hidden" name="oneOff" value="true"/>
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
@@ -114,7 +177,7 @@
                     </td>
                 </tr>
                 <tr th:id="'item-sched-' + ${item.id}" class="form-row" style="display:none">
-                    <td colspan="6">
+                    <td colspan="7">
                         <form method="post" th:action="@{/items/{id}/schedules(id=${item.id})}" class="inline-form">
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                             <label>Type <input type="text"
@@ -144,7 +207,7 @@
                 </tr>
                 <tr th:if="${selectedItemId != null and selectedItemId.equals(item.id)}"
                     class="detail-row">
-                    <td colspan="6">
+                    <td colspan="7">
                         <div class="item-detail">
                             <div class="detail-section"
                                  th:if="${itemRecords != null and !#lists.isEmpty(itemRecords)}">
