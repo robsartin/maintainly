@@ -11,6 +11,7 @@ import solutions.mystuff.domain.model.Item;
 import solutions.mystuff.domain.model.NotFoundException;
 import solutions.mystuff.domain.model.ServiceRecord;
 import solutions.mystuff.domain.model.ServiceSchedule;
+import solutions.mystuff.domain.port.in.CostQuery;
 import solutions.mystuff.domain.port.in.ItemQuery;
 import solutions.mystuff.domain.port.in.ScheduleQuery;
 import io.swagger.v3.oas.annotations.Operation;
@@ -49,15 +50,13 @@ public class ReportController {
     private final ItemQuery itemQuery;
     private final ScheduleQuery scheduleQuery;
     private final ControllerHelper helper;
-    private final solutions.mystuff.domain.port.in
-            .CostQuery costQuery;
+    private final CostQuery costQuery;
 
     public ReportController(
             ItemQuery itemQuery,
             ScheduleQuery scheduleQuery,
             ControllerHelper helper,
-            solutions.mystuff.domain.port.in
-                    .CostQuery costQuery) {
+            CostQuery costQuery) {
         this.itemQuery = itemQuery;
         this.scheduleQuery = scheduleQuery;
         this.helper = helper;
