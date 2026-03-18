@@ -57,4 +57,7 @@ interface SpringDataItemRepository
             UUID id, UUID organizationId);
 
     long countByOrganizationId(UUID organizationId);
+
+    void deleteByIdAndOrganizationId(
+            UUID id, UUID organizationId);
 }

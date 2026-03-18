@@ -28,6 +28,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -293,6 +294,30 @@ public class ItemController {
                 modelNumber, modelYear, category,
                 pd, notes);
         itemService.updateItem(orgId, itemId, spec);
+        return "redirect:/items";
+    }
+
+    @Operation(summary = "Delete item",
+            description = "Permanently deletes an item"
+                    + " and all associated schedules"
+                    + " and records via cascade.",
+            responses = {
+                    @ApiResponse(responseCode = "302",
+                            description = "Redirect to"
+                                    + " /items"),
+                    @ApiResponse(responseCode = "404",
+                            description = "Item not"
+                                    + " found")})
+    @DeleteMapping("/items/{id}")
+    public String deleteItem(
+            @Parameter(description = "Item UUID")
+            @PathVariable("id") UUID itemId,
+            Principal principal) {
+        AppUser user = helper.resolveUser(principal);
+        helper.setOrgMdc(user);
+        itemService.deleteItem(
+                user.getOrganization().getId(),
+                itemId);
         return "redirect:/items";
     }
 

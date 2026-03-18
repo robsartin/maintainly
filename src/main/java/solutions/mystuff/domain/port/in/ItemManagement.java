@@ -13,6 +13,7 @@ import solutions.mystuff.domain.model.ItemSpec;
  *     class ItemManagement {
  *         +createItem(UUID, ItemSpec) Item
  *         +updateItem(UUID, UUID, ItemSpec) Item
+ *         +deleteItem(UUID, UUID) void
  *     }
  *     ItemManagementService ..|> ItemManagement
  * </div>
@@ -27,5 +28,8 @@ public interface ItemManagement {
     /** Validate inputs and update an existing item. */
     Item updateItem(UUID orgId, UUID itemId,
             ItemSpec spec);
+
+    /** Delete an item by ID within an organization. */
+    void deleteItem(UUID orgId, UUID itemId);
 
 }
