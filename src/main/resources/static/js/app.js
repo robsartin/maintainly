@@ -1,5 +1,24 @@
 document.addEventListener('DOMContentLoaded', function () {
 
+    var pageSizeSelect =
+        document.querySelector('[data-page-size]');
+    if (pageSizeSelect) {
+        var key = 'pageSize.'
+            + pageSizeSelect.getAttribute('data-page-size')
+                .replace(/^\//, '');
+        var params = new URLSearchParams(
+            window.location.search);
+        if (!params.has('size')) {
+            var stored = localStorage.getItem(key);
+            if (stored) {
+                window.location.replace(
+                    window.location.pathname
+                        + '?size=' + stored);
+                return;
+            }
+        }
+    }
+
     function toggleForm(id) {
         var row = document.getElementById(id);
         if (!row) {
@@ -118,6 +137,10 @@ document.addEventListener('DOMContentLoaded', function () {
         if (e.target.matches('[data-page-size]')) {
             var basePath =
                 e.target.getAttribute('data-page-size');
+            var storeKey = 'pageSize.'
+                + basePath.replace(/^\//, '');
+            localStorage.setItem(
+                storeKey, e.target.value);
             window.location.href =
                 basePath + '?size=' + e.target.value;
         }
