@@ -7,6 +7,7 @@ import solutions.mystuff.domain.model.Item;
 import solutions.mystuff.domain.model.ServiceCompletion;
 import solutions.mystuff.domain.model.ServiceRecord;
 import solutions.mystuff.domain.model.ServiceSchedule;
+import solutions.mystuff.domain.model.Validation;
 import solutions.mystuff.domain.port.in.RecordCreation;
 import solutions.mystuff.domain.port.out
         .ServiceRecordRepository;
@@ -65,11 +66,9 @@ public class RecordCreationService
         record.setVendor(completion.vendor());
         record.setServiceDate(completion.serviceDate());
         record.setSummary(completion.summary().trim());
-        if (completion.techName() != null
-                && !completion.techName().isBlank()) {
-            record.setTechnicianName(
-                    completion.techName().trim());
-        }
+        record.setTechnicianName(
+                Validation.trimOrNull(
+                        completion.techName()));
         record.setCost(completion.cost() != null
                 ? completion.cost() : BigDecimal.ZERO);
         recordRepo.save(record);
@@ -78,23 +77,13 @@ public class RecordCreationService
     }
 
     private void validateSummary(String summary) {
-        if (summary == null || summary.isBlank()) {
-            throw new IllegalArgumentException(
-                    "Summary is required");
-        }
-        if (summary.trim().length() > MAX_SUMMARY) {
-            throw new IllegalArgumentException(
-                    "Summary exceeds maximum length of "
-                            + MAX_SUMMARY);
-        }
+        Validation.requireNotBlank(summary, "Summary");
+        Validation.requireMaxLength(
+                summary, "Summary", MAX_SUMMARY);
     }
 
     private void validateTechName(String techName) {
-        if (techName != null
-                && techName.trim().length() > MAX_TECH) {
-            throw new IllegalArgumentException(
-                    "Technician exceeds maximum length"
-                            + " of " + MAX_TECH);
-        }
+        Validation.requireMaxLength(
+                techName, "Technician", MAX_TECH);
     }
 }

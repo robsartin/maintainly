@@ -55,9 +55,7 @@ public class VendorManagementService
                 VendorFieldLimits.MAX_PHONE);
         Vendor vendor = newVendor(orgId);
         vendor.setName(name.trim());
-        if (phone != null && !phone.isBlank()) {
-            vendor.setPhone(phone.trim());
-        }
+        vendor.setPhone(Validation.trimOrNull(phone));
         return vendorRepository.save(vendor);
     }
 
