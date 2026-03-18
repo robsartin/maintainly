@@ -1,5 +1,6 @@
 package solutions.mystuff.application.web;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -175,27 +176,40 @@ final class ItemHistoryPdf {
             List<ServiceRecord> records)
             throws Exception {
         PdfPTable table = new PdfPTable(
-                new float[]{2, 2, 2, 2, 4});
+                new float[]{2, 2, 2, 2, 1, 3});
         table.setWidthPercentage(100);
         PdfHelper.addHeaderRow(table, "Date",
                 "Service Type", "Vendor", "Tech",
-                "Summary");
+                "Cost", "Summary");
         for (ServiceRecord r : records) {
-            PdfHelper.addCell(table,
-                    PdfHelper.fmtDate(
-                            r.getServiceDate()));
-            PdfHelper.addCell(table,
-                    PdfHelper.safe(r.getServiceType()));
-            PdfHelper.addCell(table,
-                    r.getVendor() != null
-                            ? r.getVendor().getName()
-                            : "");
-            PdfHelper.addCell(table,
-                    PdfHelper.safe(
-                            r.getTechnicianName()));
-            PdfHelper.addCell(table,
-                    PdfHelper.safe(r.getSummary()));
+            addRecordRow(table, r);
         }
         return table;
+    }
+
+    private static void addRecordRow(
+            PdfPTable table, ServiceRecord r) {
+        PdfHelper.addCell(table,
+                PdfHelper.fmtDate(r.getServiceDate()));
+        PdfHelper.addCell(table,
+                PdfHelper.safe(r.getServiceType()));
+        PdfHelper.addCell(table,
+                r.getVendor() != null
+                        ? r.getVendor().getName()
+                        : "");
+        PdfHelper.addCell(table,
+                PdfHelper.safe(
+                        r.getTechnicianName()));
+        PdfHelper.addCell(table, formatCost(r.getCost()));
+        PdfHelper.addCell(table,
+                PdfHelper.safe(r.getSummary()));
+    }
+
+    private static String formatCost(BigDecimal cost) {
+        if (cost == null
+                || cost.compareTo(BigDecimal.ZERO) == 0) {
+            return "";
+        }
+        return "$" + cost.setScale(2).toPlainString();
     }
 }

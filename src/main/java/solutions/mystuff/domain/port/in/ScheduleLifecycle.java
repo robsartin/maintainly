@@ -1,5 +1,6 @@
 package solutions.mystuff.domain.port.in;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -14,7 +15,7 @@ import solutions.mystuff.domain.model.Vendor;
  * classDiagram
  *     class ScheduleLifecycle {
  *         +createSchedule(UUID, UUID, String, Vendor, LocalDate, int, FrequencyUnit) ServiceSchedule
- *         +completeSchedule(UUID, UUID, Vendor, String, LocalDate, String) ServiceSchedule
+ *         +completeSchedule(UUID, UUID, Vendor, String, LocalDate, String, BigDecimal) ServiceSchedule
  *         +skipSchedule(UUID, UUID) ServiceSchedule
  *         +editSchedule(UUID, UUID, String, LocalDate, int, FrequencyUnit, Vendor) ServiceSchedule
  *         +deactivateSchedule(UUID, UUID) void
@@ -36,7 +37,8 @@ public interface ScheduleLifecycle {
     /** Mark a schedule as completed and log the service. */
     ServiceSchedule completeSchedule(UUID scheduleId,
             UUID orgId, Vendor vendor, String summary,
-            LocalDate serviceDate, String techName);
+            LocalDate serviceDate, String techName,
+            BigDecimal cost);
 
     /** Skip the current occurrence and advance the due date. */
     ServiceSchedule skipSchedule(
@@ -60,5 +62,6 @@ public interface ScheduleLifecycle {
      */
     void completeNextForItem(UUID orgId, UUID itemId,
             Vendor vendor, String summary,
-            LocalDate serviceDate, String techName);
+            LocalDate serviceDate, String techName,
+            BigDecimal cost);
 }

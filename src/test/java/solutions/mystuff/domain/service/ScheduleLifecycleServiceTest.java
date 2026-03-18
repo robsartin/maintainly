@@ -113,12 +113,12 @@ class ScheduleLifecycleServiceTest {
 
         LocalDate date = LocalDate.of(2026, 3, 10);
         service.completeSchedule(schedId, orgId,
-                null, "Done", date, null);
+                null, "Done", date, null, null);
 
         verify(recordCreation).createRecord(
                 eq(orgId), any(), any(), eq(sched),
                 eq(null), eq("Done"), eq(date),
-                eq(null));
+                eq(null), eq(null));
         verify(schedRepo).save(sched);
     }
 

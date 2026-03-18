@@ -1,5 +1,6 @@
 package solutions.mystuff.domain.service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -40,7 +41,8 @@ class RecordCreationServiceTest {
         service.createRecord(orgId, item,
                 "Filter Change", null, null,
                 "Replaced filter",
-                LocalDate.of(2026, 3, 10), "John");
+                LocalDate.of(2026, 3, 10), "John",
+                new BigDecimal("50.00"));
 
         ArgumentCaptor<ServiceRecord> captor =
                 ArgumentCaptor.forClass(
@@ -63,7 +65,7 @@ class RecordCreationServiceTest {
 
         service.createRecord(orgId, item,
                 "Test", null, null, "Summary",
-                LocalDate.now(), "  ");
+                LocalDate.now(), "  ", null);
 
         ArgumentCaptor<ServiceRecord> captor =
                 ArgumentCaptor.forClass(
@@ -80,7 +82,7 @@ class RecordCreationServiceTest {
         assertThatThrownBy(() ->
                 service.createRecord(orgId, item,
                         "Test", null, null, "  ",
-                        LocalDate.now(), null))
+                        LocalDate.now(), null, null))
                 .isInstanceOf(
                         IllegalArgumentException.class)
                 .hasMessageContaining("required");
@@ -95,7 +97,7 @@ class RecordCreationServiceTest {
                 service.createRecord(orgId, item,
                         "Test", null, null,
                         longSummary,
-                        LocalDate.now(), null))
+                        LocalDate.now(), null, null))
                 .isInstanceOf(
                         IllegalArgumentException.class)
                 .hasMessageContaining("maximum length");
@@ -110,7 +112,8 @@ class RecordCreationServiceTest {
                 service.createRecord(orgId, item,
                         "Test", null, null,
                         "Summary",
-                        LocalDate.now(), longTech))
+                        LocalDate.now(), longTech,
+                        null))
                 .isInstanceOf(
                         IllegalArgumentException.class)
                 .hasMessageContaining("maximum length");

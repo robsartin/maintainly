@@ -1,5 +1,6 @@
 package solutions.mystuff.domain.service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
@@ -101,14 +102,15 @@ public class ScheduleLifecycleService
     public ServiceSchedule completeSchedule(
             UUID scheduleId, UUID orgId,
             Vendor vendor, String summary,
-            LocalDate serviceDate, String techName) {
+            LocalDate serviceDate, String techName,
+            BigDecimal cost) {
         ServiceSchedule sched =
                 findSchedule(scheduleId, orgId);
         recordCreation.createRecord(orgId,
                 sched.getItem(),
                 sched.getServiceType(), sched,
                 vendor, summary, serviceDate,
-                techName);
+                techName, cost);
         sched.advanceNextDueDate(serviceDate);
         ServiceSchedule saved =
                 scheduleRepo.save(sched);
@@ -178,7 +180,7 @@ public class ScheduleLifecycleService
     public void completeNextForItem(
             UUID orgId, UUID itemId, Vendor vendor,
             String summary, LocalDate serviceDate,
-            String techName) {
+            String techName, BigDecimal cost) {
         List<ServiceSchedule> schedules =
                 itemQuery.findSchedulesByItem(
                         itemId, orgId);
@@ -192,12 +194,12 @@ public class ScheduleLifecycleService
         if (next != null) {
             completeSchedule(next.getId(), orgId,
                     vendor, summary, serviceDate,
-                    techName);
+                    techName, cost);
         } else {
             Item item = findItem(itemId, orgId);
             recordCreation.createRecord(orgId, item,
                     null, null, vendor, summary,
-                    serviceDate, techName);
+                    serviceDate, techName, cost);
         }
     }
 
