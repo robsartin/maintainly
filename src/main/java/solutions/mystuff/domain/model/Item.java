@@ -29,6 +29,7 @@ import jakarta.persistence.Table;
  *         String modelName
  *         Integer modelYear
  *         String serialNumber
+ *         String category
  *     }
  *     Item --|> OrgOwnedEntity
  *     Item "1" --> "*" ServiceSchedule
@@ -66,6 +67,9 @@ public class Item extends OrgOwnedEntity {
 
     @Column(name = "purchase_date")
     private LocalDate purchaseDate;
+
+    @Column(length = 100)
+    private String category;
 
     @Column(columnDefinition = "TEXT")
     private String notes;
@@ -144,6 +148,14 @@ public class Item extends OrgOwnedEntity {
 
     public void setPurchaseDate(LocalDate purchaseDate) {
         this.purchaseDate = purchaseDate;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     public String getNotes() {

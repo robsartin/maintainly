@@ -29,6 +29,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation
         .RequestParam;
 
@@ -43,7 +44,7 @@ import org.springframework.web.bind.annotation
         description = "Item CRUD and service operations")
 public class ItemController {
 
-    private static final Logger log =
+    private static final Logger LOG =
             LoggerFactory.getLogger(ItemController.class);
 
     private final ControllerHelper helper;
@@ -204,13 +205,98 @@ public class ItemController {
                     + " (max 100 chars)")
             @RequestParam(required = false)
                     String serialNumber,
+            @Parameter(description = "Model number"
+                    + " (max 200 chars)")
+            @RequestParam(required = false)
+                    String modelNumber,
+            @Parameter(description = "Model year")
+            @RequestParam(required = false)
+                    Integer modelYear,
+            @Parameter(description = "Category"
+                    + " (max 100 chars)")
+            @RequestParam(required = false)
+                    String category,
+            @Parameter(description = "Purchase date"
+                    + " in ISO format (yyyy-MM-dd)")
+            @RequestParam(required = false)
+                    String purchaseDate,
+            @Parameter(description = "Free-text notes")
+            @RequestParam(required = false) String notes,
             Principal principal) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
         UUID orgId = user.getOrganization().getId();
+        LocalDate pd = parseOptionalDate(purchaseDate);
         itemService.createItem(orgId, name,
-                location, manufacturer,
-                modelName, serialNumber);
+                location, manufacturer, modelName,
+                serialNumber, modelNumber, modelYear,
+                category, pd, notes);
+        return "redirect:/items";
+    }
+
+    @Operation(summary = "Update item",
+            description = "Updates an existing item."
+                    + " Redirects to /items on success.",
+            responses = {
+                    @ApiResponse(responseCode = "302",
+                            description = "Redirect to"
+                                    + " /items on"
+                                    + " success"),
+                    @ApiResponse(responseCode = "400",
+                            description = "Validation"
+                                    + " error"),
+                    @ApiResponse(responseCode = "404",
+                            description = "Item not"
+                                    + " found")})
+    @PutMapping("/items/{id}")
+    public String editItem(
+            @Parameter(description = "Item UUID")
+            @PathVariable("id") UUID itemId,
+            @Parameter(description = "Item name"
+                    + " (required, max 200 chars)",
+                    required = true)
+            @RequestParam String name,
+            @Parameter(description = "Location"
+                    + " (max 200 chars)")
+            @RequestParam(required = false)
+                    String location,
+            @Parameter(description = "Manufacturer"
+                    + " (max 200 chars)")
+            @RequestParam(required = false)
+                    String manufacturer,
+            @Parameter(description = "Model name"
+                    + " (max 200 chars)")
+            @RequestParam(required = false)
+                    String modelName,
+            @Parameter(description = "Model number"
+                    + " (max 200 chars)")
+            @RequestParam(required = false)
+                    String modelNumber,
+            @Parameter(description = "Model year")
+            @RequestParam(required = false)
+                    Integer modelYear,
+            @Parameter(description = "Serial number"
+                    + " (max 100 chars)")
+            @RequestParam(required = false)
+                    String serialNumber,
+            @Parameter(description = "Purchase date")
+            @RequestParam(required = false)
+                    String purchaseDate,
+            @Parameter(description = "Category"
+                    + " (max 100 chars)")
+            @RequestParam(required = false)
+                    String category,
+            @Parameter(description = "Free-text notes")
+            @RequestParam(required = false) String notes,
+            Principal principal) {
+        AppUser user = helper.resolveUser(principal);
+        helper.setOrgMdc(user);
+        UUID orgId = user.getOrganization().getId();
+        LocalDate pd = parseOptionalDate(purchaseDate);
+        itemService.updateItem(orgId, itemId, name,
+                location, manufacturer, modelName,
+                modelNumber, modelYear, serialNumber,
+                pd, category, notes);
         return "redirect:/items";
     }
 
@@ -391,13 +477,13 @@ public class ItemController {
         int safePage = Math.max(0, page);
         PageResult<Item> result;
         if (q != null && !q.isBlank()) {
-            log.info("Searching items query={}",
+            LOG.info("Searching items query={}",
                     LogSanitizer.sanitize(q));
             result = itemQuery.searchByOrganization(
                     orgId, q, safePage, safeSize);
             model.addAttribute("q", q);
         } else {
-            log.info("Listing items page={}", safePage);
+            LOG.info("Listing items page={}", safePage);
             result = itemQuery.findByOrganization(
                     orgId, safePage, safeSize);
         }
@@ -417,5 +503,13 @@ public class ItemController {
                 .orElseThrow(() ->
                         new NotFoundException(
                                 "Item not found"));
+    }
+
+    private LocalDate parseOptionalDate(String date) {
+        if (date == null || date.isBlank()) {
+            return null;
+        }
+        return InputValidator.parseDate(
+                date, "Purchase date");
     }
 }
