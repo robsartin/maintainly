@@ -49,4 +49,10 @@ public abstract class OrgOwnedEntity extends BaseEntity {
     public void setOrganizationId(UUID organizationId) {
         this.organizationId = organizationId;
     }
+
+    /** Returns true if this entity belongs to the given organization. */
+    public boolean belongsTo(UUID orgId) {
+        return organizationId != null
+                && organizationId.equals(orgId);
+    }
 }
