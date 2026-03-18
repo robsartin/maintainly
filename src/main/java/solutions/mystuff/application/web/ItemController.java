@@ -8,9 +8,11 @@ import java.util.UUID;
 import solutions.mystuff.domain.model.AppUser;
 import solutions.mystuff.domain.model.FrequencyUnit;
 import solutions.mystuff.domain.model.Item;
+import solutions.mystuff.domain.model.ItemSpec;
 import solutions.mystuff.domain.model.LogSanitizer;
 import solutions.mystuff.domain.model.NotFoundException;
 import solutions.mystuff.domain.model.PageResult;
+import solutions.mystuff.domain.model.ServiceCompletion;
 import solutions.mystuff.domain.model.Vendor;
 import solutions.mystuff.domain.port.in.ItemManagement;
 import solutions.mystuff.domain.port.in.ItemQuery;
@@ -217,10 +219,11 @@ public class ItemController {
         helper.setOrgMdc(user);
         UUID orgId = user.getOrganization().getId();
         LocalDate pd = parseOptionalDate(purchaseDate);
-        itemService.createItem(orgId, name,
-                location, manufacturer, modelName,
-                serialNumber, modelNumber, modelYear,
-                category, pd, notes);
+        ItemSpec spec = new ItemSpec(name, location,
+                manufacturer, modelName, serialNumber,
+                modelNumber, modelYear, category,
+                pd, notes);
+        itemService.createItem(orgId, spec);
         return "redirect:/items";
     }
 
@@ -283,10 +286,11 @@ public class ItemController {
         helper.setOrgMdc(user);
         UUID orgId = user.getOrganization().getId();
         LocalDate pd = parseOptionalDate(purchaseDate);
-        itemService.updateItem(orgId, itemId, name,
-                location, manufacturer, modelName,
-                serialNumber, modelNumber, modelYear,
-                category, pd, notes);
+        ItemSpec spec = new ItemSpec(name, location,
+                manufacturer, modelName, serialNumber,
+                modelNumber, modelYear, category,
+                pd, notes);
+        itemService.updateItem(orgId, itemId, spec);
         return "redirect:/items";
     }
 
@@ -359,14 +363,15 @@ public class ItemController {
                 newVendorPhone);
         LocalDate date = InputValidator.parseDate(
                 serviceDate, "Service date");
+        ServiceCompletion completion =
+                new ServiceCompletion(vendor, summary,
+                        date, techName, cost);
         if (oneOff) {
-            recordService.createRecord(orgId, item,
-                    null, null, vendor, summary,
-                    date, techName, cost);
+            recordService.createRecord(
+                    orgId, item, null, completion);
         } else {
             scheduleService.completeNextForItem(
-                    orgId, itemId, vendor,
-                    summary, date, techName, cost);
+                    orgId, itemId, completion);
         }
         return "redirect:/items";
     }

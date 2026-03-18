@@ -1,13 +1,12 @@
 package solutions.mystuff.domain.service;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.Item;
+import solutions.mystuff.domain.model.ServiceCompletion;
 import solutions.mystuff.domain.model.ServiceRecord;
 import solutions.mystuff.domain.model.ServiceSchedule;
-import solutions.mystuff.domain.model.Vendor;
 import solutions.mystuff.domain.port.in.RecordCreation;
 import solutions.mystuff.domain.port.out
         .ServiceRecordRepository;
@@ -52,25 +51,27 @@ public class RecordCreationService
     @Override
     public void createRecord(
             UUID orgId, Item item,
-            String serviceType,
-            ServiceSchedule schedule, Vendor vendor,
-            String summary, LocalDate serviceDate,
-            String techName, BigDecimal cost) {
-        validateSummary(summary);
-        validateTechName(techName);
+            ServiceSchedule schedule,
+            ServiceCompletion completion) {
+        validateSummary(completion.summary());
+        validateTechName(completion.techName());
+        String serviceType = schedule != null
+                ? schedule.getServiceType() : null;
         ServiceRecord record = new ServiceRecord();
         record.setOrganizationId(orgId);
         record.setItem(item);
         record.setServiceType(serviceType);
         record.setServiceSchedule(schedule);
-        record.setVendor(vendor);
-        record.setServiceDate(serviceDate);
-        record.setSummary(summary.trim());
-        if (techName != null && !techName.isBlank()) {
-            record.setTechnicianName(techName.trim());
+        record.setVendor(completion.vendor());
+        record.setServiceDate(completion.serviceDate());
+        record.setSummary(completion.summary().trim());
+        if (completion.techName() != null
+                && !completion.techName().isBlank()) {
+            record.setTechnicianName(
+                    completion.techName().trim());
         }
-        record.setCost(
-                cost != null ? cost : BigDecimal.ZERO);
+        record.setCost(completion.cost() != null
+                ? completion.cost() : BigDecimal.ZERO);
         recordRepo.save(record);
         log.info("Saved service record for item {}",
                 item.getId());

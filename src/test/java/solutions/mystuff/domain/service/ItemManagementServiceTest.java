@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.Item;
+import solutions.mystuff.domain.model.ItemSpec;
 import solutions.mystuff.domain.model.NotFoundException;
 import solutions.mystuff.domain.model.UuidV7;
 import solutions.mystuff.domain.port.out.ItemRepository;
@@ -34,10 +35,10 @@ class ItemManagementServiceTest {
     void shouldCreateItem() {
         when(itemRepo.save(any(Item.class)))
                 .thenAnswer(i -> i.getArgument(0));
-        Item item = service.createItem(
-                orgId, "Furnace", null, null,
-                null, null, null, null,
-                null, null, null);
+        ItemSpec spec = new ItemSpec("Furnace",
+                null, null, null, null, null,
+                null, null, null, null);
+        Item item = service.createItem(orgId, spec);
         assertEquals("Furnace", item.getName());
         assertEquals(orgId, item.getOrganizationId());
         verify(itemRepo).save(any(Item.class));
@@ -48,10 +49,10 @@ class ItemManagementServiceTest {
     void shouldTrimName() {
         when(itemRepo.save(any(Item.class)))
                 .thenAnswer(i -> i.getArgument(0));
-        Item item = service.createItem(
-                orgId, "  Furnace  ", null,
-                null, null, null, null,
+        ItemSpec spec = new ItemSpec("  Furnace  ",
+                null, null, null, null, null,
                 null, null, null, null);
+        Item item = service.createItem(orgId, spec);
         assertEquals("Furnace", item.getName());
     }
 
@@ -60,10 +61,11 @@ class ItemManagementServiceTest {
     void shouldSetOptionalFields() {
         when(itemRepo.save(any(Item.class)))
                 .thenAnswer(i -> i.getArgument(0));
-        Item item = service.createItem(orgId, "AC",
-                "Roof", "Trane", "XR15", "SN-123",
-                "MN-456", 2024, "HVAC",
+        ItemSpec spec = new ItemSpec("AC", "Roof",
+                "Trane", "XR15", "SN-123", "MN-456",
+                2024, "HVAC",
                 LocalDate.of(2024, 1, 15), "Good unit");
+        Item item = service.createItem(orgId, spec);
         assertEquals("Roof", item.getLocation());
         assertEquals("Trane", item.getManufacturer());
         assertEquals("XR15", item.getModelName());
@@ -81,9 +83,10 @@ class ItemManagementServiceTest {
     void shouldSkipBlankOptional() {
         when(itemRepo.save(any(Item.class)))
                 .thenAnswer(i -> i.getArgument(0));
-        Item item = service.createItem(
-                orgId, "AC", "  ", "", null,
-                null, null, null, null, null, null);
+        ItemSpec spec = new ItemSpec("AC", "  ", "",
+                null, null, null, null, null,
+                null, null);
+        Item item = service.createItem(orgId, spec);
         assertNull(item.getLocation());
         assertNull(item.getManufacturer());
     }
@@ -91,32 +94,32 @@ class ItemManagementServiceTest {
     @Test
     @DisplayName("should reject blank name")
     void shouldRejectBlankName() {
+        ItemSpec spec = new ItemSpec("  ", null,
+                null, null, null, null, null,
+                null, null, null);
         assertThrows(IllegalArgumentException.class,
-                () -> service.createItem(
-                        orgId, "  ", null,
-                        null, null, null, null,
-                        null, null, null, null));
+                () -> service.createItem(orgId, spec));
     }
 
     @Test
     @DisplayName("should reject null name")
     void shouldRejectNullName() {
+        ItemSpec spec = new ItemSpec(null, null,
+                null, null, null, null, null,
+                null, null, null);
         assertThrows(IllegalArgumentException.class,
-                () -> service.createItem(
-                        orgId, null, null,
-                        null, null, null, null,
-                        null, null, null, null));
+                () -> service.createItem(orgId, spec));
     }
 
     @Test
     @DisplayName("should reject name exceeding max length")
     void shouldRejectLongName() {
         String longName = "x".repeat(201);
+        ItemSpec spec = new ItemSpec(longName, null,
+                null, null, null, null, null,
+                null, null, null);
         assertThrows(IllegalArgumentException.class,
-                () -> service.createItem(
-                        orgId, longName, null,
-                        null, null, null, null,
-                        null, null, null, null));
+                () -> service.createItem(orgId, spec));
     }
 
     @Test
@@ -124,11 +127,11 @@ class ItemManagementServiceTest {
             + " length")
     void shouldRejectLongLocation() {
         String longLoc = "x".repeat(201);
+        ItemSpec spec = new ItemSpec("AC", longLoc,
+                null, null, null, null, null,
+                null, null, null);
         assertThrows(IllegalArgumentException.class,
-                () -> service.createItem(
-                        orgId, "AC", longLoc,
-                        null, null, null, null,
-                        null, null, null, null));
+                () -> service.createItem(orgId, spec));
     }
 
     @Test
@@ -143,12 +146,13 @@ class ItemManagementServiceTest {
                 .thenReturn(Optional.of(existing));
         when(itemRepo.save(any(Item.class)))
                 .thenAnswer(i -> i.getArgument(0));
-        Item updated = service.updateItem(
-                orgId, itemId, "New Name", "Basement",
-                "Trane", "XR15", "SN-999", "MN-100",
-                2025, "HVAC",
+        ItemSpec spec = new ItemSpec("New Name",
+                "Basement", "Trane", "XR15", "SN-999",
+                "MN-100", 2025, "HVAC",
                 LocalDate.of(2025, 6, 1),
                 "Updated notes");
+        Item updated = service.updateItem(
+                orgId, itemId, spec);
         assertEquals("New Name", updated.getName());
         assertEquals("Basement", updated.getLocation());
         assertEquals("HVAC", updated.getCategory());
@@ -164,11 +168,12 @@ class ItemManagementServiceTest {
         when(itemRepo.findByIdAndOrganizationId(
                 itemId, orgId))
                 .thenReturn(Optional.empty());
+        ItemSpec spec = new ItemSpec("Name", null,
+                null, null, null, null, null,
+                null, null, null);
         assertThrows(NotFoundException.class,
                 () -> service.updateItem(
-                        orgId, itemId, "Name", null,
-                        null, null, null, null,
-                        null, null, null, null));
+                        orgId, itemId, spec));
     }
 
     @Test
@@ -186,10 +191,11 @@ class ItemManagementServiceTest {
                 .thenReturn(Optional.of(existing));
         when(itemRepo.save(any(Item.class)))
                 .thenAnswer(i -> i.getArgument(0));
+        ItemSpec spec = new ItemSpec("AC", "", null,
+                null, null, null, null, null,
+                null, null);
         Item updated = service.updateItem(
-                orgId, itemId, "AC", "", null,
-                null, null, null, null,
-                null, null, null);
+                orgId, itemId, spec);
         assertNull(updated.getLocation());
         assertNull(updated.getCategory());
     }

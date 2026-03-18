@@ -1,9 +1,9 @@
 package solutions.mystuff.domain.port.in;
 
-import java.time.LocalDate;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.Item;
+import solutions.mystuff.domain.model.ItemSpec;
 
 /**
  * Inbound port for creating and managing items.
@@ -11,8 +11,8 @@ import solutions.mystuff.domain.model.Item;
  * <div class="mermaid">
  * classDiagram
  *     class ItemManagement {
- *         +createItem(UUID, String, String, String, String, String, String, Integer, String, LocalDate, String) Item
- *         +updateItem(UUID, UUID, String, String, String, String, String, Integer, String, LocalDate, String, String) Item
+ *         +createItem(UUID, ItemSpec) Item
+ *         +updateItem(UUID, UUID, ItemSpec) Item
  *     }
  *     ItemManagementService ..|> ItemManagement
  * </div>
@@ -22,19 +22,10 @@ import solutions.mystuff.domain.model.Item;
 public interface ItemManagement {
 
     /** Validate inputs and create a new item for the organization. */
-    Item createItem(UUID orgId, String name,
-            String location, String manufacturer,
-            String modelName, String serialNumber,
-            String modelNumber, Integer modelYear,
-            String category, LocalDate purchaseDate,
-            String notes);
+    Item createItem(UUID orgId, ItemSpec spec);
 
     /** Validate inputs and update an existing item. */
     Item updateItem(UUID orgId, UUID itemId,
-            String name, String location,
-            String manufacturer, String modelName,
-            String serialNumber, String modelNumber,
-            Integer modelYear, String category,
-            LocalDate purchaseDate, String notes);
+            ItemSpec spec);
 
 }

@@ -5,7 +5,9 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.Item;
+import solutions.mystuff.domain.model.ServiceCompletion;
 import solutions.mystuff.domain.model.ServiceRecord;
+import solutions.mystuff.domain.model.ServiceSchedule;
 import solutions.mystuff.domain.port.out
         .ServiceRecordRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -35,14 +37,19 @@ class RecordCreationServiceTest {
     void shouldCreateRecord() {
         Item item = new Item();
         item.setName("Test Item");
+        ServiceSchedule schedule = new ServiceSchedule();
+        schedule.setServiceType("Filter Change");
         when(repo.save(any(ServiceRecord.class)))
                 .thenAnswer(i -> i.getArgument(0));
 
+        ServiceCompletion completion =
+                new ServiceCompletion(null,
+                        "Replaced filter",
+                        LocalDate.of(2026, 3, 10),
+                        "John",
+                        new BigDecimal("50.00"));
         service.createRecord(orgId, item,
-                "Filter Change", null, null,
-                "Replaced filter",
-                LocalDate.of(2026, 3, 10), "John",
-                new BigDecimal("50.00"));
+                schedule, completion);
 
         ArgumentCaptor<ServiceRecord> captor =
                 ArgumentCaptor.forClass(
@@ -53,6 +60,8 @@ class RecordCreationServiceTest {
                 .isEqualTo("Replaced filter");
         assertThat(saved.getTechnicianName())
                 .isEqualTo("John");
+        assertThat(saved.getServiceType())
+                .isEqualTo("Filter Change");
     }
 
     @Test
@@ -63,9 +72,11 @@ class RecordCreationServiceTest {
         when(repo.save(any(ServiceRecord.class)))
                 .thenAnswer(i -> i.getArgument(0));
 
+        ServiceCompletion completion =
+                new ServiceCompletion(null, "Summary",
+                        LocalDate.now(), "  ", null);
         service.createRecord(orgId, item,
-                "Test", null, null, "Summary",
-                LocalDate.now(), "  ", null);
+                null, completion);
 
         ArgumentCaptor<ServiceRecord> captor =
                 ArgumentCaptor.forClass(
@@ -79,10 +90,12 @@ class RecordCreationServiceTest {
     @DisplayName("should reject blank summary")
     void shouldRejectBlankSummary() {
         Item item = new Item();
+        ServiceCompletion completion =
+                new ServiceCompletion(null, "  ",
+                        LocalDate.now(), null, null);
         assertThatThrownBy(() ->
                 service.createRecord(orgId, item,
-                        "Test", null, null, "  ",
-                        LocalDate.now(), null, null))
+                        null, completion))
                 .isInstanceOf(
                         IllegalArgumentException.class)
                 .hasMessageContaining("required");
@@ -93,11 +106,13 @@ class RecordCreationServiceTest {
     void shouldRejectLongSummary() {
         Item item = new Item();
         String longSummary = "x".repeat(251);
+        ServiceCompletion completion =
+                new ServiceCompletion(null,
+                        longSummary,
+                        LocalDate.now(), null, null);
         assertThatThrownBy(() ->
                 service.createRecord(orgId, item,
-                        "Test", null, null,
-                        longSummary,
-                        LocalDate.now(), null, null))
+                        null, completion))
                 .isInstanceOf(
                         IllegalArgumentException.class)
                 .hasMessageContaining("maximum length");
@@ -108,12 +123,13 @@ class RecordCreationServiceTest {
     void shouldRejectLongTechName() {
         Item item = new Item();
         String longTech = "x".repeat(201);
+        ServiceCompletion completion =
+                new ServiceCompletion(null, "Summary",
+                        LocalDate.now(), longTech,
+                        null);
         assertThatThrownBy(() ->
                 service.createRecord(orgId, item,
-                        "Test", null, null,
-                        "Summary",
-                        LocalDate.now(), longTech,
-                        null))
+                        null, completion))
                 .isInstanceOf(
                         IllegalArgumentException.class)
                 .hasMessageContaining("maximum length");

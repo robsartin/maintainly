@@ -8,6 +8,7 @@ import java.util.UUID;
 import solutions.mystuff.domain.model.AppUser;
 import solutions.mystuff.domain.model.FrequencyUnit;
 import solutions.mystuff.domain.model.PageResult;
+import solutions.mystuff.domain.model.ServiceCompletion;
 import solutions.mystuff.domain.model.ServiceSchedule;
 import solutions.mystuff.domain.model.Vendor;
 import solutions.mystuff.domain.port.in.ScheduleLifecycle;
@@ -167,10 +168,12 @@ public class ScheduleController {
                 newVendorPhone);
         LocalDate date = InputValidator.parseDate(
                 serviceDate, "Service date");
+        ServiceCompletion completion =
+                new ServiceCompletion(vendor, summary,
+                        date, techName, cost);
         ServiceSchedule sched =
                 scheduleService.completeSchedule(
-                        scheduleId, orgId, vendor,
-                        summary, date, techName, cost);
+                        scheduleId, orgId, completion);
         if ("item".equals(redirectTo)) {
             return "redirect:/items/"
                     + sched.getItem().getId();

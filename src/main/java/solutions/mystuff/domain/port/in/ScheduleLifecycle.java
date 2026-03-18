@@ -1,10 +1,10 @@
 package solutions.mystuff.domain.port.in;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.FrequencyUnit;
+import solutions.mystuff.domain.model.ServiceCompletion;
 import solutions.mystuff.domain.model.ServiceSchedule;
 import solutions.mystuff.domain.model.Vendor;
 
@@ -15,10 +15,11 @@ import solutions.mystuff.domain.model.Vendor;
  * classDiagram
  *     class ScheduleLifecycle {
  *         +createSchedule(UUID, UUID, String, Vendor, LocalDate, int, FrequencyUnit) ServiceSchedule
- *         +completeSchedule(UUID, UUID, Vendor, String, LocalDate, String, BigDecimal) ServiceSchedule
+ *         +completeSchedule(UUID, UUID, ServiceCompletion) ServiceSchedule
  *         +skipSchedule(UUID, UUID) ServiceSchedule
  *         +editSchedule(UUID, UUID, String, LocalDate, int, FrequencyUnit, Vendor) ServiceSchedule
  *         +deactivateSchedule(UUID, UUID) void
+ *         +completeNextForItem(UUID, UUID, ServiceCompletion) void
  *     }
  *     ScheduleLifecycleService ..|> ScheduleLifecycle
  * </div>
@@ -36,9 +37,7 @@ public interface ScheduleLifecycle {
 
     /** Mark a schedule as completed and log the service. */
     ServiceSchedule completeSchedule(UUID scheduleId,
-            UUID orgId, Vendor vendor, String summary,
-            LocalDate serviceDate, String techName,
-            BigDecimal cost);
+            UUID orgId, ServiceCompletion completion);
 
     /** Skip the current occurrence and advance the due date. */
     ServiceSchedule skipSchedule(
@@ -61,7 +60,5 @@ public interface ScheduleLifecycle {
      * or create a one-off record if no active schedule exists.
      */
     void completeNextForItem(UUID orgId, UUID itemId,
-            Vendor vendor, String summary,
-            LocalDate serviceDate, String techName,
-            BigDecimal cost);
+            ServiceCompletion completion);
 }

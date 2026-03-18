@@ -1,9 +1,9 @@
 package solutions.mystuff.domain.service;
 
-import java.time.LocalDate;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.Item;
+import solutions.mystuff.domain.model.ItemSpec;
 import solutions.mystuff.domain.model.NotFoundException;
 import solutions.mystuff.domain.model.Validation;
 import solutions.mystuff.domain.port.in.ItemManagement;
@@ -52,22 +52,12 @@ public class ItemManagementService
     /** Validates input lengths and creates a new item. */
     @Override
     @Transactional
-    public Item createItem(
-            UUID orgId, String name,
-            String location, String manufacturer,
-            String modelName, String serialNumber,
-            String modelNumber, Integer modelYear,
-            String category, LocalDate purchaseDate,
-            String notes) {
-        String trimName = validateFields(name, location,
-                manufacturer, modelName, serialNumber,
-                modelNumber, category);
+    public Item createItem(UUID orgId, ItemSpec spec) {
+        String trimName = validateFields(spec);
         Item item = new Item();
         item.setOrganizationId(orgId);
         item.setName(trimName);
-        setAllFields(item, location, manufacturer,
-                modelName, serialNumber, modelNumber,
-                modelYear, category, purchaseDate, notes);
+        setAllFields(item, spec);
         Item saved = itemRepo.save(item);
         log.info("Created item {}", saved.getName());
         return saved;
@@ -77,67 +67,58 @@ public class ItemManagementService
     @Override
     @Transactional
     public Item updateItem(
-            UUID orgId, UUID itemId,
-            String name, String location,
-            String manufacturer, String modelName,
-            String serialNumber, String modelNumber,
-            Integer modelYear, String category,
-            LocalDate purchaseDate, String notes) {
-        String trimName = validateFields(name, location,
-                manufacturer, modelName, serialNumber,
-                modelNumber, category);
+            UUID orgId, UUID itemId, ItemSpec spec) {
+        String trimName = validateFields(spec);
         Item item = itemRepo
                 .findByIdAndOrganizationId(itemId, orgId)
                 .orElseThrow(() -> new NotFoundException(
                         "Item not found"));
         item.setName(trimName);
-        setAllFields(item, location, manufacturer,
-                modelName, serialNumber, modelNumber,
-                modelYear, category, purchaseDate, notes);
+        setAllFields(item, spec);
         Item saved = itemRepo.save(item);
         log.info("Updated item {}", saved.getName());
         return saved;
     }
 
-    private String validateFields(
-            String name, String location,
-            String manufacturer, String modelName,
-            String serialNumber, String modelNumber,
-            String category) {
+    private String validateFields(ItemSpec spec) {
         String trimName = Validation.requireNotBlank(
-                name, "Item name");
+                spec.name(), "Item name");
         Validation.requireMaxLength(
                 trimName, "Item name", MAX_LENGTH);
         Validation.requireMaxLength(
-                location, "Location", MAX_LENGTH);
+                spec.location(), "Location", MAX_LENGTH);
         Validation.requireMaxLength(
-                manufacturer, "Manufacturer", MAX_LENGTH);
+                spec.manufacturer(),
+                "Manufacturer", MAX_LENGTH);
         Validation.requireMaxLength(
-                modelName, "Model name", MAX_LENGTH);
+                spec.modelName(),
+                "Model name", MAX_LENGTH);
         Validation.requireMaxLength(
-                serialNumber, "Serial number", MAX_LENGTH);
+                spec.serialNumber(),
+                "Serial number", MAX_LENGTH);
         Validation.requireMaxLength(
-                modelNumber, "Model number", MAX_LENGTH);
+                spec.modelNumber(),
+                "Model number", MAX_LENGTH);
         Validation.requireMaxLength(
-                category, "Category", CATEGORY_MAX);
+                spec.category(),
+                "Category", CATEGORY_MAX);
         return trimName;
     }
 
     private void setAllFields(
-            Item item, String location,
-            String manufacturer, String modelName,
-            String serialNumber, String modelNumber,
-            Integer modelYear, String category,
-            LocalDate purchaseDate, String notes) {
-        item.setLocation(trimOrNull(location));
-        item.setManufacturer(trimOrNull(manufacturer));
-        item.setModelName(trimOrNull(modelName));
-        item.setSerialNumber(trimOrNull(serialNumber));
-        item.setModelNumber(trimOrNull(modelNumber));
-        item.setCategory(trimOrNull(category));
-        item.setModelYear(modelYear);
-        item.setPurchaseDate(purchaseDate);
-        item.setNotes(trimOrNull(notes));
+            Item item, ItemSpec spec) {
+        item.setLocation(trimOrNull(spec.location()));
+        item.setManufacturer(
+                trimOrNull(spec.manufacturer()));
+        item.setModelName(trimOrNull(spec.modelName()));
+        item.setSerialNumber(
+                trimOrNull(spec.serialNumber()));
+        item.setModelNumber(
+                trimOrNull(spec.modelNumber()));
+        item.setCategory(trimOrNull(spec.category()));
+        item.setModelYear(spec.modelYear());
+        item.setPurchaseDate(spec.purchaseDate());
+        item.setNotes(trimOrNull(spec.notes()));
     }
 
     private String trimOrNull(String value) {
