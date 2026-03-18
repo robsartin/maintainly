@@ -924,6 +924,7 @@ class ItemControllerIntegrationTest {
         assertTrue(
                 html.contains("name=\"category\""),
                 "should have category select");
+    }
 
     @Test
     @DisplayName("should delete item")

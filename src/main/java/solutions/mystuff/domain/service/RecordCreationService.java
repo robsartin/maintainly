@@ -96,6 +96,7 @@ public class RecordCreationService
             String techName, BigDecimal cost) {
         validateSummary(summary);
         validateTechName(techName);
+        Validation.requireNonNegative(cost, "Cost");
         ServiceRecord record =
                 requireRecord(orgId, recordId);
         record.setSummary(summary.trim());
