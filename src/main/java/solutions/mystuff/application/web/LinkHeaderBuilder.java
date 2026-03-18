@@ -12,13 +12,13 @@ import jakarta.servlet.http.HttpServletResponse;
  * @see ItemController
  * @see ScheduleController
  */
-final class LinkHeaderBuilder {
+public final class LinkHeaderBuilder {
 
     private LinkHeaderBuilder() {
     }
 
     /** Builds and sets the Link header with prev/next rels. */
-    static void addLinkHeader(
+    public static void addLinkHeader(
             HttpServletResponse response,
             String basePath,
             PageResult<?> page, String q) {
