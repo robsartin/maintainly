@@ -2,9 +2,11 @@ package solutions.mystuff.domain.service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Optional;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.Item;
+import solutions.mystuff.domain.model.NotFoundException;
 import solutions.mystuff.domain.model.ServiceCompletion;
 import solutions.mystuff.domain.model.ServiceRecord;
 import solutions.mystuff.domain.model.ServiceSchedule;
@@ -133,5 +135,94 @@ class RecordCreationServiceTest {
                 .isInstanceOf(
                         IllegalArgumentException.class)
                 .hasMessageContaining("maximum length");
+    }
+
+    @Test
+    @DisplayName("should update record fields")
+    void shouldUpdateRecordFields() {
+        UUID recordId = UUID.randomUUID();
+        ServiceRecord existing = new ServiceRecord();
+        existing.setSummary("Old summary");
+        existing.setServiceDate(LocalDate.of(2026, 1, 1));
+        when(repo.findByIdAndOrganizationId(
+                recordId, orgId))
+                .thenReturn(Optional.of(existing));
+        when(repo.save(any(ServiceRecord.class)))
+                .thenAnswer(i -> i.getArgument(0));
+
+        service.updateRecord(orgId, recordId,
+                "New summary",
+                LocalDate.of(2026, 6, 15),
+                "Alice",
+                new BigDecimal("75.00"));
+
+        ArgumentCaptor<ServiceRecord> captor =
+                ArgumentCaptor.forClass(
+                        ServiceRecord.class);
+        verify(repo).save(captor.capture());
+        ServiceRecord saved = captor.getValue();
+        assertThat(saved.getSummary())
+                .isEqualTo("New summary");
+        assertThat(saved.getServiceDate())
+                .isEqualTo(LocalDate.of(2026, 6, 15));
+        assertThat(saved.getTechnicianName())
+                .isEqualTo("Alice");
+        assertThat(saved.getCost())
+                .isEqualByComparingTo("75.00");
+    }
+
+    @Test
+    @DisplayName("should throw when updating unknown record")
+    void shouldThrowWhenUpdatingUnknownRecord() {
+        UUID recordId = UUID.randomUUID();
+        when(repo.findByIdAndOrganizationId(
+                recordId, orgId))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() ->
+                service.updateRecord(orgId, recordId,
+                        "Summary", LocalDate.now(),
+                        null, null))
+                .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("should reject blank summary on update")
+    void shouldRejectBlankSummaryOnUpdate() {
+        assertThatThrownBy(() ->
+                service.updateRecord(orgId,
+                        UUID.randomUUID(), "  ",
+                        LocalDate.now(), null, null))
+                .isInstanceOf(
+                        IllegalArgumentException.class)
+                .hasMessageContaining("required");
+    }
+
+    @Test
+    @DisplayName("should delete record after verifying org")
+    void shouldDeleteRecordWhenFound() {
+        UUID recordId = UUID.randomUUID();
+        ServiceRecord existing = new ServiceRecord();
+        when(repo.findByIdAndOrganizationId(
+                recordId, orgId))
+                .thenReturn(Optional.of(existing));
+
+        service.deleteRecord(orgId, recordId);
+
+        verify(repo).deleteByIdAndOrganizationId(
+                recordId, orgId);
+    }
+
+    @Test
+    @DisplayName("should throw when deleting unknown record")
+    void shouldThrowWhenDeletingUnknownRecord() {
+        UUID recordId = UUID.randomUUID();
+        when(repo.findByIdAndOrganizationId(
+                recordId, orgId))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() ->
+                service.deleteRecord(orgId, recordId))
+                .isInstanceOf(NotFoundException.class);
     }
 }
