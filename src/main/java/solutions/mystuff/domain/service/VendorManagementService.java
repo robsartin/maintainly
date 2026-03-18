@@ -108,6 +108,8 @@ public class VendorManagementService
             Vendor v, VendorData data) {
         v.setName(data.name().trim());
         v.setPhone(Validation.trimOrNull(data.phone()));
+        Validation.requireValidEmail(
+                data.email(), "Vendor email");
         v.setEmail(Validation.trimOrNull(data.email()));
         v.setAddressLine1(
                 Validation.trimOrNull(data.addressLine1()));

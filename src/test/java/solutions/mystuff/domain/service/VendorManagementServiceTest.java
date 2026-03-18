@@ -290,6 +290,53 @@ class VendorManagementServiceTest {
                 .hasMessageContaining("maximum length");
     }
 
+    @Test
+    @DisplayName("should reject invalid email on create")
+    void shouldRejectInvalidEmailOnCreate() {
+        VendorData data = new VendorData(
+                "Corp", null, "not-an-email",
+                null, null, null, null,
+                null, null, null, null, List.of());
+        assertThatThrownBy(() ->
+                service.createVendor(orgId, data))
+                .isInstanceOf(
+                        IllegalArgumentException.class)
+                .hasMessageContaining("email");
+    }
+
+    @Test
+    @DisplayName("should accept valid email on create")
+    void shouldAcceptValidEmailOnCreate() {
+        when(repo.save(any(Vendor.class)))
+                .thenAnswer(i -> i.getArgument(0));
+
+        VendorData data = new VendorData(
+                "Corp", null, "test@example.com",
+                null, null, null, null,
+                null, null, null, null, List.of());
+        Vendor result = service.createVendor(
+                orgId, data);
+
+        assertThat(result.getEmail())
+                .isEqualTo("test@example.com");
+    }
+
+    @Test
+    @DisplayName("should accept null email on create")
+    void shouldAcceptNullEmailOnCreate() {
+        when(repo.save(any(Vendor.class)))
+                .thenAnswer(i -> i.getArgument(0));
+
+        VendorData data = new VendorData(
+                "Corp", null, null,
+                null, null, null, null,
+                null, null, null, null, List.of());
+        Vendor result = service.createVendor(
+                orgId, data);
+
+        assertThat(result.getEmail()).isNull();
+    }
+
     private Vendor existingVendor(UUID vendorId) {
         Vendor v = new Vendor();
         v.setName("Old Name");

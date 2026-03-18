@@ -91,7 +91,7 @@ public class ProfileImageServiceImpl
         userRepo.save(user);
     }
 
-    /** Validates size and resizes the image to exactly 128x128. */
+    /** Validates size, magic bytes, and resizes to 128x128. */
     byte[] resizeImage(
             byte[] imageData, String contentType) {
         if (imageData.length > MAX_BYTES) {
@@ -99,6 +99,7 @@ public class ProfileImageServiceImpl
                     "Image exceeds maximum size of "
                             + MAX_BYTES / 1024 + "KB");
         }
+        validateMagicBytes(imageData, contentType);
         try {
             BufferedImage original = ImageIO.read(
                     new ByteArrayInputStream(imageData));
@@ -123,6 +124,31 @@ public class ProfileImageServiceImpl
             throw new IllegalArgumentException(
                     "Only PNG and JPEG images "
                             + "are supported");
+        }
+    }
+
+    /** Verifies file magic bytes match the declared content type. */
+    static void validateMagicBytes(
+            byte[] data, String contentType) {
+        if (data.length < 4) {
+            throw new IllegalArgumentException(
+                    "Image data too small");
+        }
+        boolean valid = switch (contentType) {
+            case "image/png" -> data[0] == (byte) 0x89
+                    && data[1] == (byte) 0x50
+                    && data[2] == (byte) 0x4E
+                    && data[3] == (byte) 0x47;
+            case "image/jpeg" -> data[0] == (byte) 0xFF
+                    && data[1] == (byte) 0xD8
+                    && data[2] == (byte) 0xFF;
+            default -> false;
+        };
+        if (!valid) {
+            throw new IllegalArgumentException(
+                    "File content does not match"
+                            + " declared type "
+                            + contentType);
         }
     }
 
