@@ -74,9 +74,11 @@ public class ItemController {
     @Operation(summary = "List items",
             description = "Returns a paginated list of"
                     + " items with optional full-text"
-                    + " search. Model attributes:"
+                    + " search and category filter."
+                    + " Model attributes:"
                     + " items (List<Item>),"
                     + " itemPage (PageResult),"
+                    + " categories (List<String>),"
                     + " vendors (List<Vendor>),"
                     + " frequencyUnits (FrequencyUnit[])."
                     + " Includes Link header for"
@@ -96,6 +98,9 @@ public class ItemController {
                     + " manufacturer, model, or serial"
                     + " number")
             @RequestParam(required = false) String q,
+            @Parameter(description = "Category filter")
+            @RequestParam(required = false)
+                    String category,
             @Parameter(description = "Zero-based page"
                     + " index")
             @RequestParam(defaultValue = "0") int page,
@@ -111,7 +116,7 @@ public class ItemController {
         }
         helper.setOrgMdc(user);
         UUID orgId = user.getOrganization().getId();
-        loadItems(q, orgId, page, size,
+        loadItems(q, category, orgId, page, size,
                 model, response);
         helper.addUserAttrs(user, model);
         return "items";
@@ -154,7 +159,7 @@ public class ItemController {
         }
         helper.setOrgMdc(user);
         UUID orgId = user.getOrganization().getId();
-        loadItems(null, orgId, page, size,
+        loadItems(null, null, orgId, page, size,
                 model, response);
         helper.addUserAttrs(user, model);
         addDetailAttrs(model, itemId, orgId);
@@ -468,30 +473,68 @@ public class ItemController {
     }
 
     private void loadItems(
-            String q, UUID orgId, int page, int size,
+            String q, String category,
+            UUID orgId, int page, int size,
             Model model, HttpServletResponse response) {
         int safeSize = helper.clampSize(size);
         int safePage = Math.max(0, page);
-        PageResult<Item> result;
+        String cat = normalizeCategory(category);
+        PageResult<Item> result = queryItems(
+                q, cat, orgId, safePage, safeSize);
         if (q != null && !q.isBlank()) {
-            log.info("Searching items query={}",
-                    LogSanitizer.sanitize(q));
-            result = itemQuery.searchByOrganization(
-                    orgId, q, safePage, safeSize);
             model.addAttribute("q", q);
-        } else {
-            log.info("Listing items page={}", safePage);
-            result = itemQuery.findByOrganization(
-                    orgId, safePage, safeSize);
+        }
+        if (cat != null) {
+            model.addAttribute("selectedCategory", cat);
         }
         model.addAttribute("items", result.content());
         model.addAttribute("itemPage", result);
+        model.addAttribute("categories",
+                itemQuery.findDistinctCategories(orgId));
         LinkHeaderBuilder.addLinkHeader(
-                response, "/items", result, q);
+                response, "/items", result, q, cat);
         model.addAttribute("vendors",
                 vendorQuery.findAllVendors(orgId));
         model.addAttribute("frequencyUnits",
                 FrequencyUnit.values());
+    }
+
+    private PageResult<Item> queryItems(
+            String q, String category,
+            UUID orgId, int page, int size) {
+        boolean hasQuery = q != null && !q.isBlank();
+        boolean hasCat = category != null;
+        if (hasQuery && hasCat) {
+            log.info("Searching items query={} cat={}",
+                    LogSanitizer.sanitize(q),
+                    LogSanitizer.sanitize(category));
+            return itemQuery
+                    .searchByCategoryAndOrganization(
+                            orgId, q, category,
+                            page, size);
+        } else if (hasQuery) {
+            log.info("Searching items query={}",
+                    LogSanitizer.sanitize(q));
+            return itemQuery.searchByOrganization(
+                    orgId, q, page, size);
+        } else if (hasCat) {
+            log.info("Listing items cat={}",
+                    LogSanitizer.sanitize(category));
+            return itemQuery
+                    .findByCategoryAndOrganization(
+                            orgId, category, page, size);
+        } else {
+            log.info("Listing items page={}", page);
+            return itemQuery.findByOrganization(
+                    orgId, page, size);
+        }
+    }
+
+    private String normalizeCategory(String category) {
+        if (category == null || category.isBlank()) {
+            return null;
+        }
+        return category;
     }
 
     private Item findItem(UUID itemId, UUID orgId) {

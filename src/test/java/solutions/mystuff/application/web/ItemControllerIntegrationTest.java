@@ -842,6 +842,77 @@ class ItemControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("should filter items by category")
+    void shouldFilterItemsByCategory()
+            throws Exception {
+        mockMvc.perform(get("/items")
+                        .param("category", "HVAC")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("items"))
+                .andExpect(model().attribute(
+                        "selectedCategory", "HVAC"));
+    }
+
+    @Test
+    @DisplayName("should provide categories model attr")
+    void shouldProvideCategoriesAttribute()
+            throws Exception {
+        mockMvc.perform(get("/items")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists(
+                        "categories"));
+    }
+
+    @Test
+    @DisplayName("should filter by category and search")
+    void shouldFilterByCategoryAndSearch()
+            throws Exception {
+        mockMvc.perform(get("/items")
+                        .param("q", "Furnace")
+                        .param("category", "HVAC")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("items"))
+                .andExpect(model().attribute("q",
+                        "Furnace"))
+                .andExpect(model().attribute(
+                        "selectedCategory", "HVAC"));
+    }
+
+    @Test
+    @DisplayName("should ignore blank category filter")
+    void shouldIgnoreBlankCategory()
+            throws Exception {
+        mockMvc.perform(get("/items")
+                        .param("category", "  ")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("items"))
+                .andExpect(model().attributeDoesNotExist(
+                        "selectedCategory"));
+    }
+
+    @Test
+    @DisplayName("should render category filter dropdown")
+    void shouldRenderCategoryDropdown()
+            throws Exception {
+        MvcResult result = mockMvc.perform(get("/items")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse()
+                .getContentAsString();
+        assertTrue(
+                html.contains("All Categories"),
+                "should show All Categories option");
+        assertTrue(
+                html.contains("name=\"category\""),
+                "should have category select");
+    }
+
+    @Test
     @DisplayName("should create item with all fields")
     void shouldCreateItemWithAllFields()
             throws Exception {

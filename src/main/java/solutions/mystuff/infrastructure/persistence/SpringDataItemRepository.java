@@ -57,4 +57,33 @@ interface SpringDataItemRepository
             UUID id, UUID organizationId);
 
     long countByOrganizationId(UUID organizationId);
+
+    @Query("SELECT DISTINCT i.category FROM Item i "
+            + "WHERE i.organizationId = :orgId "
+            + "AND i.category IS NOT NULL "
+            + "AND i.category <> '' "
+            + "ORDER BY i.category")
+    List<String> findDistinctCategoriesByOrganizationId(
+            @Param("orgId") UUID organizationId);
+
+    @Query("SELECT i FROM Item i "
+            + "WHERE i.organizationId = :orgId "
+            + "AND i.category = :cat")
+    Slice<Item> findByCategoryAndOrganizationId(
+            @Param("orgId") UUID organizationId,
+            @Param("cat") String category,
+            Pageable pageable);
+
+    @Query("SELECT i FROM Item i "
+            + "WHERE i.organizationId = :orgId "
+            + "AND i.category = :cat "
+            + "AND (LOWER(i.name) LIKE "
+            + "LOWER(CONCAT('%', :q, '%')) "
+            + "OR LOWER(i.location) LIKE "
+            + "LOWER(CONCAT('%', :q, '%')))")
+    Slice<Item> searchByCategoryAndOrganizationId(
+            @Param("orgId") UUID organizationId,
+            @Param("q") String query,
+            @Param("cat") String category,
+            Pageable pageable);
 }

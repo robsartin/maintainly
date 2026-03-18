@@ -24,6 +24,19 @@ public interface ItemQuery {
     PageResult<Item> searchByOrganization(
             UUID orgId, String query, int page, int size);
 
+    /** Find a page of items filtered by category. */
+    PageResult<Item> findByCategoryAndOrganization(
+            UUID orgId, String category,
+            int page, int size);
+
+    /** Search items by query and category. */
+    PageResult<Item> searchByCategoryAndOrganization(
+            UUID orgId, String query, String category,
+            int page, int size);
+
+    /** Find distinct categories for an organization. */
+    List<String> findDistinctCategories(UUID orgId);
+
     /** Find all items for an organization. */
     List<Item> findAllByOrganization(UUID orgId);
 

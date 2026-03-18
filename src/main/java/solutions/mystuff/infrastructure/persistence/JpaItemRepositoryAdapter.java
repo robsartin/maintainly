@@ -92,6 +92,42 @@ public class JpaItemRepositoryAdapter
 
     /** {@inheritDoc} */
     @Override
+    public List<String>
+            findDistinctCategoriesByOrganizationId(
+                    UUID organizationId) {
+        return delegate
+                .findDistinctCategoriesByOrganizationId(
+                        organizationId);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public PageResult<Item>
+            findByCategoryAndOrganizationId(
+                    UUID organizationId, String category,
+                    int page, int size) {
+        Slice<Item> s = delegate
+                .findByCategoryAndOrganizationId(
+                        organizationId, category,
+                        pageOf(page, size));
+        return PageResultConverter.toPageResult(s);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public PageResult<Item>
+            searchByCategoryAndOrganizationId(
+                    UUID organizationId, String query,
+                    String category, int page, int size) {
+        Slice<Item> s = delegate
+                .searchByCategoryAndOrganizationId(
+                        organizationId, query, category,
+                        pageOf(page, size));
+        return PageResultConverter.toPageResult(s);
+    }
+
+    /** {@inheritDoc} */
+    @Override
     public Item save(Item item) {
         return delegate.save(item);
     }

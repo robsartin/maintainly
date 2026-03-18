@@ -19,6 +19,9 @@ import solutions.mystuff.domain.model.PageResult;
  *         +searchByOrganizationId(UUID, String, int, int) PageResult~Item~
  *         +findByIdAndOrganizationId(UUID, UUID) Optional~Item~
  *         +countByOrganizationId(UUID) long
+ *         +findDistinctCategoriesByOrganizationId(UUID) List~String~
+ *         +findByCategoryAndOrganizationId(UUID, String, int, int) PageResult~Item~
+ *         +searchByCategoryAndOrganizationId(UUID, String, String, int, int) PageResult~Item~
  *         +save(Item) Item
  *     }
  *     JpaItemRepositoryAdapter ..|> ItemRepository
@@ -50,6 +53,20 @@ public interface ItemRepository {
 
     /** Count all items belonging to an organization. */
     long countByOrganizationId(UUID organizationId);
+
+    /** Find distinct categories for an organization. */
+    List<String> findDistinctCategoriesByOrganizationId(
+            UUID organizationId);
+
+    /** Find a page of items filtered by category. */
+    PageResult<Item> findByCategoryAndOrganizationId(
+            UUID organizationId, String category,
+            int page, int size);
+
+    /** Search items by query and category with pagination. */
+    PageResult<Item> searchByCategoryAndOrganizationId(
+            UUID organizationId, String query,
+            String category, int page, int size);
 
     /** Persist a new or updated item. */
     Item save(Item item);

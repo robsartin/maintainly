@@ -56,6 +56,39 @@ public class ItemQueryService implements ItemQuery {
 
     /** {@inheritDoc} */
     @Override
+    public PageResult<Item>
+            findByCategoryAndOrganization(
+                    UUID orgId, String category,
+                    int page, int size) {
+        return itemRepo
+                .findByCategoryAndOrganizationId(
+                        orgId, category, page, size);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public PageResult<Item>
+            searchByCategoryAndOrganization(
+                    UUID orgId, String query,
+                    String category,
+                    int page, int size) {
+        return itemRepo
+                .searchByCategoryAndOrganizationId(
+                        orgId, query, category,
+                        page, size);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public List<String> findDistinctCategories(
+            UUID orgId) {
+        return itemRepo
+                .findDistinctCategoriesByOrganizationId(
+                        orgId);
+    }
+
+    /** {@inheritDoc} */
+    @Override
     public List<Item> findAllByOrganization(UUID orgId) {
         return itemRepo.findByOrganizationId(orgId);
     }
