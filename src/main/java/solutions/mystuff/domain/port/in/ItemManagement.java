@@ -33,8 +33,8 @@ public interface ItemManagement {
     Item updateItem(UUID orgId, UUID itemId,
             String name, String location,
             String manufacturer, String modelName,
-            String modelNumber, Integer modelYear,
-            String serialNumber, LocalDate purchaseDate,
-            String category, String notes);
+            String serialNumber, String modelNumber,
+            Integer modelYear, String category,
+            LocalDate purchaseDate, String notes);
 
 }

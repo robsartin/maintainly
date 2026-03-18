@@ -12,6 +12,8 @@ import solutions.mystuff.domain.port.out
 import solutions.mystuff.domain.port.out
         .ServiceScheduleRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation
+        .Transactional;
 
 /**
  * Aggregates dashboard summary data from multiple repositories.
@@ -26,6 +28,7 @@ import org.springframework.stereotype.Service;
  * @see DashboardQuery
  */
 @Service
+@Transactional(readOnly = true)
 public class DashboardQueryService
         implements DashboardQuery {
 

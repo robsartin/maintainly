@@ -145,9 +145,10 @@ class ItemManagementServiceTest {
                 .thenAnswer(i -> i.getArgument(0));
         Item updated = service.updateItem(
                 orgId, itemId, "New Name", "Basement",
-                "Trane", "XR15", "MN-100", 2025,
-                "SN-999", LocalDate.of(2025, 6, 1),
-                "HVAC", "Updated notes");
+                "Trane", "XR15", "SN-999", "MN-100",
+                2025, "HVAC",
+                LocalDate.of(2025, 6, 1),
+                "Updated notes");
         assertEquals("New Name", updated.getName());
         assertEquals("Basement", updated.getLocation());
         assertEquals("HVAC", updated.getCategory());

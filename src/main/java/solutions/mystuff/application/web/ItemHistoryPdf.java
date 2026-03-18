@@ -210,6 +210,8 @@ final class ItemHistoryPdf {
                 || cost.compareTo(BigDecimal.ZERO) == 0) {
             return "";
         }
-        return "$" + cost.setScale(2).toPlainString();
+        return "$" + cost.setScale(2,
+                java.math.RoundingMode.HALF_UP)
+                .toPlainString();
     }
 }
