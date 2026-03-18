@@ -1,10 +1,16 @@
 package solutions.mystuff.domain.model;
 
+import java.util.regex.Pattern;
+
 /**
  * Shared validation helpers usable by both domain services
  * and the web layer, eliminating duplicated checks.
  */
 public final class Validation {
+
+    private static final Pattern EMAIL_PATTERN =
+            Pattern.compile(
+                    "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
 
     private Validation() {
     }
@@ -38,6 +44,18 @@ public final class Validation {
             return null;
         }
         return value.trim();
+    }
+
+    /** Validates that the value is a well-formed email address, if non-null. */
+    public static void requireValidEmail(
+            String value, String fieldName) {
+        if (value != null && !value.isBlank()
+                && !EMAIL_PATTERN.matcher(value.trim())
+                        .matches()) {
+            throw new IllegalArgumentException(
+                    fieldName + " is not a valid"
+                            + " email address");
+        }
     }
 
     /** Validates that the integer value is at least 1. */

@@ -194,6 +194,26 @@ class ProfileImageServiceImplTest {
     }
 
     @Test
+    @DisplayName("should reject spoofed content type")
+    void shouldRejectSpoofedContentType() {
+        byte[] textData = "This is not an image"
+                .getBytes();
+        assertThrows(IllegalArgumentException.class,
+                () -> service.resizeImage(
+                        textData, "image/png"));
+    }
+
+    @Test
+    @DisplayName("should reject JPEG bytes with PNG type")
+    void shouldRejectMismatchedMagicBytes()
+            throws Exception {
+        byte[] jpeg = smallJpeg(64, 64);
+        assertThrows(IllegalArgumentException.class,
+                () -> service.resizeImage(
+                        jpeg, "image/png"));
+    }
+
+    @Test
     @DisplayName("should accept JPEG images")
     void shouldAcceptJpeg() throws Exception {
         byte[] jpeg = smallJpeg(64, 64);
