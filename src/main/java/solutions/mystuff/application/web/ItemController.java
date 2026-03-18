@@ -236,6 +236,30 @@ public class ItemController {
         return "redirect:/items";
     }
 
+    @Operation(summary = "Delete item",
+            description = "Permanently deletes an item"
+                    + " and all associated schedules"
+                    + " and records via cascade.",
+            responses = {
+                    @ApiResponse(responseCode = "302",
+                            description = "Redirect to"
+                                    + " /items"),
+                    @ApiResponse(responseCode = "404",
+                            description = "Item not"
+                                    + " found")})
+    @DeleteMapping("/items/{id}")
+    public String deleteItem(
+            @Parameter(description = "Item UUID")
+            @PathVariable("id") UUID itemId,
+            Principal principal) {
+        AppUser user = helper.resolveUser(principal);
+        helper.setOrgMdc(user);
+        itemService.deleteItem(
+                user.getOrganization().getId(),
+                itemId);
+        return "redirect:/items";
+    }
+
     @Operation(summary = "Log service record",
             description = "Logs a service visit for an"
                     + " item.",

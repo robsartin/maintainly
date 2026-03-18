@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -123,6 +124,17 @@ public class ItemApiController {
         return ItemResponse.from(
                 itemService.updateItem(
                         orgId, id, spec));
+    }
+
+    /** Deletes an item. */
+    @Operation(summary = "Delete item")
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(
+            @PathVariable UUID id,
+            Principal principal) {
+        UUID orgId = resolveOrgId(principal);
+        itemService.deleteItem(orgId, id);
     }
 
     private UUID resolveOrgId(Principal principal) {

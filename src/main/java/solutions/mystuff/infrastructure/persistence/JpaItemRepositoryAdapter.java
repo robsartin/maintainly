@@ -96,6 +96,14 @@ public class JpaItemRepositoryAdapter
         return delegate.save(item);
     }
 
+    /** {@inheritDoc} */
+    @Override
+    public void deleteByIdAndOrganizationId(
+            UUID id, UUID organizationId) {
+        delegate.deleteByIdAndOrganizationId(
+                id, organizationId);
+    }
+
     private PageRequest pageOf(int page, int size) {
         return PageRequest.of(page, size,
                 Sort.by("name").ascending());

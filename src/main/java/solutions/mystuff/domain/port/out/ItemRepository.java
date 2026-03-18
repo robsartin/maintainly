@@ -20,6 +20,7 @@ import solutions.mystuff.domain.model.PageResult;
  *         +findByIdAndOrganizationId(UUID, UUID) Optional~Item~
  *         +countByOrganizationId(UUID) long
  *         +save(Item) Item
+ *         +deleteByIdAndOrganizationId(UUID, UUID) void
  *     }
  *     JpaItemRepositoryAdapter ..|> ItemRepository
  * </div>
@@ -53,4 +54,8 @@ public interface ItemRepository {
 
     /** Persist a new or updated item. */
     Item save(Item item);
+
+    /** Delete an item by ID scoped to an organization. */
+    void deleteByIdAndOrganizationId(
+            UUID id, UUID organizationId);
 }

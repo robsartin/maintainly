@@ -15,14 +15,14 @@ import org.springframework.transaction.annotation
         .Transactional;
 
 /**
- * Validates and persists new or updated items within a transaction.
+ * Validates and persists new, updated, or deleted items within a transaction.
  *
  * <div class="mermaid">
  * sequenceDiagram
  *     participant C as Controller
  *     participant S as ItemManagementService
  *     participant R as ItemRepository
- *     C-&gt;&gt;S: createItem / updateItem
+ *     C-&gt;&gt;S: createItem / updateItem / deleteItem
  *     S-&gt;&gt;S: validate fields
  *     S-&gt;&gt;R: save(item)
  *     R--&gt;&gt;S: saved item
@@ -69,15 +69,29 @@ public class ItemManagementService
     public Item updateItem(
             UUID orgId, UUID itemId, ItemSpec spec) {
         String trimName = validateFields(spec);
-        Item item = itemRepo
-                .findByIdAndOrganizationId(itemId, orgId)
-                .orElseThrow(() -> new NotFoundException(
-                        "Item not found"));
+        Item item = requireItem(orgId, itemId);
         item.setName(trimName);
         setAllFields(item, spec);
         Item saved = itemRepo.save(item);
         log.info("Updated item {}", saved.getName());
         return saved;
+    }
+
+    /** Finds and deletes an item by ID. */
+    @Override
+    @Transactional
+    public void deleteItem(UUID orgId, UUID itemId) {
+        Item item = requireItem(orgId, itemId);
+        itemRepo.deleteByIdAndOrganizationId(
+                itemId, orgId);
+        log.info("Deleted item {}", item.getName());
+    }
+
+    private Item requireItem(UUID orgId, UUID itemId) {
+        return itemRepo
+                .findByIdAndOrganizationId(itemId, orgId)
+                .orElseThrow(() -> new NotFoundException(
+                        "Item not found"));
     }
 
     private String validateFields(ItemSpec spec) {

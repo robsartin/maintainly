@@ -14,6 +14,8 @@ import org.springframework.test.web.servlet.MvcResult;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.test.web.servlet
+        .request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet
         .request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet
         .request.MockMvcRequestBuilders.post;
@@ -119,6 +121,37 @@ class RestApiIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name")
                         .value("Updated via API"));
+    }
+
+    @Test
+    @DisplayName("should delete item")
+    void shouldDeleteItem() throws Exception {
+        MvcResult created = mockMvc.perform(
+                post("/api/v1/items")
+                        .header("Authorization",
+                                "Bearer " + token)
+                        .contentType(
+                                MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Delete Me"
+                                + " API\"}"))
+                .andExpect(status().isCreated())
+                .andReturn();
+        String body = created.getResponse()
+                .getContentAsString();
+        String itemId = body.replaceAll(
+                ".*?\"id\":\"([^\"]+)\".*", "$1");
+
+        mockMvc.perform(
+                delete("/api/v1/items/" + itemId)
+                        .header("Authorization",
+                                "Bearer " + token))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(
+                get("/api/v1/items/" + itemId)
+                        .header("Authorization",
+                                "Bearer " + token))
+                .andExpect(status().isNotFound());
     }
 
     @Test
