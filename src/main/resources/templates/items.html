@@ -17,11 +17,18 @@
             <form method="get" th:action="@{/items}">
                 <input type="text" name="q" placeholder="Search items..."
                        th:value="${q}"/>
+                <select name="category" data-auto-submit>
+                    <option value="">All Categories</option>
+                    <option th:each="cat : ${categories}"
+                            th:value="${cat}" th:text="${cat}"
+                            th:selected="${cat == selectedCategory}"></option>
+                </select>
                 <button type="submit" class="btn-icon">
                     <svg th:replace="~{fragments/icons :: icon-search}"></svg>
                     Search
                 </button>
-                <a th:if="${q}" th:href="@{/items}" class="btn-icon btn-cancel" title="Clear search">
+                <a th:if="${q or selectedCategory}" th:href="@{/items}"
+                   class="btn-icon btn-cancel" title="Clear filters">
                     <svg th:replace="~{fragments/icons :: icon-cancel}"></svg>
                 </a>
             </form>
@@ -414,10 +421,10 @@
             </table>
             <nav th:if="${itemPage != null and (itemPage.hasPrevious() or itemPage.hasNext())}" class="pagination">
                 <a th:if="${itemPage.hasPrevious()}"
-                   th:href="@{/items(page=${itemPage.page() - 1},size=${itemPage.size()},q=${q})}">Prev</a>
+                   th:href="@{/items(page=${itemPage.page() - 1},size=${itemPage.size()},q=${q},category=${selectedCategory})}">Prev</a>
                 <span th:text="'Page ' + (${itemPage.page()} + 1)"></span>
                 <a th:if="${itemPage.hasNext()}"
-                   th:href="@{/items(page=${itemPage.page() + 1},size=${itemPage.size()},q=${q})}">Next</a>
+                   th:href="@{/items(page=${itemPage.page() + 1},size=${itemPage.size()},q=${q},category=${selectedCategory})}">Next</a>
                 <label class="page-size-label">Show
                     <select data-page-size="/items">
                         <option value="10" th:selected="${itemPage.size() == 10}">10</option>

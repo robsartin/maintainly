@@ -99,4 +99,44 @@ class ItemQueryServiceTest {
                 .findByItemIdAndOrganizationId(
                         itemId, orgId);
     }
+
+    @Test
+    @DisplayName("should delegate findDistinctCategories")
+    void shouldDelegateFindCategories() {
+        List<String> expected = List.of("HVAC", "Plumbing");
+        when(itemRepo
+                .findDistinctCategoriesByOrganizationId(
+                        orgId))
+                .thenReturn(expected);
+        assertEquals(expected,
+                service.findDistinctCategories(orgId));
+    }
+
+    @Test
+    @DisplayName("should delegate"
+            + " findByCategoryAndOrganization")
+    void shouldDelegateFindByCategory() {
+        PageResult<Item> expected = new PageResult<>(
+                List.of(), 0, 10, false);
+        when(itemRepo.findByCategoryAndOrganizationId(
+                orgId, "HVAC", 0, 10))
+                .thenReturn(expected);
+        assertEquals(expected,
+                service.findByCategoryAndOrganization(
+                        orgId, "HVAC", 0, 10));
+    }
+
+    @Test
+    @DisplayName("should delegate"
+            + " searchByCategoryAndOrganization")
+    void shouldDelegateSearchByCategory() {
+        PageResult<Item> expected = new PageResult<>(
+                List.of(), 0, 10, false);
+        when(itemRepo.searchByCategoryAndOrganizationId(
+                orgId, "test", "HVAC", 0, 10))
+                .thenReturn(expected);
+        assertEquals(expected,
+                service.searchByCategoryAndOrganization(
+                        orgId, "test", "HVAC", 0, 10));
+    }
 }

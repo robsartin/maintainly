@@ -22,16 +22,26 @@ public final class LinkHeaderBuilder {
             HttpServletResponse response,
             String basePath,
             PageResult<?> page, String q) {
+        addLinkHeader(response, basePath, page,
+                q, null);
+    }
+
+    /** Builds Link header including optional category filter. */
+    public static void addLinkHeader(
+            HttpServletResponse response,
+            String basePath,
+            PageResult<?> page, String q,
+            String category) {
         StringBuilder link = new StringBuilder();
         if (page.hasPrevious()) {
             appendLink(link, basePath,
                     page.page() - 1, page.size(),
-                    q, "prev");
+                    q, category, "prev");
         }
         if (page.hasNext()) {
             appendLink(link, basePath,
                     page.page() + 1, page.size(),
-                    q, "next");
+                    q, category, "next");
         }
         if (!link.isEmpty()) {
             response.addHeader("Link",
@@ -42,7 +52,7 @@ public final class LinkHeaderBuilder {
     private static void appendLink(
             StringBuilder sb, String basePath,
             int page, int size,
-            String q, String rel) {
+            String q, String category, String rel) {
         if (!sb.isEmpty()) {
             sb.append(", ");
         }
@@ -52,6 +62,11 @@ public final class LinkHeaderBuilder {
         if (q != null && !q.isBlank()) {
             sb.append("&q=").append(
                     URLEncoder.encode(q,
+                            StandardCharsets.UTF_8));
+        }
+        if (category != null && !category.isBlank()) {
+            sb.append("&category=").append(
+                    URLEncoder.encode(category,
                             StandardCharsets.UTF_8));
         }
         sb.append(">; rel=\"").append(rel).append("\"");
