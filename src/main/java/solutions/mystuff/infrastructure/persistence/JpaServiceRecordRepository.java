@@ -3,6 +3,7 @@ package solutions.mystuff.infrastructure.persistence;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.ItemCostSummary;
@@ -10,9 +11,12 @@ import solutions.mystuff.domain.model.ServiceRecord;
 import solutions.mystuff.domain.port.out.ServiceRecordRepository;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation
+        .Transactional;
 
 /**
  * Spring Data JPA adapter for the {@link ServiceRecordRepository} port.
@@ -48,9 +52,29 @@ public interface JpaServiceRecordRepository
     @Query("SELECT r FROM ServiceRecord r "
             + "JOIN FETCH r.item "
             + "LEFT JOIN FETCH r.vendor "
+            + "WHERE r.id = :id "
+            + "AND r.organizationId = :orgId")
+    Optional<ServiceRecord> findByIdAndOrganizationId(
+            @Param("id") UUID id,
+            @Param("orgId") UUID organizationId);
+
+    @Override
+    @Query("SELECT r FROM ServiceRecord r "
+            + "JOIN FETCH r.item "
+            + "LEFT JOIN FETCH r.vendor "
             + "WHERE r.organizationId = :orgId "
             + "ORDER BY r.serviceDate DESC")
     List<ServiceRecord> findByOrganizationId(
+            @Param("orgId") UUID organizationId);
+
+    @Override
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM ServiceRecord r "
+            + "WHERE r.id = :id "
+            + "AND r.organizationId = :orgId")
+    void deleteByIdAndOrganizationId(
+            @Param("id") UUID id,
             @Param("orgId") UUID organizationId);
 
     @Override
