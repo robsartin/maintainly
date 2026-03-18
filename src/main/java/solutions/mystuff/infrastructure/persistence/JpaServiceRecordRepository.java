@@ -1,6 +1,7 @@
 package solutions.mystuff.infrastructure.persistence;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -56,10 +57,12 @@ public interface JpaServiceRecordRepository
     @Query("SELECT COALESCE(SUM(r.cost), 0)"
             + " FROM ServiceRecord r"
             + " WHERE r.organizationId = :orgId"
-            + " AND YEAR(r.serviceDate) = :year")
-    BigDecimal sumCostByOrganizationAndYear(
+            + " AND r.serviceDate >= :from"
+            + " AND r.serviceDate < :to")
+    BigDecimal sumCostByOrganizationAndDateRange(
             @Param("orgId") UUID orgId,
-            @Param("year") int year);
+            @Param("from") LocalDate from,
+            @Param("to") LocalDate to);
 
     @Override
     @Query("SELECT COALESCE(SUM(r.cost), 0)"

@@ -1,8 +1,10 @@
 package solutions.mystuff.application.web;
 
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -213,12 +215,20 @@ public class ReportController {
 
     private void addCostSummary(
             UUID orgId, Model model) {
+        BigDecimal allTime =
+                costQuery.totalSpendAllTime(orgId);
+        model.addAttribute("totalSpendAllTime", allTime);
         int year = LocalDate.now().getYear();
         model.addAttribute("currentYear", year);
+        if (allTime.signum() == 0) {
+            model.addAttribute("totalSpendThisYear",
+                    BigDecimal.ZERO);
+            model.addAttribute("topItemsByCost",
+                    Collections.emptyList());
+            return;
+        }
         model.addAttribute("totalSpendThisYear",
                 costQuery.totalSpendForYear(orgId, year));
-        model.addAttribute("totalSpendAllTime",
-                costQuery.totalSpendAllTime(orgId));
         model.addAttribute("topItemsByCost",
                 costQuery.topItemsByCost(orgId, 5));
     }

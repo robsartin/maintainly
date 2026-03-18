@@ -1,6 +1,7 @@
 package solutions.mystuff.application.web;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -211,7 +212,7 @@ final class ItemHistoryPdf {
             return "";
         }
         return "$" + cost.setScale(2,
-                java.math.RoundingMode.HALF_UP)
+                RoundingMode.HALF_UP)
                 .toPlainString();
     }
 }

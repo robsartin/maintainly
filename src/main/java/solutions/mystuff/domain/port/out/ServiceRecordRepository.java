@@ -1,6 +1,7 @@
 package solutions.mystuff.domain.port.out;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -40,9 +41,9 @@ public interface ServiceRecordRepository {
     /** Persist a new or updated service record. */
     ServiceRecord save(ServiceRecord record);
 
-    /** Sum of cost for an organization in a given year. */
-    BigDecimal sumCostByOrganizationAndYear(
-            UUID orgId, int year);
+    /** Sum of cost for an organization in a date range. */
+    BigDecimal sumCostByOrganizationAndDateRange(
+            UUID orgId, LocalDate from, LocalDate to);
 
     /** Sum of cost for an organization across all time. */
     BigDecimal sumCostByOrganization(UUID orgId);

@@ -1,6 +1,7 @@
 package solutions.mystuff.domain.service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -31,6 +32,7 @@ public class CostQueryService implements CostQuery {
 
     private final ServiceRecordRepository recordRepo;
 
+    /** Creates a service backed by the given repository. */
     public CostQueryService(
             ServiceRecordRepository recordRepo) {
         this.recordRepo = recordRepo;
@@ -40,9 +42,11 @@ public class CostQueryService implements CostQuery {
     @Transactional(readOnly = true)
     public BigDecimal totalSpendForYear(
             UUID orgId, int year) {
+        LocalDate from = LocalDate.of(year, 1, 1);
+        LocalDate to = LocalDate.of(year + 1, 1, 1);
         return recordRepo
-                .sumCostByOrganizationAndYear(
-                        orgId, year);
+                .sumCostByOrganizationAndDateRange(
+                        orgId, from, to);
     }
 
     @Override

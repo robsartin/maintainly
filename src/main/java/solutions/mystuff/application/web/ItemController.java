@@ -218,7 +218,8 @@ public class ItemController {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
         UUID orgId = user.getOrganization().getId();
-        LocalDate pd = parseOptionalDate(purchaseDate);
+        LocalDate pd = InputValidator.parseDateOrNull(
+                purchaseDate, "Purchase date");
         ItemSpec spec = new ItemSpec(name, location,
                 manufacturer, modelName, serialNumber,
                 modelNumber, modelYear, category,
@@ -285,7 +286,8 @@ public class ItemController {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
         UUID orgId = user.getOrganization().getId();
-        LocalDate pd = parseOptionalDate(purchaseDate);
+        LocalDate pd = InputValidator.parseDateOrNull(
+                purchaseDate, "Purchase date");
         ItemSpec spec = new ItemSpec(name, location,
                 manufacturer, modelName, serialNumber,
                 modelNumber, modelYear, category,
@@ -500,11 +502,4 @@ public class ItemController {
                                 "Item not found"));
     }
 
-    private LocalDate parseOptionalDate(String date) {
-        if (date == null || date.isBlank()) {
-            return null;
-        }
-        return InputValidator.parseDate(
-                date, "Purchase date");
-    }
 }

@@ -32,6 +32,14 @@ public final class Validation {
         }
     }
 
+    /** Returns the trimmed value, or null if blank/null. */
+    public static String trimOrNull(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim();
+    }
+
     /** Validates that the integer value is at least 1. */
     public static void requirePositive(
             int value, String fieldName) {
