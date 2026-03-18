@@ -41,7 +41,7 @@ public interface ServiceRecordRepository {
     /** Persist a new or updated service record. */
     ServiceRecord save(ServiceRecord record);
 
-    /** Sum of cost for an organization in a date range. */
+    /** Sum of cost for an organization in a half-open date range [from, to). */
     BigDecimal sumCostByOrganizationAndDateRange(
             UUID orgId, LocalDate from, LocalDate to);
 

@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation
  * <div class="mermaid">
  * sequenceDiagram
  *     Controller->>CostQueryService: totalSpendForYear
- *     CostQueryService->>ServiceRecordRepository: sumCostByOrganizationAndYear
+ *     CostQueryService->>ServiceRecordRepository: sumCostByOrganizationAndDateRange
  *     ServiceRecordRepository-->>CostQueryService: BigDecimal
  *     CostQueryService-->>Controller: BigDecimal
  * </div>
