@@ -56,6 +56,8 @@ public class RecordCreationService
             ServiceCompletion completion) {
         validateSummary(completion.summary());
         validateTechName(completion.techName());
+        Validation.requireNonNegative(
+                completion.cost(), "Cost");
         String serviceType = schedule != null
                 ? schedule.getServiceType() : null;
         ServiceRecord record = new ServiceRecord();

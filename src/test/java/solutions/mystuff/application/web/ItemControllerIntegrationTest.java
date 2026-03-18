@@ -842,6 +842,68 @@ class ItemControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("should reject model year below 1900")
+    void shouldRejectModelYearBelowBound()
+            throws Exception {
+        mockMvc.perform(post("/items")
+                        .param("name", "Test Item")
+                        .param("modelYear", "1899")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isBadRequest())
+                .andExpect(model().attributeExists(
+                        "error"));
+    }
+
+    @Test
+    @DisplayName("should reject model year above 2100")
+    void shouldRejectModelYearAboveBound()
+            throws Exception {
+        mockMvc.perform(post("/items")
+                        .param("name", "Test Item")
+                        .param("modelYear", "2101")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isBadRequest())
+                .andExpect(model().attributeExists(
+                        "error"));
+    }
+
+    @Test
+    @DisplayName("should reject model year on update"
+            + " below 1900")
+    void shouldRejectModelYearOnUpdateBelowBound()
+            throws Exception {
+        String itemId = getFirstItemId();
+        mockMvc.perform(put("/items/" + itemId)
+                        .param("name", "Test")
+                        .param("modelYear", "1899")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isBadRequest())
+                .andExpect(model().attributeExists(
+                        "error"));
+    }
+
+    @Test
+    @DisplayName("should reject negative cost on"
+            + " service record")
+    void shouldRejectNegativeCostOnServiceRecord()
+            throws Exception {
+        String itemId = getFirstItemId();
+        mockMvc.perform(post("/items/" + itemId
+                        + "/service-records")
+                        .param("summary", "Test service")
+                        .param("serviceDate", "2026-04-15")
+                        .param("cost", "-1.00")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isBadRequest())
+                .andExpect(model().attributeExists(
+                        "error"));
+    }
+
+    @Test
     @DisplayName("should create item with all fields")
     void shouldCreateItemWithAllFields()
             throws Exception {

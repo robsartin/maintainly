@@ -119,6 +119,53 @@ class RecordCreationServiceTest {
     }
 
     @Test
+    @DisplayName("should reject negative cost")
+    void shouldRejectNegativeCost() {
+        Item item = new Item();
+        ServiceCompletion completion =
+                new ServiceCompletion(null, "Summary",
+                        LocalDate.now(), null,
+                        new BigDecimal("-1.00"));
+        assertThatThrownBy(() ->
+                service.createRecord(orgId, item,
+                        null, completion))
+                .isInstanceOf(
+                        IllegalArgumentException.class)
+                .hasMessageContaining("negative");
+    }
+
+    @Test
+    @DisplayName("should accept null cost")
+    void shouldAcceptNullCost() {
+        Item item = new Item();
+        item.setName("Test");
+        when(repo.save(any(ServiceRecord.class)))
+                .thenAnswer(i -> i.getArgument(0));
+        ServiceCompletion completion =
+                new ServiceCompletion(null, "Summary",
+                        LocalDate.now(), null, null);
+        service.createRecord(orgId, item,
+                null, completion);
+        verify(repo).save(any(ServiceRecord.class));
+    }
+
+    @Test
+    @DisplayName("should accept zero cost")
+    void shouldAcceptZeroCost() {
+        Item item = new Item();
+        item.setName("Test");
+        when(repo.save(any(ServiceRecord.class)))
+                .thenAnswer(i -> i.getArgument(0));
+        ServiceCompletion completion =
+                new ServiceCompletion(null, "Summary",
+                        LocalDate.now(), null,
+                        BigDecimal.ZERO);
+        service.createRecord(orgId, item,
+                null, completion);
+        verify(repo).save(any(ServiceRecord.class));
+    }
+
+    @Test
     @DisplayName("should reject long tech name")
     void shouldRejectLongTechName() {
         Item item = new Item();

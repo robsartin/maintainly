@@ -1,5 +1,6 @@
 package solutions.mystuff.domain.model;
 
+import java.math.BigDecimal;
 import java.util.regex.Pattern;
 
 /**
@@ -64,6 +65,33 @@ public final class Validation {
         if (value < 1) {
             throw new IllegalArgumentException(
                     fieldName + " must be at least 1");
+        }
+    }
+
+    private static final int MIN_YEAR = 1900;
+    private static final int MAX_YEAR = 2100;
+
+    /** Validates that the year is between 1900 and 2100 inclusive; null is allowed. */
+    public static void requireYearInRange(
+            Integer year, String fieldName) {
+        if (year != null
+                && (year < MIN_YEAR || year > MAX_YEAR)) {
+            throw new IllegalArgumentException(
+                    fieldName
+                            + " must be between "
+                            + MIN_YEAR + " and "
+                            + MAX_YEAR);
+        }
+    }
+
+    /** Validates that the value is not negative; null is allowed. */
+    public static void requireNonNegative(
+            BigDecimal value, String fieldName) {
+        if (value != null
+                && value.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException(
+                    fieldName
+                            + " must not be negative");
         }
     }
 }
