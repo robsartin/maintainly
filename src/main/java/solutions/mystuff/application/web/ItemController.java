@@ -44,7 +44,7 @@ import org.springframework.web.bind.annotation
         description = "Item CRUD and service operations")
 public class ItemController {
 
-    private static final Logger LOG =
+    private static final Logger log =
             LoggerFactory.getLogger(ItemController.class);
 
     private final ControllerHelper helper;
@@ -285,8 +285,8 @@ public class ItemController {
         LocalDate pd = parseOptionalDate(purchaseDate);
         itemService.updateItem(orgId, itemId, name,
                 location, manufacturer, modelName,
-                modelNumber, modelYear, serialNumber,
-                pd, category, notes);
+                serialNumber, modelNumber, modelYear,
+                category, pd, notes);
         return "redirect:/items";
     }
 
@@ -467,13 +467,13 @@ public class ItemController {
         int safePage = Math.max(0, page);
         PageResult<Item> result;
         if (q != null && !q.isBlank()) {
-            LOG.info("Searching items query={}",
+            log.info("Searching items query={}",
                     LogSanitizer.sanitize(q));
             result = itemQuery.searchByOrganization(
                     orgId, q, safePage, safeSize);
             model.addAttribute("q", q);
         } else {
-            LOG.info("Listing items page={}", safePage);
+            log.info("Listing items page={}", safePage);
             result = itemQuery.findByOrganization(
                     orgId, safePage, safeSize);
         }

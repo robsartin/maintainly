@@ -2,7 +2,6 @@ package solutions.mystuff.application.web;
 
 import java.security.Principal;
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.AppUser;
@@ -38,7 +37,7 @@ import org.springframework.web.bind.annotation.GetMapping;
         description = "Dashboard home page")
 public class DashboardController {
 
-    private static final Logger LOG =
+    private static final Logger log =
             LoggerFactory.getLogger(
                     DashboardController.class);
     private static final int RECENT_LIMIT = 5;
@@ -74,21 +73,12 @@ public class DashboardController {
             Principal principal, Model model) {
         AppUser user = helper.resolveUser(principal);
         if (!user.hasOrganization()) {
-            return handleNoOrg(user, model);
+            return helper.handleNoOrg(
+                    user, model, "dashboard");
         }
         helper.setOrgMdc(user);
         helper.addUserAttrs(user, model);
         addDashboardAttrs(user, model);
-        return "dashboard";
-    }
-
-    private String handleNoOrg(
-            AppUser user, Model model) {
-        LOG.warn("User {} has no organization",
-                user.getUsername());
-        model.addAttribute("noOrganization", true);
-        model.addAttribute("recentRecords",
-                Collections.emptyList());
         return "dashboard";
     }
 
@@ -98,7 +88,7 @@ public class DashboardController {
         LocalDate today = LocalDate.now();
         LocalDate soonCutoff = today.plusDays(
                 DUE_SOON_DAYS);
-        LOG.info("Loading dashboard for org {}",
+        log.info("Loading dashboard for org {}",
                 orgId);
         model.addAttribute("overdueCount",
                 dashboardQuery.countOverdueSchedules(

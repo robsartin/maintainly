@@ -36,7 +36,7 @@ import org.springframework.transaction.annotation
 public class ItemManagementService
         implements ItemManagement {
 
-    private static final Logger LOG =
+    private static final Logger log =
             LoggerFactory.getLogger(
                     ItemManagementService.class);
     private static final int MAX_LENGTH = 200;
@@ -65,12 +65,11 @@ public class ItemManagementService
         Item item = new Item();
         item.setOrganizationId(orgId);
         item.setName(trimName);
-        applyOptionalFields(item, location,
-                manufacturer, modelName, serialNumber,
-                modelNumber, modelYear, category,
-                purchaseDate, notes);
+        setAllFields(item, location, manufacturer,
+                modelName, serialNumber, modelNumber,
+                modelYear, category, purchaseDate, notes);
         Item saved = itemRepo.save(item);
-        LOG.info("Created item {}", saved.getName());
+        log.info("Created item {}", saved.getName());
         return saved;
     }
 
@@ -81,9 +80,9 @@ public class ItemManagementService
             UUID orgId, UUID itemId,
             String name, String location,
             String manufacturer, String modelName,
-            String modelNumber, Integer modelYear,
-            String serialNumber, LocalDate purchaseDate,
-            String category, String notes) {
+            String serialNumber, String modelNumber,
+            Integer modelYear, String category,
+            LocalDate purchaseDate, String notes) {
         String trimName = validateFields(name, location,
                 manufacturer, modelName, serialNumber,
                 modelNumber, category);
@@ -96,7 +95,7 @@ public class ItemManagementService
                 modelName, serialNumber, modelNumber,
                 modelYear, category, purchaseDate, notes);
         Item saved = itemRepo.save(item);
-        LOG.info("Updated item {}", saved.getName());
+        log.info("Updated item {}", saved.getName());
         return saved;
     }
 
@@ -124,22 +123,6 @@ public class ItemManagementService
         return trimName;
     }
 
-    private void applyOptionalFields(
-            Item item, String location,
-            String manufacturer, String modelName,
-            String serialNumber, String modelNumber,
-            Integer modelYear, String category,
-            LocalDate purchaseDate, String notes) {
-        setIfPresent(item, location, manufacturer,
-                modelName, serialNumber, modelNumber,
-                category);
-        item.setModelYear(modelYear);
-        item.setPurchaseDate(purchaseDate);
-        if (notes != null && !notes.isBlank()) {
-            item.setNotes(notes.trim());
-        }
-    }
-
     private void setAllFields(
             Item item, String location,
             String manufacturer, String modelName,
@@ -155,34 +138,6 @@ public class ItemManagementService
         item.setModelYear(modelYear);
         item.setPurchaseDate(purchaseDate);
         item.setNotes(trimOrNull(notes));
-    }
-
-    private void setIfPresent(
-            Item item, String location,
-            String manufacturer, String modelName,
-            String serialNumber, String modelNumber,
-            String category) {
-        if (location != null && !location.isBlank()) {
-            item.setLocation(location.trim());
-        }
-        if (manufacturer != null
-                && !manufacturer.isBlank()) {
-            item.setManufacturer(manufacturer.trim());
-        }
-        if (modelName != null && !modelName.isBlank()) {
-            item.setModelName(modelName.trim());
-        }
-        if (serialNumber != null
-                && !serialNumber.isBlank()) {
-            item.setSerialNumber(serialNumber.trim());
-        }
-        if (modelNumber != null
-                && !modelNumber.isBlank()) {
-            item.setModelNumber(modelNumber.trim());
-        }
-        if (category != null && !category.isBlank()) {
-            item.setCategory(category.trim());
-        }
     }
 
     private String trimOrNull(String value) {

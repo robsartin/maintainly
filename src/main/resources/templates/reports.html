@@ -62,15 +62,15 @@
                 </tbody>
             </table>
         </section>
-        <section id="cost-summary" th:if="${costTrackingEnabled}">
+        <section id="cost-summary">
             <h2>Cost Summary</h2>
             <div class="cost-totals">
                 <p><strong th:text="${currentYear}"></strong> spend:
-                    <strong th:text="'$' + #numbers.formatDecimal(totalSpendThisYear, 1, 2)"></strong></p>
+                    <strong th:text="|$${#numbers.formatDecimal(totalSpendThisYear, 1, 2)}|"></strong></p>
                 <p>All-time spend:
-                    <strong th:text="'$' + #numbers.formatDecimal(totalSpendAllTime, 1, 2)"></strong></p>
+                    <strong th:text="|$${#numbers.formatDecimal(totalSpendAllTime, 1, 2)}|"></strong></p>
             </div>
-            <div th:if="${!#lists.isEmpty(topItemsByCost)}">
+            <div th:if="${not #lists.isEmpty(topItemsByCost)}">
                 <h3>Top Items by Cost</h3>
                 <table>
                     <thead><tr>
@@ -80,7 +80,7 @@
                     <tbody>
                     <tr th:each="ic : ${topItemsByCost}">
                         <td th:text="${ic.itemName()}"></td>
-                        <td th:text="'$' + #numbers.formatDecimal(ic.totalCost(), 1, 2)"></td>
+                        <td th:text="|$${#numbers.formatDecimal(ic.totalCost(), 1, 2)}|"></td>
                     </tr>
                     </tbody>
                 </table>
