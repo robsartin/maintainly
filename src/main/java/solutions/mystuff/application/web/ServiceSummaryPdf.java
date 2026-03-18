@@ -31,7 +31,7 @@ final class ServiceSummaryPdf {
     static void write(
             HttpServletResponse response,
             List<ServiceSchedule> schedules,
-            LocalDate cutoff,
+            LocalDate startDate, LocalDate endDate,
             String orgName,
             String username) throws Exception {
         response.setContentType("application/pdf");
@@ -43,7 +43,7 @@ final class ServiceSummaryPdf {
                 response.getOutputStream());
         doc.open();
         PdfHelper.addOrgHeader(doc, orgName, username);
-        addTitle(doc, orgName, cutoff);
+        addTitle(doc, orgName, startDate, endDate);
         if (schedules.isEmpty()) {
             doc.add(new Paragraph(
                     "No service due.",
@@ -59,11 +59,13 @@ final class ServiceSummaryPdf {
 
     private static void addTitle(
             Document doc, String orgName,
-            LocalDate cutoff) throws Exception {
+            LocalDate startDate,
+            LocalDate endDate) throws Exception {
         Paragraph title = new Paragraph(
-                orgName
-                        + " — Service Due Through "
-                        + cutoff.format(PdfHelper.FMT),
+                orgName + " — Service Due: "
+                        + startDate.format(PdfHelper.FMT)
+                        + " – "
+                        + endDate.format(PdfHelper.FMT),
                 PdfHelper.TITLE_FONT);
         title.setAlignment(Element.ALIGN_CENTER);
         title.setSpacingAfter(4);
