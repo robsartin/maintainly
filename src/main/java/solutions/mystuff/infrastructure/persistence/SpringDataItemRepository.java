@@ -86,4 +86,8 @@ interface SpringDataItemRepository
             @Param("q") String query,
             @Param("cat") String category,
             Pageable pageable);
+
+    void deleteByIdAndOrganizationId(
+            UUID id, UUID organizationId);
+
 }

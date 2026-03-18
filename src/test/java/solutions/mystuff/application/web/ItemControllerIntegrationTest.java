@@ -27,6 +27,8 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet
+        .request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet
         .request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -922,6 +924,53 @@ class ItemControllerIntegrationTest {
         assertTrue(
                 html.contains("name=\"category\""),
                 "should have category select");
+
+    @Test
+    @DisplayName("should delete item")
+    void shouldDeleteItem() throws Exception {
+        mockMvc.perform(post("/items")
+                .param("name", "DeleteMe Item")
+                .with(user("dev").roles("USER"))
+                .with(csrf()));
+
+        String itemId =
+                getItemIdByName("DeleteMe Item");
+
+        mockMvc.perform(delete("/items/" + itemId)
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/items"));
+    }
+
+    @Test
+    @DisplayName("should return 404 when deleting"
+            + " nonexistent item")
+    void shouldReturn404WhenDeletingMissing()
+            throws Exception {
+        UUID fakeId = UUID.randomUUID();
+        mockMvc.perform(delete("/items/" + fakeId)
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isNotFound())
+                .andExpect(model().attributeExists(
+                        "error"));
+    }
+
+    @Test
+    @DisplayName("should render delete button for items")
+    void shouldRenderDeleteButtonForItems()
+            throws Exception {
+        mockMvc.perform(get("/items")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(
+                        containsString(
+                                "Delete item")));
+    }
+
+    @Test
+
     @DisplayName("should reject model year below 1900")
     void shouldRejectModelYearBelowBound()
             throws Exception {
