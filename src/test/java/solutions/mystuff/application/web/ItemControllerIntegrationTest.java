@@ -24,10 +24,10 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet
-        .request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet
+        .request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet
         .request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -831,6 +831,18 @@ class ItemControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("should render purchase date column")
+    void shouldRenderPurchaseDateColumn()
+            throws Exception {
+        mockMvc.perform(get("/items")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(
+                        containsString(
+                                "<th>Purchased</th>")));
+    }
+
+    @Test
     @DisplayName("should render category datalist")
     void shouldRenderCategoryDatalist()
             throws Exception {
@@ -843,6 +855,7 @@ class ItemControllerIntegrationTest {
                         )));
     }
 
+    @Test
     @Test
     @DisplayName("should delete item")
     void shouldDeleteItem() throws Exception {
@@ -885,6 +898,68 @@ class ItemControllerIntegrationTest {
                 .andExpect(content().string(
                         containsString(
                                 "Delete item")));
+    }
+
+    @Test
+    @DisplayName("should reject model year below 1900")
+    void shouldRejectModelYearBelowBound()
+            throws Exception {
+        mockMvc.perform(post("/items")
+                        .param("name", "Test Item")
+                        .param("modelYear", "1899")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isBadRequest())
+                .andExpect(model().attributeExists(
+                        "error"));
+    }
+
+    @Test
+    @DisplayName("should reject model year above 2100")
+    void shouldRejectModelYearAboveBound()
+            throws Exception {
+        mockMvc.perform(post("/items")
+                        .param("name", "Test Item")
+                        .param("modelYear", "2101")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isBadRequest())
+                .andExpect(model().attributeExists(
+                        "error"));
+    }
+
+    @Test
+    @DisplayName("should reject model year on update"
+            + " below 1900")
+    void shouldRejectModelYearOnUpdateBelowBound()
+            throws Exception {
+        String itemId = getFirstItemId();
+        mockMvc.perform(put("/items/" + itemId)
+                        .param("name", "Test")
+                        .param("modelYear", "1899")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isBadRequest())
+                .andExpect(model().attributeExists(
+                        "error"));
+    }
+
+    @Test
+    @DisplayName("should reject negative cost on"
+            + " service record")
+    void shouldRejectNegativeCostOnServiceRecord()
+            throws Exception {
+        String itemId = getFirstItemId();
+        mockMvc.perform(post("/items/" + itemId
+                        + "/service-records")
+                        .param("summary", "Test service")
+                        .param("serviceDate", "2026-04-15")
+                        .param("cost", "-1.00")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isBadRequest())
+                .andExpect(model().attributeExists(
+                        "error"));
     }
 
     @Test

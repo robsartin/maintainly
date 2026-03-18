@@ -116,6 +116,8 @@ public class ItemManagementService
         Validation.requireMaxLength(
                 spec.category(),
                 "Category", CATEGORY_MAX);
+        Validation.requireYearInRange(
+                spec.modelYear(), "Model year");
         return trimName;
     }
 

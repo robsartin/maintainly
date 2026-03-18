@@ -177,6 +177,38 @@ class ItemManagementServiceTest {
     }
 
     @Test
+    @DisplayName("should reject model year below 1900")
+    void shouldRejectModelYearBelowBound() {
+        ItemSpec spec = new ItemSpec("AC", null,
+                null, null, null, null,
+                1899, null, null, null);
+        assertThrows(IllegalArgumentException.class,
+                () -> service.createItem(orgId, spec));
+    }
+
+    @Test
+    @DisplayName("should reject model year above 2100")
+    void shouldRejectModelYearAboveBound() {
+        ItemSpec spec = new ItemSpec("AC", null,
+                null, null, null, null,
+                2101, null, null, null);
+        assertThrows(IllegalArgumentException.class,
+                () -> service.createItem(orgId, spec));
+    }
+
+    @Test
+    @DisplayName("should accept null model year")
+    void shouldAcceptNullModelYear() {
+        when(itemRepo.save(any(Item.class)))
+                .thenAnswer(i -> i.getArgument(0));
+        ItemSpec spec = new ItemSpec("AC", null,
+                null, null, null, null,
+                null, null, null, null);
+        Item item = service.createItem(orgId, spec);
+        assertNull(item.getModelYear());
+    }
+
+    @Test
     @DisplayName("should clear fields on update when"
             + " blank")
     void shouldClearFieldsWhenBlank() {

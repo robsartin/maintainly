@@ -16,8 +16,9 @@ import solutions.mystuff.domain.model.ServiceCompletion;
 import solutions.mystuff.domain.model.Vendor;
 import solutions.mystuff.domain.port.in.ItemManagement;
 import solutions.mystuff.domain.port.in.ItemQuery;
-import solutions.mystuff.domain.port.in.ScheduleLifecycle;
 import solutions.mystuff.domain.port.in.RecordCreation;
+import solutions.mystuff.domain.port.in.RecordManagement;
+import solutions.mystuff.domain.port.in.ScheduleLifecycle;
 import solutions.mystuff.domain.port.in.VendorQuery;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -56,6 +57,7 @@ public class ItemController {
     private final VendorQuery vendorQuery;
     private final ScheduleLifecycle scheduleService;
     private final RecordCreation recordService;
+    private final RecordManagement recordMgmt;
 
     public ItemController(
             ControllerHelper helper,
@@ -63,25 +65,21 @@ public class ItemController {
             ItemQuery itemQuery,
             VendorQuery vendorQuery,
             ScheduleLifecycle scheduleService,
-            RecordCreation recordService) {
+            RecordCreation recordService,
+            RecordManagement recordMgmt) {
         this.helper = helper;
         this.itemService = itemService;
         this.itemQuery = itemQuery;
         this.vendorQuery = vendorQuery;
         this.scheduleService = scheduleService;
         this.recordService = recordService;
+        this.recordMgmt = recordMgmt;
     }
 
     @Operation(summary = "List items",
             description = "Returns a paginated list of"
                     + " items with optional full-text"
-                    + " search. Model attributes:"
-                    + " items (List<Item>),"
-                    + " itemPage (PageResult),"
-                    + " vendors (List<Vendor>),"
-                    + " frequencyUnits (FrequencyUnit[])."
-                    + " Includes Link header for"
-                    + " pagination.",
+                    + " search.",
             responses = {
                     @ApiResponse(responseCode = "200",
                             description = "HTML page with"
@@ -92,10 +90,7 @@ public class ItemController {
                                     + " organization")})
     @GetMapping("/items")
     public String items(
-            @Parameter(description = "Search query to"
-                    + " filter items by name, location,"
-                    + " manufacturer, model, or serial"
-                    + " number")
+            @Parameter(description = "Search query")
             @RequestParam(required = false) String q,
             @Parameter(description = "Zero-based page"
                     + " index")
@@ -119,20 +114,11 @@ public class ItemController {
     }
 
     @Operation(summary = "Item detail",
-            description = "Shows the item list with"
-                    + " one item expanded to show its"
-                    + " service history and active"
-                    + " schedules. Additional model"
-                    + " attributes: selectedItemId"
-                    + " (UUID), itemRecords"
-                    + " (List<ServiceRecord>),"
-                    + " itemSchedules"
-                    + " (List<ServiceSchedule>).",
+            description = "Shows item detail with"
+                    + " service history and schedules.",
             responses = {
                     @ApiResponse(responseCode = "200",
-                            description = "HTML page with"
-                                    + " item detail"
-                                    + " expanded"),
+                            description = "HTML page"),
                     @ApiResponse(responseCode = "404",
                             description = "Item not"
                                     + " found")})
@@ -140,11 +126,9 @@ public class ItemController {
     public String itemDetail(
             @Parameter(description = "Item UUID")
             @PathVariable("id") UUID itemId,
-            @Parameter(description = "Zero-based page"
-                    + " index for the item list")
+            @Parameter(description = "Page index")
             @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "Page size"
-                    + " (max 100)")
+            @Parameter(description = "Page size")
             @RequestParam(defaultValue = "10") int size,
             Principal principal, Model model,
             HttpServletResponse response) {
@@ -163,57 +147,33 @@ public class ItemController {
     }
 
     @Operation(summary = "Create item",
-            description = "Creates a new item in the"
-                    + " user's organization. Redirects"
-                    + " to /items on success.",
+            description = "Creates a new item.",
             responses = {
                     @ApiResponse(responseCode = "302",
                             description = "Redirect to"
-                                    + " /items on"
-                                    + " success"),
+                                    + " /items"),
                     @ApiResponse(responseCode = "400",
                             description = "Validation"
-                                    + " error (blank"
-                                    + " name, exceeds"
-                                    + " max length)")})
+                                    + " error")})
     @PostMapping("/items")
     public String addItem(
-            @Parameter(description = "Item name"
-                    + " (required, max 200 chars)",
-                    required = true)
             @RequestParam String name,
-            @Parameter(description = "Where the item"
-                    + " is located (max 200 chars)")
             @RequestParam(required = false)
                     String location,
-            @Parameter(description = "Manufacturer"
-                    + " name (max 200 chars)")
             @RequestParam(required = false)
                     String manufacturer,
-            @Parameter(description = "Model name"
-                    + " (max 200 chars)")
             @RequestParam(required = false)
                     String modelName,
-            @Parameter(description = "Serial number"
-                    + " (max 100 chars)")
             @RequestParam(required = false)
                     String serialNumber,
-            @Parameter(description = "Model number"
-                    + " (max 200 chars)")
             @RequestParam(required = false)
                     String modelNumber,
-            @Parameter(description = "Model year")
             @RequestParam(required = false)
                     Integer modelYear,
-            @Parameter(description = "Category"
-                    + " (max 100 chars)")
             @RequestParam(required = false)
                     String category,
-            @Parameter(description = "Purchase date"
-                    + " in ISO format (yyyy-MM-dd)")
             @RequestParam(required = false)
                     String purchaseDate,
-            @Parameter(description = "Free-text notes")
             @RequestParam(required = false) String notes,
             Principal principal) {
         AppUser user = helper.resolveUser(principal);
@@ -230,13 +190,11 @@ public class ItemController {
     }
 
     @Operation(summary = "Update item",
-            description = "Updates an existing item."
-                    + " Redirects to /items on success.",
+            description = "Updates an existing item.",
             responses = {
                     @ApiResponse(responseCode = "302",
                             description = "Redirect to"
-                                    + " /items on"
-                                    + " success"),
+                                    + " /items"),
                     @ApiResponse(responseCode = "400",
                             description = "Validation"
                                     + " error"),
@@ -245,43 +203,24 @@ public class ItemController {
                                     + " found")})
     @PutMapping("/items/{id}")
     public String editItem(
-            @Parameter(description = "Item UUID")
             @PathVariable("id") UUID itemId,
-            @Parameter(description = "Item name"
-                    + " (required, max 200 chars)",
-                    required = true)
             @RequestParam String name,
-            @Parameter(description = "Location"
-                    + " (max 200 chars)")
             @RequestParam(required = false)
                     String location,
-            @Parameter(description = "Manufacturer"
-                    + " (max 200 chars)")
             @RequestParam(required = false)
                     String manufacturer,
-            @Parameter(description = "Model name"
-                    + " (max 200 chars)")
             @RequestParam(required = false)
                     String modelName,
-            @Parameter(description = "Model number"
-                    + " (max 200 chars)")
             @RequestParam(required = false)
                     String modelNumber,
-            @Parameter(description = "Model year")
             @RequestParam(required = false)
                     Integer modelYear,
-            @Parameter(description = "Serial number"
-                    + " (max 100 chars)")
             @RequestParam(required = false)
                     String serialNumber,
-            @Parameter(description = "Purchase date")
             @RequestParam(required = false)
                     String purchaseDate,
-            @Parameter(description = "Category"
-                    + " (max 100 chars)")
             @RequestParam(required = false)
                     String category,
-            @Parameter(description = "Free-text notes")
             @RequestParam(required = false) String notes,
             Principal principal) {
         AppUser user = helper.resolveUser(principal);
@@ -323,61 +262,33 @@ public class ItemController {
 
     @Operation(summary = "Log service record",
             description = "Logs a service visit for an"
-                    + " item. If oneOff is false"
-                    + " (default), advances the next"
-                    + " active schedule. Vendor is"
-                    + " optional for visits. Supply"
-                    + " either an existing vendorId or"
-                    + " '__new__' with newVendorName.",
+                    + " item.",
             responses = {
                     @ApiResponse(responseCode = "302",
                             description = "Redirect to"
-                                    + " /items on"
-                                    + " success"),
+                                    + " /items"),
                     @ApiResponse(responseCode = "400",
                             description = "Validation"
-                                    + " error (blank"
-                                    + " summary, bad"
-                                    + " date)"),
+                                    + " error"),
                     @ApiResponse(responseCode = "404",
                             description = "Item not"
                                     + " found")})
     @PostMapping("/items/{id}/service-records")
     public String logItemService(
-            @Parameter(description = "Item UUID")
             @PathVariable("id") UUID itemId,
-            @Parameter(description = "What was done"
-                    + " (required)", required = true)
             @RequestParam String summary,
-            @Parameter(description = "Date of service"
-                    + " in ISO format (yyyy-MM-dd)",
-                    required = true,
-                    example = "2026-06-15")
             @RequestParam String serviceDate,
-            @Parameter(description = "Existing vendor"
-                    + " UUID, or '__new__' to create"
-                    + " inline")
             @RequestParam(required = false)
                     String vendorId,
-            @Parameter(description = "Name for inline"
-                    + " vendor creation (required when"
-                    + " vendorId is '__new__')")
             @RequestParam(required = false)
                     String newVendorName,
-            @Parameter(description = "Phone for inline"
-                    + " vendor creation")
             @RequestParam(required = false)
                     String newVendorPhone,
-            @Parameter(description = "Technician name")
             @RequestParam(required = false)
                     String techName,
-            @Parameter(description = "If true, logs"
-                    + " without advancing any schedule")
             @RequestParam(required = false,
                     defaultValue = "false")
                     boolean oneOff,
-            @Parameter(description = "Cost of the"
-                    + " service (optional)")
             @RequestParam(required = false)
                     BigDecimal cost,
             Principal principal) {
@@ -403,64 +314,86 @@ public class ItemController {
         return "redirect:/items";
     }
 
-    @Operation(summary = "Create schedule",
-            description = "Creates a recurring service"
-                    + " schedule for an item. Vendor is"
-                    + " required. Supply either an"
-                    + " existing vendorId or '__new__'"
-                    + " with newVendorName.",
+    @Operation(summary = "Update service record",
+            description = "Updates an existing service"
+                    + " record. Redirects to item"
+                    + " detail.",
             responses = {
                     @ApiResponse(responseCode = "302",
                             description = "Redirect to"
-                                    + " /items (or"
-                                    + " /schedules if"
-                                    + " redirectTo="
-                                    + "'schedules')"),
+                                    + " item detail"),
                     @ApiResponse(responseCode = "400",
                             description = "Validation"
-                                    + " error (blank"
-                                    + " type, bad date,"
-                                    + " missing"
-                                    + " vendor)")})
+                                    + " error"),
+                    @ApiResponse(responseCode = "404",
+                            description = "Record not"
+                                    + " found")})
+    @PutMapping("/items/{itemId}/records/{recordId}")
+    public String editRecord(
+            @PathVariable("itemId") UUID itemId,
+            @PathVariable("recordId") UUID recordId,
+            @RequestParam String summary,
+            @RequestParam String serviceDate,
+            @RequestParam(required = false)
+                    String techName,
+            @RequestParam(required = false)
+                    BigDecimal cost,
+            Principal principal) {
+        AppUser user = helper.resolveUser(principal);
+        helper.setOrgMdc(user);
+        UUID orgId = user.getOrganization().getId();
+        LocalDate date = InputValidator.parseDate(
+                serviceDate, "Service date");
+        recordMgmt.updateRecord(orgId, recordId,
+                summary, date, techName, cost);
+        return "redirect:/items/" + itemId;
+    }
+
+    @Operation(summary = "Delete service record",
+            description = "Deletes a service record."
+                    + " Redirects to item detail.",
+            responses = {
+                    @ApiResponse(responseCode = "302",
+                            description = "Redirect to"
+                                    + " item detail"),
+                    @ApiResponse(responseCode = "404",
+                            description = "Record not"
+                                    + " found")})
+    @DeleteMapping(
+            "/items/{itemId}/records/{recordId}")
+    public String deleteRecord(
+            @PathVariable("itemId") UUID itemId,
+            @PathVariable("recordId") UUID recordId,
+            Principal principal) {
+        AppUser user = helper.resolveUser(principal);
+        helper.setOrgMdc(user);
+        UUID orgId = user.getOrganization().getId();
+        recordMgmt.deleteRecord(orgId, recordId);
+        return "redirect:/items/" + itemId;
+    }
+
+    @Operation(summary = "Create schedule",
+            description = "Creates a recurring service"
+                    + " schedule for an item.",
+            responses = {
+                    @ApiResponse(responseCode = "302",
+                            description = "Redirect"),
+                    @ApiResponse(responseCode = "400",
+                            description = "Validation"
+                                    + " error")})
     @PostMapping("/items/{id}/schedules")
     public String scheduleItemService(
-            @Parameter(description = "Item UUID")
             @PathVariable("id") UUID itemId,
-            @Parameter(description = "Service type"
-                    + " label (required, max 150"
-                    + " chars)",
-                    required = true,
-                    example = "HVAC Inspection")
             @RequestParam String serviceType,
-            @Parameter(description = "First due date"
-                    + " in ISO format (yyyy-MM-dd)",
-                    required = true,
-                    example = "2026-09-01")
             @RequestParam String nextDueDate,
-            @Parameter(description = "Recurrence"
-                    + " interval (>= 1)",
-                    required = true, example = "6")
             @RequestParam int frequencyInterval,
-            @Parameter(description = "Recurrence unit:"
-                    + " days, weeks, months, or years",
-                    required = true)
             @RequestParam FrequencyUnit frequencyUnit,
-            @Parameter(description = "Existing vendor"
-                    + " UUID, or '__new__' to create"
-                    + " inline (required)")
             @RequestParam(required = false)
                     String vendorId,
-            @Parameter(description = "Name for inline"
-                    + " vendor creation")
             @RequestParam(required = false)
                     String newVendorName,
-            @Parameter(description = "Phone for inline"
-                    + " vendor creation")
             @RequestParam(required = false)
                     String newVendorPhone,
-            @Parameter(description = "Set to"
-                    + " 'schedules' to redirect there"
-                    + " instead of /items")
             @RequestParam(required = false)
                     String redirectTo,
             Principal principal) {

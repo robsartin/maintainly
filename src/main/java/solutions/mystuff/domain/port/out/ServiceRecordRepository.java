@@ -3,6 +3,7 @@ package solutions.mystuff.domain.port.out;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.ItemCostSummary;
@@ -15,9 +16,11 @@ import solutions.mystuff.domain.model.ServiceRecord;
  * classDiagram
  *     class ServiceRecordRepository {
  *         +findByItemIdAndOrganizationId(UUID, UUID) List~ServiceRecord~
+ *         +findByIdAndOrganizationId(UUID, UUID) Optional~ServiceRecord~
  *         +findByOrganizationId(UUID) List~ServiceRecord~
  *         +findRecentByOrganizationId(UUID, int) List~ServiceRecord~
  *         +save(ServiceRecord) ServiceRecord
+ *         +deleteByIdAndOrganizationId(UUID, UUID) void
  *     }
  *     JpaServiceRecordRepository ..|> ServiceRecordRepository
  * </div>
@@ -30,6 +33,10 @@ public interface ServiceRecordRepository {
     List<ServiceRecord> findByItemIdAndOrganizationId(
             UUID itemId, UUID organizationId);
 
+    /** Find a single service record by ID scoped to an organization. */
+    Optional<ServiceRecord> findByIdAndOrganizationId(
+            UUID id, UUID organizationId);
+
     /** Find all service records for an organization. */
     List<ServiceRecord> findByOrganizationId(
             UUID organizationId);
@@ -40,6 +47,10 @@ public interface ServiceRecordRepository {
 
     /** Persist a new or updated service record. */
     ServiceRecord save(ServiceRecord record);
+
+    /** Delete a service record by ID scoped to an organization. */
+    void deleteByIdAndOrganizationId(
+            UUID id, UUID organizationId);
 
     /** Sum of cost for an organization in a half-open date range [from, to). */
     BigDecimal sumCostByOrganizationAndDateRange(
