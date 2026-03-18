@@ -107,24 +107,18 @@ public class ItemManagementService
 
     private void setAllFields(
             Item item, ItemSpec spec) {
-        item.setLocation(trimOrNull(spec.location()));
+        item.setLocation(Validation.trimOrNull(spec.location()));
         item.setManufacturer(
-                trimOrNull(spec.manufacturer()));
-        item.setModelName(trimOrNull(spec.modelName()));
+                Validation.trimOrNull(spec.manufacturer()));
+        item.setModelName(Validation.trimOrNull(spec.modelName()));
         item.setSerialNumber(
-                trimOrNull(spec.serialNumber()));
+                Validation.trimOrNull(spec.serialNumber()));
         item.setModelNumber(
-                trimOrNull(spec.modelNumber()));
-        item.setCategory(trimOrNull(spec.category()));
+                Validation.trimOrNull(spec.modelNumber()));
+        item.setCategory(Validation.trimOrNull(spec.category()));
         item.setModelYear(spec.modelYear());
         item.setPurchaseDate(spec.purchaseDate());
-        item.setNotes(trimOrNull(spec.notes()));
+        item.setNotes(Validation.trimOrNull(spec.notes()));
     }
 
-    private String trimOrNull(String value) {
-        if (value == null || value.isBlank()) {
-            return null;
-        }
-        return value.trim();
-    }
 }

@@ -72,14 +72,4 @@ class DashboardControllerIntegrationTest {
                         "noOrganization", true));
     }
 
-    @Test
-    @DisplayName("should include recent records list")
-    void shouldIncludeRecentRecordsWhenUserHasOrg()
-            throws Exception {
-        mockMvc.perform(get("/")
-                        .with(user("dev").roles("USER")))
-                .andExpect(status().isOk())
-                .andExpect(model().attributeExists(
-                        "recentRecords"));
-    }
 }

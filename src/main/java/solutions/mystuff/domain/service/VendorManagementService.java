@@ -107,19 +107,19 @@ public class VendorManagementService
     private void applyFields(
             Vendor v, VendorData data) {
         v.setName(data.name().trim());
-        v.setPhone(trimOrNull(data.phone()));
-        v.setEmail(trimOrNull(data.email()));
+        v.setPhone(Validation.trimOrNull(data.phone()));
+        v.setEmail(Validation.trimOrNull(data.email()));
         v.setAddressLine1(
-                trimOrNull(data.addressLine1()));
+                Validation.trimOrNull(data.addressLine1()));
         v.setAddressLine2(
-                trimOrNull(data.addressLine2()));
-        v.setCity(trimOrNull(data.city()));
+                Validation.trimOrNull(data.addressLine2()));
+        v.setCity(Validation.trimOrNull(data.city()));
         v.setStateProvince(
-                trimOrNull(data.stateProvince()));
-        v.setPostalCode(trimOrNull(data.postalCode()));
-        v.setCountry(trimOrNull(data.country()));
-        v.setWebsite(trimOrNull(data.website()));
-        v.setNotes(trimOrNull(data.notes()));
+                Validation.trimOrNull(data.stateProvince()));
+        v.setPostalCode(Validation.trimOrNull(data.postalCode()));
+        v.setCountry(Validation.trimOrNull(data.country()));
+        v.setWebsite(Validation.trimOrNull(data.website()));
+        v.setNotes(Validation.trimOrNull(data.notes()));
         syncAltPhones(v, data);
     }
 
@@ -144,7 +144,7 @@ public class VendorManagementService
             alt.setVendor(v);
             alt.setOrganizationId(v.getOrganizationId());
             alt.setPhone(ap.phone().trim());
-            alt.setLabel(trimOrNull(ap.label()));
+            alt.setLabel(Validation.trimOrNull(ap.label()));
             v.getAltPhones().add(alt);
         }
     }
@@ -167,10 +167,4 @@ public class VendorManagementService
         }
     }
 
-    private String trimOrNull(String value) {
-        if (value == null || value.isBlank()) {
-            return null;
-        }
-        return value.trim();
-    }
 }

@@ -39,6 +39,15 @@ public final class InputValidator {
         Validation.requirePositive(value, fieldName);
     }
 
+    /** Parses an ISO date string, or returns null if blank/null. */
+    static LocalDate parseDateOrNull(String value,
+            String fieldName) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return parseDate(value, fieldName);
+    }
+
     /** Parses an ISO date string, throwing on invalid input. */
     static LocalDate parseDate(
             String value, String fieldName) {
