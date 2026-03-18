@@ -33,6 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -43,12 +44,12 @@ class ItemControllerIntegrationTest {
     private MockMvc mockMvc;
 
     @Test
-    @DisplayName("should redirect root to schedules")
-    void shouldRedirectRootToSchedules() throws Exception {
+    @DisplayName("should render dashboard at root")
+    void shouldRenderDashboardAtRoot() throws Exception {
         mockMvc.perform(get("/")
                         .with(user("dev").roles("USER")))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/schedules"));
+                .andExpect(status().isOk())
+                .andExpect(view().name("dashboard"));
     }
 
     @Test
@@ -683,7 +684,7 @@ class ItemControllerIntegrationTest {
     @DisplayName("should log one-off without advancing"
             + " schedule")
     void shouldLogOneOffService() throws Exception {
-        String itemId = getFirstItemId();
+        String itemId = getItemIdWithSchedule();
         LocalDate dueBefore =
                 getNextDueDateForItem(itemId);
         mockMvc.perform(post("/items/" + itemId
@@ -705,7 +706,7 @@ class ItemControllerIntegrationTest {
     @Test
     @DisplayName("should advance schedule on log service")
     void shouldAdvanceScheduleOnLog() throws Exception {
-        String itemId = getFirstItemId();
+        String itemId = createItemWithSchedule();
         LocalDate dueBefore =
                 getNextDueDateForItem(itemId);
         mockMvc.perform(post("/items/" + itemId
@@ -866,6 +867,56 @@ class ItemControllerIntegrationTest {
     private String getFirstItemId() throws Exception {
         return ((List<Item>) getModel("items"))
                 .get(0).getId().toString();
+    }
+
+    private String createItemWithSchedule()
+            throws Exception {
+        mockMvc.perform(post("/items")
+                .param("name", "Advance Test Item")
+                .with(user("dev").roles("USER"))
+                .with(csrf()));
+        String itemId = getItemIdByName(
+                "Advance Test Item");
+        String vendorId = getFirstVendorId();
+        String due = LocalDate.now().plusDays(7)
+                .toString();
+        mockMvc.perform(post("/items/" + itemId
+                        + "/schedules")
+                .param("serviceType", "Test Svc")
+                .param("nextDueDate", due)
+                .param("frequencyInterval", "6")
+                .param("frequencyUnit", "months")
+                .param("vendorId", vendorId)
+                .with(user("dev").roles("USER"))
+                .with(csrf()));
+        return itemId;
+    }
+
+    @SuppressWarnings("unchecked")
+    private String getItemIdByName(String name)
+            throws Exception {
+        List<Item> items =
+                (List<Item>) getModel("items");
+        return items.stream()
+                .filter(i -> name.equals(i.getName()))
+                .findFirst()
+                .orElseThrow()
+                .getId().toString();
+    }
+
+    @SuppressWarnings("unchecked")
+    private String getItemIdWithSchedule()
+            throws Exception {
+        List<Item> items =
+                (List<Item>) getModel("items");
+        for (Item item : items) {
+            LocalDate due = getNextDueDateForItem(
+                    item.getId().toString());
+            if (due != null) {
+                return item.getId().toString();
+            }
+        }
+        return items.get(0).getId().toString();
     }
 
     @SuppressWarnings("unchecked")

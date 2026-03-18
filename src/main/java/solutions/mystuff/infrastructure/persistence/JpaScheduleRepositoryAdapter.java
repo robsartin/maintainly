@@ -1,5 +1,6 @@
 package solutions.mystuff.infrastructure.persistence;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -85,6 +86,23 @@ public class JpaScheduleRepositoryAdapter
                     UUID itemId, UUID organizationId) {
         return delegate.findByItemIdAndOrgId(
                 itemId, organizationId);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public long countActiveBeforeDate(
+            UUID organizationId, LocalDate date) {
+        return delegate.countActiveBeforeDate(
+                organizationId, date);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public long countActiveBetweenDates(
+            UUID organizationId,
+            LocalDate from, LocalDate to) {
+        return delegate.countActiveBetweenDates(
+                organizationId, from, to);
     }
 
     /** {@inheritDoc} */

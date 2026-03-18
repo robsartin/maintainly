@@ -84,6 +84,14 @@ public class JpaItemRepositoryAdapter
 
     /** {@inheritDoc} */
     @Override
+    public long countByOrganizationId(
+            UUID organizationId) {
+        return delegate.countByOrganizationId(
+                organizationId);
+    }
+
+    /** {@inheritDoc} */
+    @Override
     public Item save(Item item) {
         return delegate.save(item);
     }
