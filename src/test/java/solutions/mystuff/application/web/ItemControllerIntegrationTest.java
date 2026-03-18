@@ -829,6 +829,18 @@ class ItemControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("should render purchase date column")
+    void shouldRenderPurchaseDateColumn()
+            throws Exception {
+        mockMvc.perform(get("/items")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(
+                        containsString(
+                                "<th>Purchased</th>")));
+    }
+
+    @Test
     @DisplayName("should render category datalist")
     void shouldRenderCategoryDatalist()
             throws Exception {
