@@ -88,8 +88,6 @@ public class ReportController {
         model.addAttribute("items",
                 itemQuery.findAllByOrganization(
                         orgId));
-        model.addAttribute("defaultStart",
-                LocalDate.now());
         model.addAttribute("defaultEnd",
                 dueSoonCutoff());
         addCostSummary(orgId, model);
@@ -98,8 +96,8 @@ public class ReportController {
 
     @Operation(summary = "Service summary PDF",
             description = "Streams a PDF listing all"
-                    + " schedules due by end of the"
-                    + " current or next month."
+                    + " schedules due through a given"
+                    + " date (defaults to end of month)."
                     + " Includes item name, service"
                     + " type, vendor, due date, and"
                     + " last completed date.",
@@ -112,10 +110,6 @@ public class ReportController {
                                     + "/pdf")))
     @GetMapping("/reports/service-summary")
     public void serviceSummary(
-            @Parameter(description = "Start of date range"
-                    + " (inclusive, defaults to today)")
-            @RequestParam(required = false)
-            LocalDate startDate,
             @Parameter(description = "End of date range"
                     + " (inclusive, defaults to"
                     + " end-of-month cutoff)")
@@ -133,16 +127,14 @@ public class ReportController {
         }
         helper.setOrgMdc(user);
         UUID orgId = user.getOrganization().getId();
-        LocalDate start = startDate != null
-                ? startDate : LocalDate.now();
         LocalDate end = endDate != null
                 ? endDate : dueSoonCutoff();
         List<ServiceSchedule> schedules =
-                filterByDateRange(orgId, start, end);
+                filterDueThrough(orgId, end);
         String orgName = user.getOrganization()
                 .getName();
         ServiceSummaryPdf.write(
-                response, schedules, start, end,
+                response, schedules, end,
                 orgName, user.getUsername());
     }
 
@@ -207,16 +199,13 @@ public class ReportController {
                 user.getUsername());
     }
 
-    private List<ServiceSchedule> filterByDateRange(
-            UUID orgId, LocalDate start,
-            LocalDate end) {
+    private List<ServiceSchedule> filterDueThrough(
+            UUID orgId, LocalDate end) {
         return scheduleQuery
                 .findAllActiveByOrganization(orgId)
                 .stream()
                 .filter(s ->
                         s.getNextDueDate() != null
-                        && !s.getNextDueDate()
-                                .isBefore(start)
                         && !s.getNextDueDate()
                                 .isAfter(end))
                 .toList();

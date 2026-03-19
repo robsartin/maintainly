@@ -108,13 +108,11 @@ class ReportControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("should generate PDF with custom date range")
-    void shouldGeneratePdfWithCustomDateRange()
+    @DisplayName("should generate PDF with custom end date")
+    void shouldGeneratePdfWithCustomEndDate()
             throws Exception {
         mockMvc.perform(
                         get("/reports/service-summary")
-                                .param("startDate",
-                                        "2020-01-01")
                                 .param("endDate",
                                         "2030-12-31")
                                 .with(user("dev")
@@ -125,14 +123,13 @@ class ReportControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("should include default dates on reports page")
-    void shouldIncludeDefaultDatesOnReportsPage()
+    @DisplayName("should include default end date"
+            + " on reports page")
+    void shouldIncludeDefaultEndDateOnReportsPage()
             throws Exception {
         mockMvc.perform(get("/reports")
                         .with(user("dev").roles("USER")))
                 .andExpect(status().isOk())
-                .andExpect(model().attributeExists(
-                        "defaultStart"))
                 .andExpect(model().attributeExists(
                         "defaultEnd"));
     }
