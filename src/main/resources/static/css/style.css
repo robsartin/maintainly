@@ -667,3 +667,69 @@ textarea:focus-visible,
 .empty-state .empty-state-cta button {
     font-size: 0.9rem;
 }
+
+/* Confirm dialog */
+
+.confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.confirm-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+
+.confirm-title {
+    margin: 0 0 0.5rem;
+    color: #333;
+    font-size: 1.1rem;
+}
+
+.confirm-body {
+    margin: 0 0 1.25rem;
+    color: #555;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.confirm-cancel {
+    background: #757575;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.confirm-cancel:hover {
+    background: #616161;
+}
+
+.confirm-delete {
+    background: #e53935;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.confirm-delete:hover {
+    background: #b71c1c;
+}
