@@ -10,6 +10,7 @@
     <script th:src="@{/js/app.js}"></script>
 </head>
 <body>
+<a href="#main-content" class="skip-link">Skip to content</a>
 <header th:fragment="header">
     <div class="header-brand">
         <img th:if="${organization != null and organization.hasProfileImage()}"
