@@ -563,6 +563,33 @@ a.btn-icon:hover {
 
 .nowrap { white-space: nowrap; }
 
+/* Focus styles for keyboard navigation */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+    outline: 2px solid #2196F3;
+    outline-offset: 2px;
+}
+
+/* Skip-to-content link */
+.skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    background: #2196F3;
+    color: white;
+    padding: 0.5rem 1rem;
+    z-index: 1000;
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: 0 0 4px 0;
+}
+
+.skip-link:focus {
+    left: 0;
 .empty-state {
     text-align: center;
     padding: 2rem 1rem;
@@ -576,6 +603,7 @@ a.btn-icon:hover {
 
 .empty-state .empty-state-cta button {
     font-size: 0.9rem;
+
 /* --- Table scroll wrapper (added by template or CSS) --- */
 .table-scroll-wrapper {
     overflow-x: auto;
