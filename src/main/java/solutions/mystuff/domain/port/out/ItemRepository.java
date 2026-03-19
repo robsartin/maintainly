@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.Item;
+import solutions.mystuff.domain.model.PageRequest;
 import solutions.mystuff.domain.model.PageResult;
 
 /**
@@ -14,14 +15,14 @@ import solutions.mystuff.domain.model.PageResult;
  * classDiagram
  *     class ItemRepository {
  *         +findByOrganizationId(UUID) List~Item~
- *         +findByOrganizationId(UUID, int, int, String, String) PageResult~Item~
+ *         +findByOrganizationId(UUID, PageRequest) PageResult~Item~
  *         +searchByOrganizationId(UUID, String) List~Item~
- *         +searchByOrganizationId(UUID, String, int, int, String, String) PageResult~Item~
+ *         +searchByOrganizationId(UUID, String, PageRequest) PageResult~Item~
  *         +findByIdAndOrganizationId(UUID, UUID) Optional~Item~
  *         +countByOrganizationId(UUID) long
  *         +findDistinctCategoriesByOrganizationId(UUID) List~String~
- *         +findByCategoryAndOrganizationId(UUID, String, int, int, String, String) PageResult~Item~
- *         +searchByCategoryAndOrganizationId(UUID, String, String, int, int, String, String) PageResult~Item~
+ *         +findByCategoryAndOrganizationId(UUID, String, PageRequest) PageResult~Item~
+ *         +searchByCategoryAndOrganizationId(UUID, String, String, PageRequest) PageResult~Item~
  *         +save(Item) Item
  *         +deleteByIdAndOrganizationId(UUID, UUID) void
  *     }
@@ -37,8 +38,7 @@ public interface ItemRepository {
 
     /** Find a page of items belonging to an organization. */
     PageResult<Item> findByOrganizationId(
-            UUID organizationId, int page, int size,
-            String sort, String dir);
+            UUID organizationId, PageRequest pageReq);
 
     /** Search items by query within an organization. */
     List<Item> searchByOrganizationId(
@@ -47,7 +47,7 @@ public interface ItemRepository {
     /** Search items by query with pagination. */
     PageResult<Item> searchByOrganizationId(
             UUID organizationId, String query,
-            int page, int size, String sort, String dir);
+            PageRequest pageReq);
 
     /** Find a single item by ID scoped to an organization. */
     Optional<Item> findByIdAndOrganizationId(
@@ -63,13 +63,12 @@ public interface ItemRepository {
     /** Find a page of items filtered by category. */
     PageResult<Item> findByCategoryAndOrganizationId(
             UUID organizationId, String category,
-            int page, int size, String sort, String dir);
+            PageRequest pageReq);
 
     /** Search items by query and category with pagination. */
     PageResult<Item> searchByCategoryAndOrganizationId(
             UUID organizationId, String query,
-            String category, int page, int size,
-            String sort, String dir);
+            String category, PageRequest pageReq);
 
     /** Persist a new or updated item. */
     Item save(Item item);

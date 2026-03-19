@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.Item;
+import solutions.mystuff.domain.model.PageRequest;
 import solutions.mystuff.domain.model.PageResult;
 import solutions.mystuff.domain.model.ServiceRecord;
 import solutions.mystuff.domain.model.ServiceSchedule;
@@ -15,9 +16,9 @@ import solutions.mystuff.domain.model.ServiceSchedule;
  * <div class="mermaid">
  * classDiagram
  *     class ItemQuery {
- *         +findByOrganization(UUID, int, int, String, String) PageResult
- *         +searchByOrganization(UUID, String, int, int, String, String) PageResult
- *         +findByCategoryAndOrganization(UUID, String, int, int, String, String) PageResult
+ *         +findByOrganization(UUID, PageRequest) PageResult
+ *         +searchByOrganization(UUID, String, PageRequest) PageResult
+ *         +findByCategoryAndOrganization(UUID, String, PageRequest) PageResult
  *         +findDistinctCategories(UUID) List~String~
  *         +findByIdAndOrganization(UUID, UUID) Optional~Item~
  *     }
@@ -30,23 +31,22 @@ public interface ItemQuery {
 
     /** Find a page of items for an organization. */
     PageResult<Item> findByOrganization(
-            UUID orgId, int page, int size,
-            String sort, String dir);
+            UUID orgId, PageRequest pageReq);
 
     /** Search items by query with pagination. */
     PageResult<Item> searchByOrganization(
-            UUID orgId, String query, int page, int size,
-            String sort, String dir);
+            UUID orgId, String query,
+            PageRequest pageReq);
 
     /** Find a page of items filtered by category. */
     PageResult<Item> findByCategoryAndOrganization(
             UUID orgId, String category,
-            int page, int size, String sort, String dir);
+            PageRequest pageReq);
 
     /** Search items by query and category. */
     PageResult<Item> searchByCategoryAndOrganization(
             UUID orgId, String query, String category,
-            int page, int size, String sort, String dir);
+            PageRequest pageReq);
 
     /** Find distinct categories for an organization. */
     List<String> findDistinctCategories(UUID orgId);

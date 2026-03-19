@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.Item;
+import solutions.mystuff.domain.model.PageRequest;
 import solutions.mystuff.domain.model.PageResult;
 import solutions.mystuff.domain.model.ServiceRecord;
 import solutions.mystuff.domain.model.ServiceSchedule;
@@ -48,20 +49,18 @@ public class ItemQueryService implements ItemQuery {
     /** {@inheritDoc} */
     @Override
     public PageResult<Item> findByOrganization(
-            UUID orgId, int page, int size,
-            String sort, String dir) {
+            UUID orgId, PageRequest pageReq) {
         return itemRepo.findByOrganizationId(
-                orgId, page, size, sort, dir);
+                orgId, pageReq);
     }
 
     /** {@inheritDoc} */
     @Override
     public PageResult<Item> searchByOrganization(
             UUID orgId, String query,
-            int page, int size,
-            String sort, String dir) {
+            PageRequest pageReq) {
         return itemRepo.searchByOrganizationId(
-                orgId, query, page, size, sort, dir);
+                orgId, query, pageReq);
     }
 
     /** {@inheritDoc} */
@@ -69,12 +68,10 @@ public class ItemQueryService implements ItemQuery {
     public PageResult<Item>
             findByCategoryAndOrganization(
                     UUID orgId, String category,
-                    int page, int size,
-                    String sort, String dir) {
+                    PageRequest pageReq) {
         return itemRepo
                 .findByCategoryAndOrganizationId(
-                        orgId, category, page, size,
-                        sort, dir);
+                        orgId, category, pageReq);
     }
 
     /** {@inheritDoc} */
@@ -83,12 +80,11 @@ public class ItemQueryService implements ItemQuery {
             searchByCategoryAndOrganization(
                     UUID orgId, String query,
                     String category,
-                    int page, int size,
-                    String sort, String dir) {
+                    PageRequest pageReq) {
         return itemRepo
                 .searchByCategoryAndOrganizationId(
                         orgId, query, category,
-                        page, size, sort, dir);
+                        pageReq);
     }
 
     /** {@inheritDoc} */

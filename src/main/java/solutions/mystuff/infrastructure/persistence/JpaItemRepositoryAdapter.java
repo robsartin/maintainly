@@ -6,9 +6,9 @@ import java.util.Set;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.Item;
+import solutions.mystuff.domain.model.PageRequest;
 import solutions.mystuff.domain.model.PageResult;
 import solutions.mystuff.domain.port.out.ItemRepository;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
@@ -51,11 +51,10 @@ public class JpaItemRepositoryAdapter
     /** {@inheritDoc} */
     @Override
     public PageResult<Item> findByOrganizationId(
-            UUID organizationId, int page, int size,
-            String sort, String dir) {
+            UUID organizationId,
+            PageRequest pageReq) {
         Slice<Item> s = delegate.findByOrganizationId(
-                organizationId,
-                pageOf(page, size, sort, dir));
+                organizationId, toSpring(pageReq));
         return PageResultConverter.toPageResult(s);
     }
 
@@ -71,10 +70,10 @@ public class JpaItemRepositoryAdapter
     @Override
     public PageResult<Item> searchByOrganizationId(
             UUID organizationId, String query,
-            int page, int size, String sort, String dir) {
+            PageRequest pageReq) {
         Slice<Item> s = delegate.searchByOrganizationId(
                 organizationId, query,
-                pageOf(page, size, sort, dir));
+                toSpring(pageReq));
         return PageResultConverter.toPageResult(s);
     }
 
@@ -109,12 +108,11 @@ public class JpaItemRepositoryAdapter
     public PageResult<Item>
             findByCategoryAndOrganizationId(
                     UUID organizationId, String category,
-                    int page, int size,
-                    String sort, String dir) {
+                    PageRequest pageReq) {
         Slice<Item> s = delegate
                 .findByCategoryAndOrganizationId(
                         organizationId, category,
-                        pageOf(page, size, sort, dir));
+                        toSpring(pageReq));
         return PageResultConverter.toPageResult(s);
     }
 
@@ -123,12 +121,12 @@ public class JpaItemRepositoryAdapter
     public PageResult<Item>
             searchByCategoryAndOrganizationId(
                     UUID organizationId, String query,
-                    String category, int page, int size,
-                    String sort, String dir) {
+                    String category,
+                    PageRequest pageReq) {
         Slice<Item> s = delegate
                 .searchByCategoryAndOrganizationId(
                         organizationId, query, category,
-                        pageOf(page, size, sort, dir));
+                        toSpring(pageReq));
         return PageResultConverter.toPageResult(s);
     }
 
@@ -154,16 +152,19 @@ public class JpaItemRepositoryAdapter
             Set.of("name", "location", "category",
                     "manufacturer");
 
-    private PageRequest pageOf(int page, int size,
-            String sort, String dir) {
-        String field = SORTABLE_FIELDS.contains(sort)
-                ? sort : "name";
+    private org.springframework.data.domain.PageRequest
+            toSpring(PageRequest req) {
+        String field =
+                SORTABLE_FIELDS.contains(req.sort())
+                        ? req.sort() : "name";
         Sort.Direction direction =
-                "desc".equalsIgnoreCase(dir)
+                "desc".equalsIgnoreCase(req.dir())
                         ? Sort.Direction.DESC
                         : Sort.Direction.ASC;
-        return PageRequest.of(page, size,
-                Sort.by(direction, field));
+        return org.springframework.data.domain
+                .PageRequest.of(
+                        req.page(), req.size(),
+                        Sort.by(direction, field));
     }
 
 }
