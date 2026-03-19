@@ -12,6 +12,7 @@ import solutions.mystuff.domain.model.ItemSpec;
 import solutions.mystuff.domain.model.LogSanitizer;
 import solutions.mystuff.domain.model.NotFoundException;
 import solutions.mystuff.domain.model.PageResult;
+import solutions.mystuff.domain.model.Validation;
 import solutions.mystuff.domain.model.ServiceCompletion;
 import solutions.mystuff.domain.model.Vendor;
 import solutions.mystuff.domain.port.in.ItemManagement;
@@ -39,6 +40,14 @@ import org.springframework.web.bind.annotation
 
 /**
  * Handles item CRUD and service operations at /items endpoints.
+ *
+ * <div class="mermaid">
+ * sequenceDiagram
+ *     Browser->>ItemController: GET/POST/PUT/DELETE /items
+ *     ItemController->>ItemManagement: create/update/delete
+ *     ItemController->>ItemQuery: find/search/filter
+ *     ItemController-->>Browser: HTML (Thymeleaf)
+ * </div>
  *
  * @see ControllerHelper
  * @see InputValidator
@@ -496,10 +505,7 @@ public class ItemController {
     }
 
     private String normalizeCategory(String category) {
-        if (category == null || category.isBlank()) {
-            return null;
-        }
-        return category;
+        return Validation.trimOrNull(category);
     }
 
     private Item findItem(UUID itemId, UUID orgId) {

@@ -19,6 +19,14 @@ import org.springframework.stereotype.Service;
 /**
  * Delegates item read queries to outbound repository ports.
  *
+ * <div class="mermaid">
+ * sequenceDiagram
+ *     Controller->>ItemQueryService: findByOrganization
+ *     ItemQueryService->>ItemRepository: findByOrganizationId
+ *     ItemRepository-->>ItemQueryService: PageResult
+ *     ItemQueryService-->>Controller: PageResult
+ * </div>
+ *
  * @see ItemQuery
  */
 @Service

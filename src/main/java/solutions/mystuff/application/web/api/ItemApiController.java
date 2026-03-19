@@ -13,6 +13,7 @@ import solutions.mystuff.domain.port.in.ItemQuery;
 import solutions.mystuff.domain.port.in.UserResolver;
 import solutions.mystuff.application.web.LinkHeaderBuilder;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
@@ -35,6 +36,9 @@ import org.springframework.web.bind.annotation.RestController;
  *     Client->>ItemApiController: GET /api/v1/items
  *     ItemApiController->>UserResolver: resolveOrCreate
  *     ItemApiController->>ItemQuery: findByOrganization
+ *     ItemApiController-->>Client: JSON PageResponse
+ *     Client->>ItemApiController: GET /api/v1/items?category=HVAC
+ *     ItemApiController->>ItemQuery: findByCategoryAndOrganization
  *     ItemApiController-->>Client: JSON PageResponse
  * </div>
  *
@@ -67,23 +71,54 @@ public class ItemApiController {
     public PageResponse<ItemResponse> list(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
+            @Parameter(description = "Search query")
             @RequestParam(required = false) String q,
+            @Parameter(description = "Category filter")
+            @RequestParam(required = false)
+                    String category,
             Principal principal,
             HttpServletResponse response) {
         UUID orgId = resolveOrgId(principal);
         int clamped = Math.max(1,
                 Math.min(size, 100));
-        PageResult<Item> result = q != null
-                && !q.isBlank()
-                ? itemQuery.searchByOrganization(
-                        orgId, q, page, clamped)
-                : itemQuery.findByOrganization(
-                        orgId, page, clamped);
+        String cat = normalizeCategory(category);
+        PageResult<Item> result = queryItems(
+                q, cat, orgId, page, clamped);
         LinkHeaderBuilder.addLinkHeader(
                 response, "/api/v1/items",
-                result, q);
+                result, q, cat);
         return PageResponse.from(
                 result, ItemResponse::from);
+    }
+
+    private PageResult<Item> queryItems(
+            String q, String category,
+            UUID orgId, int page, int size) {
+        boolean hasQuery = q != null && !q.isBlank();
+        boolean hasCat = category != null;
+        if (hasQuery && hasCat) {
+            return itemQuery
+                    .searchByCategoryAndOrganization(
+                            orgId, q, category,
+                            page, size);
+        } else if (hasQuery) {
+            return itemQuery.searchByOrganization(
+                    orgId, q, page, size);
+        } else if (hasCat) {
+            return itemQuery
+                    .findByCategoryAndOrganization(
+                            orgId, category, page, size);
+        } else {
+            return itemQuery.findByOrganization(
+                    orgId, page, size);
+        }
+    }
+
+    private String normalizeCategory(String category) {
+        if (category == null || category.isBlank()) {
+            return null;
+        }
+        return category;
     }
 
     /** Gets a single item by ID. */

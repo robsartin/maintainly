@@ -12,6 +12,18 @@ import solutions.mystuff.domain.model.ServiceSchedule;
 /**
  * Inbound port for read-only item queries.
  *
+ * <div class="mermaid">
+ * classDiagram
+ *     class ItemQuery {
+ *         +findByOrganization(UUID, int, int) PageResult
+ *         +searchByOrganization(UUID, String, int, int) PageResult
+ *         +findByCategoryAndOrganization(UUID, String, int, int) PageResult
+ *         +findDistinctCategories(UUID) List~String~
+ *         +findByIdAndOrganization(UUID, UUID) Optional~Item~
+ *     }
+ *     ItemQueryService ..|> ItemQuery
+ * </div>
+ *
  * @see solutions.mystuff.domain.model.Item
  */
 public interface ItemQuery {
