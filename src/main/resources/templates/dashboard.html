@@ -39,6 +39,7 @@
         <section class="recent-activity">
             <h2>Recent Activity</h2>
             <p th:if="${#lists.isEmpty(recentRecords)}">No service records yet.</p>
+            <div class="table-scroll-wrapper">
             <table th:unless="${#lists.isEmpty(recentRecords)}">
                 <thead>
                 <tr>
@@ -57,6 +58,7 @@
                 </tr>
                 </tbody>
             </table>
+            </div>
         </section>
     </div>
 </main>

@@ -86,6 +86,7 @@
                 </form>
             </div>
             <p th:if="${#lists.isEmpty(items)}">No items found.</p>
+            <div class="table-scroll-wrapper">
             <table th:unless="${#lists.isEmpty(items)}">
                 <thead>
                 <tr>
@@ -420,6 +421,7 @@
                 </th:block>
                 </tbody>
             </table>
+            </div>
             <nav th:if="${itemPage != null and (itemPage.hasPrevious() or itemPage.hasNext())}" class="pagination">
                 <a th:if="${itemPage.hasPrevious()}"
                    th:href="@{/items(page=${itemPage.page() - 1},size=${itemPage.size()},q=${q},category=${selectedCategory})}">Prev</a>
