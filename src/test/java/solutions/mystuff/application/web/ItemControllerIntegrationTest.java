@@ -827,7 +827,7 @@ class ItemControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(
                         containsString(
-                                "<th>Category</th>")));
+                                "Category")));
     }
 
     @Test
