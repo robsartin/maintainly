@@ -98,7 +98,7 @@
         </thead>
         <tbody>
         <tr th:if="${#lists.isEmpty(vendors)}">
-            <td colspan="6">No vendors found.</td>
+            <td colspan="6" class="empty-state">No vendors yet. Click the <strong>+</strong> button above to add one.</td>
         </tr>
         <th:block th:each="vendor : ${vendors}">
             <tr>
