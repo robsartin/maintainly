@@ -86,9 +86,10 @@ public class ItemController {
     }
 
     @Operation(summary = "List items",
-            description = "Returns a paginated list of"
-                    + " items with optional full-text"
-                    + " search and category filter."
+            description = "Returns a paginated, sortable"
+                    + " list of items with optional"
+                    + " full-text search and category"
+                    + " filter."
                     + " Model attributes:"
                     + " items (List<Item>),"
                     + " itemPage (PageResult),"
@@ -119,6 +120,13 @@ public class ItemController {
             @Parameter(description = "Page size"
                     + " (max 100)")
             @RequestParam(defaultValue = "10") int size,
+            @Parameter(description = "Sort field")
+            @RequestParam(defaultValue = "name")
+                    String sort,
+            @Parameter(description = "Sort direction"
+                    + " (asc or desc)")
+            @RequestParam(defaultValue = "asc")
+                    String dir,
             Principal principal, Model model,
             HttpServletResponse response) {
         AppUser user = helper.resolveUser(principal);
@@ -129,7 +137,7 @@ public class ItemController {
         helper.setOrgMdc(user);
         UUID orgId = user.getOrganization().getId();
         loadItems(q, category, orgId, page, size,
-                model, response);
+                sort, dir, model, response);
         helper.addUserAttrs(user, model);
         return "items";
     }
@@ -161,7 +169,7 @@ public class ItemController {
         helper.setOrgMdc(user);
         UUID orgId = user.getOrganization().getId();
         loadItems(null, null, orgId, page, size,
-                model, response);
+                "name", "asc", model, response);
         helper.addUserAttrs(user, model);
         addDetailAttrs(model, itemId, orgId);
         return "items";
@@ -449,12 +457,14 @@ public class ItemController {
     private void loadItems(
             String q, String category,
             UUID orgId, int page, int size,
+            String sort, String dir,
             Model model, HttpServletResponse response) {
         int safeSize = helper.clampSize(size);
         int safePage = Math.max(0, page);
         String cat = normalizeCategory(category);
         PageResult<Item> result = queryItems(
-                q, cat, orgId, safePage, safeSize);
+                q, cat, orgId, safePage, safeSize,
+                sort, dir);
         if (q != null && !q.isBlank()) {
             model.addAttribute("q", q);
         }
@@ -475,7 +485,8 @@ public class ItemController {
 
     private PageResult<Item> queryItems(
             String q, String category,
-            UUID orgId, int page, int size) {
+            UUID orgId, int page, int size,
+            String sort, String dir) {
         boolean hasQuery = q != null && !q.isBlank();
         boolean hasCat = category != null;
         if (hasQuery && hasCat) {
@@ -485,22 +496,23 @@ public class ItemController {
             return itemQuery
                     .searchByCategoryAndOrganization(
                             orgId, q, category,
-                            page, size);
+                            page, size, sort, dir);
         } else if (hasQuery) {
             log.info("Searching items query={}",
                     LogSanitizer.sanitize(q));
             return itemQuery.searchByOrganization(
-                    orgId, q, page, size);
+                    orgId, q, page, size, sort, dir);
         } else if (hasCat) {
             log.info("Listing items cat={}",
                     LogSanitizer.sanitize(category));
             return itemQuery
                     .findByCategoryAndOrganization(
-                            orgId, category, page, size);
+                            orgId, category, page, size,
+                            sort, dir);
         } else {
             log.info("Listing items page={}", page);
             return itemQuery.findByOrganization(
-                    orgId, page, size);
+                    orgId, page, size, sort, dir);
         }
     }
 

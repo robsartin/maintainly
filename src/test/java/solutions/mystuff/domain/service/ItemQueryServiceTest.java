@@ -42,9 +42,11 @@ class ItemQueryServiceTest {
         PageResult<Item> expected = new PageResult<>(
                 List.of(), 0, 10, false);
         when(itemRepo.findByOrganizationId(
-                orgId, 0, 10)).thenReturn(expected);
+                orgId, 0, 10, "name", "asc"))
+                .thenReturn(expected);
         assertEquals(expected,
-                service.findByOrganization(orgId, 0, 10));
+                service.findByOrganization(
+                        orgId, 0, 10, "name", "asc"));
     }
 
     @Test
@@ -53,11 +55,12 @@ class ItemQueryServiceTest {
         PageResult<Item> expected = new PageResult<>(
                 List.of(), 0, 10, false);
         when(itemRepo.searchByOrganizationId(
-                orgId, "test", 0, 10))
+                orgId, "test", 0, 10, "name", "asc"))
                 .thenReturn(expected);
         assertEquals(expected,
                 service.searchByOrganization(
-                        orgId, "test", 0, 10));
+                        orgId, "test", 0, 10,
+                        "name", "asc"));
     }
 
     @Test
@@ -119,11 +122,12 @@ class ItemQueryServiceTest {
         PageResult<Item> expected = new PageResult<>(
                 List.of(), 0, 10, false);
         when(itemRepo.findByCategoryAndOrganizationId(
-                orgId, "HVAC", 0, 10))
+                orgId, "HVAC", 0, 10, "name", "asc"))
                 .thenReturn(expected);
         assertEquals(expected,
                 service.findByCategoryAndOrganization(
-                        orgId, "HVAC", 0, 10));
+                        orgId, "HVAC", 0, 10,
+                        "name", "asc"));
     }
 
     @Test
@@ -133,10 +137,12 @@ class ItemQueryServiceTest {
         PageResult<Item> expected = new PageResult<>(
                 List.of(), 0, 10, false);
         when(itemRepo.searchByCategoryAndOrganizationId(
-                orgId, "test", "HVAC", 0, 10))
+                orgId, "test", "HVAC", 0, 10,
+                "name", "asc"))
                 .thenReturn(expected);
         assertEquals(expected,
                 service.searchByCategoryAndOrganization(
-                        orgId, "test", "HVAC", 0, 10));
+                        orgId, "test", "HVAC", 0, 10,
+                        "name", "asc"));
     }
 }

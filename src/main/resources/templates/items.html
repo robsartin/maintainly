@@ -15,6 +15,10 @@
     <div th:unless="${noOrganization}">
         <section id="search">
             <form method="get" th:action="@{/items}">
+                <input type="hidden" name="sort"
+                       th:value="${itemPage != null ? itemPage.sort() : 'name'}"/>
+                <input type="hidden" name="dir"
+                       th:value="${itemPage != null ? itemPage.dir() : 'asc'}"/>
                 <input type="text" name="q" placeholder="Search items..."
                        th:value="${q}"/>
                 <select name="category" data-auto-submit>
@@ -88,10 +92,42 @@
             <table th:unless="${#lists.isEmpty(items)}">
                 <thead>
                 <tr>
-                    <th>Name</th>
-                    <th>Location</th>
-                    <th>Category</th>
-                    <th>Manufacturer</th>
+                    <th class="sortable">
+                        <a th:href="@{/items(q=${q},category=${selectedCategory},page=${itemPage.page()},size=${itemPage.size()},sort='name',dir=${itemPage.sort() == 'name' and itemPage.dir() == 'asc' ? 'desc' : 'asc'})}"
+                           th:classappend="${itemPage.sort() == 'name' ? 'sort-active' : ''}">
+                            Name
+                            <span th:if="${itemPage.sort() == 'name'}"
+                                  th:text="${itemPage.dir() == 'asc' ? '&#9650;' : '&#9660;'}"
+                                  class="sort-arrow"></span>
+                        </a>
+                    </th>
+                    <th class="sortable">
+                        <a th:href="@{/items(q=${q},category=${selectedCategory},page=${itemPage.page()},size=${itemPage.size()},sort='location',dir=${itemPage.sort() == 'location' and itemPage.dir() == 'asc' ? 'desc' : 'asc'})}"
+                           th:classappend="${itemPage.sort() == 'location' ? 'sort-active' : ''}">
+                            Location
+                            <span th:if="${itemPage.sort() == 'location'}"
+                                  th:text="${itemPage.dir() == 'asc' ? '&#9650;' : '&#9660;'}"
+                                  class="sort-arrow"></span>
+                        </a>
+                    </th>
+                    <th class="sortable">
+                        <a th:href="@{/items(q=${q},category=${selectedCategory},page=${itemPage.page()},size=${itemPage.size()},sort='category',dir=${itemPage.sort() == 'category' and itemPage.dir() == 'asc' ? 'desc' : 'asc'})}"
+                           th:classappend="${itemPage.sort() == 'category' ? 'sort-active' : ''}">
+                            Category
+                            <span th:if="${itemPage.sort() == 'category'}"
+                                  th:text="${itemPage.dir() == 'asc' ? '&#9650;' : '&#9660;'}"
+                                  class="sort-arrow"></span>
+                        </a>
+                    </th>
+                    <th class="sortable">
+                        <a th:href="@{/items(q=${q},category=${selectedCategory},page=${itemPage.page()},size=${itemPage.size()},sort='manufacturer',dir=${itemPage.sort() == 'manufacturer' and itemPage.dir() == 'asc' ? 'desc' : 'asc'})}"
+                           th:classappend="${itemPage.sort() == 'manufacturer' ? 'sort-active' : ''}">
+                            Manufacturer
+                            <span th:if="${itemPage.sort() == 'manufacturer'}"
+                                  th:text="${itemPage.dir() == 'asc' ? '&#9650;' : '&#9660;'}"
+                                  class="sort-arrow"></span>
+                        </a>
+                    </th>
                     <th>Model</th>
                     <th>Serial #</th>
                     <th>Purchased</th>
@@ -421,10 +457,10 @@
             </table>
             <nav th:if="${itemPage != null and (itemPage.hasPrevious() or itemPage.hasNext())}" class="pagination">
                 <a th:if="${itemPage.hasPrevious()}"
-                   th:href="@{/items(page=${itemPage.page() - 1},size=${itemPage.size()},q=${q},category=${selectedCategory})}">Prev</a>
+                   th:href="@{/items(page=${itemPage.page() - 1},size=${itemPage.size()},q=${q},category=${selectedCategory},sort=${itemPage.sort()},dir=${itemPage.dir()})}">Prev</a>
                 <span th:text="'Page ' + (${itemPage.page()} + 1)"></span>
                 <a th:if="${itemPage.hasNext()}"
-                   th:href="@{/items(page=${itemPage.page() + 1},size=${itemPage.size()},q=${q},category=${selectedCategory})}">Next</a>
+                   th:href="@{/items(page=${itemPage.page() + 1},size=${itemPage.size()},q=${q},category=${selectedCategory},sort=${itemPage.sort()},dir=${itemPage.dir()})}">Next</a>
                 <label class="page-size-label">Show
                     <select data-page-size="/items">
                         <option value="10" th:selected="${itemPage.size() == 10}">10</option>

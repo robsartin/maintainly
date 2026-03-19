@@ -1255,6 +1255,124 @@ class ItemControllerIntegrationTest {
                                 "Active Schedules")));
     }
 
+    @Test
+    @DisplayName("should sort items by name ascending"
+            + " by default")
+    void shouldSortByNameAscByDefault() throws Exception {
+        mockMvc.perform(get("/items")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists(
+                        "itemPage"));
+    }
+
+    @Test
+    @DisplayName("should sort items by name descending")
+    void shouldSortByNameDesc() throws Exception {
+        mockMvc.perform(get("/items")
+                        .param("sort", "name")
+                        .param("dir", "desc")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists(
+                        "itemPage"));
+    }
+
+    @Test
+    @DisplayName("should sort items by location")
+    void shouldSortByLocation() throws Exception {
+        mockMvc.perform(get("/items")
+                        .param("sort", "location")
+                        .param("dir", "asc")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists(
+                        "itemPage"));
+    }
+
+    @Test
+    @DisplayName("should sort items by category")
+    void shouldSortByCategory() throws Exception {
+        mockMvc.perform(get("/items")
+                        .param("sort", "category")
+                        .param("dir", "asc")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists(
+                        "itemPage"));
+    }
+
+    @Test
+    @DisplayName("should sort items by manufacturer")
+    void shouldSortByManufacturer() throws Exception {
+        mockMvc.perform(get("/items")
+                        .param("sort", "manufacturer")
+                        .param("dir", "desc")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists(
+                        "itemPage"));
+    }
+
+    @Test
+    @DisplayName("should fall back to name sort"
+            + " for invalid field")
+    void shouldFallBackWhenInvalidSort()
+            throws Exception {
+        mockMvc.perform(get("/items")
+                        .param("sort", "invalid")
+                        .param("dir", "asc")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists(
+                        "itemPage"));
+    }
+
+    @Test
+    @DisplayName("should preserve sort with search")
+    void shouldPreserveSortWithSearch() throws Exception {
+        mockMvc.perform(get("/items")
+                        .param("q", "Furnace")
+                        .param("sort", "location")
+                        .param("dir", "desc")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists(
+                        "itemPage"))
+                .andExpect(model().attribute("q",
+                        "Furnace"));
+    }
+
+    @Test
+    @DisplayName("should preserve sort with category"
+            + " filter")
+    void shouldPreserveSortWithCategory()
+            throws Exception {
+        mockMvc.perform(get("/items")
+                        .param("category", "HVAC")
+                        .param("sort", "manufacturer")
+                        .param("dir", "asc")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists(
+                        "itemPage"));
+    }
+
+    @Test
+    @DisplayName("should render sort arrows in headers")
+    void shouldRenderSortArrows() throws Exception {
+        MvcResult result = mockMvc.perform(get("/items")
+                        .param("sort", "name")
+                        .param("dir", "asc")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse()
+                .getContentAsString();
+        assertTrue(html.contains("sort-arrow"),
+                "should render sort arrow indicator");
+    }
+
     private Object getModel(String attr)
             throws Exception {
         MvcResult result = mockMvc.perform(get("/items")

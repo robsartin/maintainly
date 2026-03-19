@@ -2,6 +2,7 @@ package solutions.mystuff.infrastructure.persistence;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.Item;
@@ -50,9 +51,11 @@ public class JpaItemRepositoryAdapter
     /** {@inheritDoc} */
     @Override
     public PageResult<Item> findByOrganizationId(
-            UUID organizationId, int page, int size) {
+            UUID organizationId, int page, int size,
+            String sort, String dir) {
         Slice<Item> s = delegate.findByOrganizationId(
-                organizationId, pageOf(page, size));
+                organizationId,
+                pageOf(page, size, sort, dir));
         return PageResultConverter.toPageResult(s);
     }
 
@@ -68,9 +71,10 @@ public class JpaItemRepositoryAdapter
     @Override
     public PageResult<Item> searchByOrganizationId(
             UUID organizationId, String query,
-            int page, int size) {
+            int page, int size, String sort, String dir) {
         Slice<Item> s = delegate.searchByOrganizationId(
-                organizationId, query, pageOf(page, size));
+                organizationId, query,
+                pageOf(page, size, sort, dir));
         return PageResultConverter.toPageResult(s);
     }
 
@@ -105,11 +109,12 @@ public class JpaItemRepositoryAdapter
     public PageResult<Item>
             findByCategoryAndOrganizationId(
                     UUID organizationId, String category,
-                    int page, int size) {
+                    int page, int size,
+                    String sort, String dir) {
         Slice<Item> s = delegate
                 .findByCategoryAndOrganizationId(
                         organizationId, category,
-                        pageOf(page, size));
+                        pageOf(page, size, sort, dir));
         return PageResultConverter.toPageResult(s);
     }
 
@@ -118,11 +123,12 @@ public class JpaItemRepositoryAdapter
     public PageResult<Item>
             searchByCategoryAndOrganizationId(
                     UUID organizationId, String query,
-                    String category, int page, int size) {
+                    String category, int page, int size,
+                    String sort, String dir) {
         Slice<Item> s = delegate
                 .searchByCategoryAndOrganizationId(
                         organizationId, query, category,
-                        pageOf(page, size));
+                        pageOf(page, size, sort, dir));
         return PageResultConverter.toPageResult(s);
     }
 
@@ -144,9 +150,20 @@ public class JpaItemRepositoryAdapter
                 id, organizationId);
     }
 
-    private PageRequest pageOf(int page, int size) {
+    private static final Set<String> SORTABLE_FIELDS =
+            Set.of("name", "location", "category",
+                    "manufacturer");
+
+    private PageRequest pageOf(int page, int size,
+            String sort, String dir) {
+        String field = SORTABLE_FIELDS.contains(sort)
+                ? sort : "name";
+        Sort.Direction direction =
+                "desc".equalsIgnoreCase(dir)
+                        ? Sort.Direction.DESC
+                        : Sort.Direction.ASC;
         return PageRequest.of(page, size,
-                Sort.by("name").ascending());
+                Sort.by(direction, field));
     }
 
 }

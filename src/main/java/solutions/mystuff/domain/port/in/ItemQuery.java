@@ -15,9 +15,9 @@ import solutions.mystuff.domain.model.ServiceSchedule;
  * <div class="mermaid">
  * classDiagram
  *     class ItemQuery {
- *         +findByOrganization(UUID, int, int) PageResult
- *         +searchByOrganization(UUID, String, int, int) PageResult
- *         +findByCategoryAndOrganization(UUID, String, int, int) PageResult
+ *         +findByOrganization(UUID, int, int, String, String) PageResult
+ *         +searchByOrganization(UUID, String, int, int, String, String) PageResult
+ *         +findByCategoryAndOrganization(UUID, String, int, int, String, String) PageResult
  *         +findDistinctCategories(UUID) List~String~
  *         +findByIdAndOrganization(UUID, UUID) Optional~Item~
  *     }
@@ -30,21 +30,23 @@ public interface ItemQuery {
 
     /** Find a page of items for an organization. */
     PageResult<Item> findByOrganization(
-            UUID orgId, int page, int size);
+            UUID orgId, int page, int size,
+            String sort, String dir);
 
     /** Search items by query with pagination. */
     PageResult<Item> searchByOrganization(
-            UUID orgId, String query, int page, int size);
+            UUID orgId, String query, int page, int size,
+            String sort, String dir);
 
     /** Find a page of items filtered by category. */
     PageResult<Item> findByCategoryAndOrganization(
             UUID orgId, String category,
-            int page, int size);
+            int page, int size, String sort, String dir);
 
     /** Search items by query and category. */
     PageResult<Item> searchByCategoryAndOrganization(
             UUID orgId, String query, String category,
-            int page, int size);
+            int page, int size, String sort, String dir);
 
     /** Find distinct categories for an organization. */
     List<String> findDistinctCategories(UUID orgId);

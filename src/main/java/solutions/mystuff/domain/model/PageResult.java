@@ -15,7 +15,23 @@ public record PageResult<T>(
         List<T> content,
         int page,
         int size,
-        boolean hasNext) {
+        boolean hasNext,
+        String sort,
+        String dir) {
+
+    /**
+     * Creates a page result without sort information.
+     *
+     * @param content the page content
+     * @param page    the zero-based page index
+     * @param size    the page size
+     * @param hasNext true if more results exist
+     */
+    public PageResult(List<T> content, int page,
+            int size, boolean hasNext) {
+        this(content, page, size, hasNext,
+                "name", "asc");
+    }
 
     /** Return true if a preceding page exists. */
     public boolean hasPrevious() {
