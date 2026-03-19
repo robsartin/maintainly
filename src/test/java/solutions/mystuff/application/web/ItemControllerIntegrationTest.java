@@ -1155,6 +1155,106 @@ class ItemControllerIntegrationTest {
                 .orElse(null);
     }
 
+    @Test
+    @DisplayName("should render items page HTML"
+            + " without template errors")
+    void shouldRenderItemsPageHtml() throws Exception {
+        mockMvc.perform(get("/items")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(
+                        containsString("<table")))
+                .andExpect(content().string(
+                        containsString("All Categories")))
+                .andExpect(content().string(
+                        containsString(
+                                "name=\"category\"")));
+    }
+
+    @Test
+    @DisplayName("should render item detail HTML"
+            + " without template errors")
+    void shouldRenderItemDetailHtml() throws Exception {
+        String itemId = getFirstItemId();
+        mockMvc.perform(get("/items/" + itemId)
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(
+                        containsString("item-row")))
+                .andExpect(content().string(
+                        containsString("selected")));
+    }
+
+    @Test
+    @DisplayName("should render items with category"
+            + " filter without template errors")
+    void shouldRenderWithCategoryFilter()
+            throws Exception {
+        mockMvc.perform(get("/items")
+                        .param("category", "HVAC")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(
+                        containsString("All Categories")));
+    }
+
+    @Test
+    @DisplayName("should render items with search"
+            + " without template errors")
+    void shouldRenderWithSearch() throws Exception {
+        mockMvc.perform(get("/items")
+                        .param("q", "nonexistent-xyz")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(
+                        containsString(
+                                "No items found")));
+    }
+
+    @Test
+    @DisplayName("should render items with search"
+            + " and category without template errors")
+    void shouldRenderWithSearchAndCategory()
+            throws Exception {
+        mockMvc.perform(get("/items")
+                        .param("q", "test")
+                        .param("category", "HVAC")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(
+                        containsString("All Categories")));
+    }
+
+    @Test
+    @DisplayName("should render item detail with"
+            + " service records without template errors")
+    void shouldRenderDetailWithRecords()
+            throws Exception {
+        String itemId = createItemWithSchedule();
+        String vendorId = getFirstVendorId();
+        mockMvc.perform(post("/items/" + itemId
+                        + "/service-records")
+                .param("summary", "Template test svc")
+                .param("serviceDate",
+                        LocalDate.now().toString())
+                .param("cost", "50.00")
+                .param("vendorId", vendorId)
+                .with(user("dev").roles("USER"))
+                .with(csrf()));
+        mockMvc.perform(get("/items/" + itemId)
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(
+                        containsString(
+                                "Service History")))
+                .andExpect(content().string(
+                        containsString(
+                                "Template test svc")))
+                .andExpect(content().string(
+                        containsString(
+                                "Active Schedules")));
+    }
+
     private Object getModel(String attr)
             throws Exception {
         MvcResult result = mockMvc.perform(get("/items")
