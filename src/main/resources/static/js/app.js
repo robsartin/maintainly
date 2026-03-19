@@ -1,5 +1,12 @@
 document.addEventListener('DOMContentLoaded', function () {
 
+    document.querySelectorAll('.toast').forEach(
+        function (toast) {
+            setTimeout(function () {
+                toast.remove();
+            }, 3000);
+        });
+
     var pageSizeSelect =
         document.querySelector('[data-page-size]');
     if (pageSizeSelect) {
