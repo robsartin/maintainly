@@ -132,7 +132,8 @@
                         <input type="hidden" th:name="${_csrf.parameterName}"
                                th:value="${_csrf.token}"/>
                         <button type="submit" class="btn-icon btn-delete" title="Delete vendor"
-                                data-confirm-submit="Delete this vendor?">
+                                data-confirm-submit="Delete this vendor?"
+                                th:data-confirm-name="${vendor.name}">
                             <svg th:replace="~{fragments/icons :: icon-trash}"></svg>
                         </button>
                     </form>

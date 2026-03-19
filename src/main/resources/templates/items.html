@@ -180,7 +180,8 @@
                             <input type="hidden" th:name="${_csrf.parameterName}"
                                    th:value="${_csrf.token}"/>
                             <button type="submit" class="btn-icon btn-delete" title="Delete item"
-                                    data-confirm-submit="Delete this item and all its schedules and records?">
+                                    data-confirm-submit="Delete this item and all its schedules and records?"
+                                    th:data-confirm-name="${item.name}">
                                 <svg th:replace="~{fragments/icons :: icon-trash}"></svg>
                             </button>
                         </form>
@@ -321,7 +322,8 @@
                                                 <button type="submit"
                                                         class="btn-icon btn-delete"
                                                         title="Delete record"
-                                                        data-confirm-submit="Delete this service record?">
+                                                        data-confirm-submit="Delete this service record?"
+                                                        th:data-confirm-name="${r.summary}">
                                                     <svg th:replace="~{fragments/icons :: icon-trash}"></svg>
                                                 </button>
                                             </form>
@@ -413,7 +415,8 @@
                                                 <button type="submit"
                                                         class="btn-icon btn-skip"
                                                         title="Skip to next occurrence"
-                                                        data-confirm-submit="Skip this occurrence?">
+                                                        data-confirm-submit="Skip this occurrence?"
+                                                        th:data-confirm-name="${is.serviceType}">
                                                     <svg th:replace="~{fragments/icons :: icon-skip}"></svg>
                                                 </button>
                                             </form>
