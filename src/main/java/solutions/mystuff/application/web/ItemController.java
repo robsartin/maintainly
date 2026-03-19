@@ -11,6 +11,7 @@ import solutions.mystuff.domain.model.Item;
 import solutions.mystuff.domain.model.ItemSpec;
 import solutions.mystuff.domain.model.LogSanitizer;
 import solutions.mystuff.domain.model.NotFoundException;
+import solutions.mystuff.domain.model.PageRequest;
 import solutions.mystuff.domain.model.PageResult;
 import solutions.mystuff.domain.model.Validation;
 import solutions.mystuff.domain.model.ServiceCompletion;
@@ -138,8 +139,10 @@ public class ItemController {
         }
         helper.setOrgMdc(user);
         UUID orgId = user.getOrganization().getId();
-        loadItems(q, category, orgId, page, size,
-                sort, dir, model, response);
+        PageRequest pageReq = new PageRequest(
+                page, size, sort, dir);
+        loadItems(q, category, orgId, pageReq,
+                model, response);
         helper.addUserAttrs(user, model);
         return "items";
     }
@@ -170,8 +173,9 @@ public class ItemController {
         }
         helper.setOrgMdc(user);
         UUID orgId = user.getOrganization().getId();
-        loadItems(null, null, orgId, page, size,
-                "name", "asc", model, response);
+        loadItems(null, null, orgId,
+                new PageRequest(page, size),
+                model, response);
         helper.addUserAttrs(user, model);
         addDetailAttrs(model, itemId, orgId);
         return "items";
@@ -479,15 +483,16 @@ public class ItemController {
 
     private void loadItems(
             String q, String category,
-            UUID orgId, int page, int size,
-            String sort, String dir,
+            UUID orgId, PageRequest pageReq,
             Model model, HttpServletResponse response) {
-        int safeSize = helper.clampSize(size);
-        int safePage = Math.max(0, page);
+        int safeSize = helper.clampSize(pageReq.size());
+        int safePage = Math.max(0, pageReq.page());
         String cat = normalizeCategory(category);
+        PageRequest safe = new PageRequest(
+                safePage, safeSize,
+                pageReq.sort(), pageReq.dir());
         PageResult<Item> result = queryItems(
-                q, cat, orgId, safePage, safeSize,
-                sort, dir);
+                q, cat, orgId, safe);
         if (q != null && !q.isBlank()) {
             model.addAttribute("q", q);
         }
@@ -508,8 +513,7 @@ public class ItemController {
 
     private PageResult<Item> queryItems(
             String q, String category,
-            UUID orgId, int page, int size,
-            String sort, String dir) {
+            UUID orgId, PageRequest pageReq) {
         boolean hasQuery = q != null && !q.isBlank();
         boolean hasCat = category != null;
         if (hasQuery && hasCat) {
@@ -519,23 +523,23 @@ public class ItemController {
             return itemQuery
                     .searchByCategoryAndOrganization(
                             orgId, q, category,
-                            page, size, sort, dir);
+                            pageReq);
         } else if (hasQuery) {
             log.info("Searching items query={}",
                     LogSanitizer.sanitize(q));
             return itemQuery.searchByOrganization(
-                    orgId, q, page, size, sort, dir);
+                    orgId, q, pageReq);
         } else if (hasCat) {
             log.info("Listing items cat={}",
                     LogSanitizer.sanitize(category));
             return itemQuery
                     .findByCategoryAndOrganization(
-                            orgId, category, page, size,
-                            sort, dir);
+                            orgId, category, pageReq);
         } else {
-            log.info("Listing items page={}", page);
+            log.info("Listing items page={}",
+                    pageReq.page());
             return itemQuery.findByOrganization(
-                    orgId, page, size, sort, dir);
+                    orgId, pageReq);
         }
     }
 

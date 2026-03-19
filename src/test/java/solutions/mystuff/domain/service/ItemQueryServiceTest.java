@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.Item;
+import solutions.mystuff.domain.model.PageRequest;
 import solutions.mystuff.domain.model.PageResult;
 import solutions.mystuff.domain.model.UuidV7;
 import solutions.mystuff.domain.port.out.ItemRepository;
@@ -35,6 +36,8 @@ class ItemQueryServiceTest {
                     schedRepo);
 
     private final UUID orgId = UuidV7.generate();
+    private final PageRequest pageReq =
+            new PageRequest(0, 10, "name", "asc");
 
     @Test
     @DisplayName("should delegate findByOrganization")
@@ -42,11 +45,11 @@ class ItemQueryServiceTest {
         PageResult<Item> expected = new PageResult<>(
                 List.of(), 0, 10, false);
         when(itemRepo.findByOrganizationId(
-                orgId, 0, 10, "name", "asc"))
+                orgId, pageReq))
                 .thenReturn(expected);
         assertEquals(expected,
                 service.findByOrganization(
-                        orgId, 0, 10, "name", "asc"));
+                        orgId, pageReq));
     }
 
     @Test
@@ -55,12 +58,11 @@ class ItemQueryServiceTest {
         PageResult<Item> expected = new PageResult<>(
                 List.of(), 0, 10, false);
         when(itemRepo.searchByOrganizationId(
-                orgId, "test", 0, 10, "name", "asc"))
+                orgId, "test", pageReq))
                 .thenReturn(expected);
         assertEquals(expected,
                 service.searchByOrganization(
-                        orgId, "test", 0, 10,
-                        "name", "asc"));
+                        orgId, "test", pageReq));
     }
 
     @Test
@@ -122,12 +124,11 @@ class ItemQueryServiceTest {
         PageResult<Item> expected = new PageResult<>(
                 List.of(), 0, 10, false);
         when(itemRepo.findByCategoryAndOrganizationId(
-                orgId, "HVAC", 0, 10, "name", "asc"))
+                orgId, "HVAC", pageReq))
                 .thenReturn(expected);
         assertEquals(expected,
                 service.findByCategoryAndOrganization(
-                        orgId, "HVAC", 0, 10,
-                        "name", "asc"));
+                        orgId, "HVAC", pageReq));
     }
 
     @Test
@@ -137,12 +138,10 @@ class ItemQueryServiceTest {
         PageResult<Item> expected = new PageResult<>(
                 List.of(), 0, 10, false);
         when(itemRepo.searchByCategoryAndOrganizationId(
-                orgId, "test", "HVAC", 0, 10,
-                "name", "asc"))
+                orgId, "test", "HVAC", pageReq))
                 .thenReturn(expected);
         assertEquals(expected,
                 service.searchByCategoryAndOrganization(
-                        orgId, "test", "HVAC", 0, 10,
-                        "name", "asc"));
+                        orgId, "test", "HVAC", pageReq));
     }
 }

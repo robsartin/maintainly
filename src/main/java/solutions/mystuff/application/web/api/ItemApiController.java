@@ -7,6 +7,7 @@ import solutions.mystuff.domain.model.AppUser;
 import solutions.mystuff.domain.model.Item;
 import solutions.mystuff.domain.model.ItemSpec;
 import solutions.mystuff.domain.model.NotFoundException;
+import solutions.mystuff.domain.model.PageRequest;
 import solutions.mystuff.domain.model.PageResult;
 import solutions.mystuff.domain.model.Validation;
 import solutions.mystuff.domain.port.in.ItemManagement;
@@ -83,8 +84,10 @@ public class ItemApiController {
         int clamped = Math.max(1,
                 Math.min(size, 100));
         String cat = normalizeCategory(category);
+        PageRequest pageReq = new PageRequest(
+                page, clamped);
         PageResult<Item> result = queryItems(
-                q, cat, orgId, page, clamped);
+                q, cat, orgId, pageReq);
         LinkHeaderBuilder.addLinkHeader(
                 response, "/api/v1/items",
                 result, q, cat);
@@ -94,26 +97,24 @@ public class ItemApiController {
 
     private PageResult<Item> queryItems(
             String q, String category,
-            UUID orgId, int page, int size) {
+            UUID orgId, PageRequest pageReq) {
         boolean hasQuery = q != null && !q.isBlank();
         boolean hasCat = category != null;
         if (hasQuery && hasCat) {
             return itemQuery
                     .searchByCategoryAndOrganization(
                             orgId, q, category,
-                            page, size, "name", "asc");
+                            pageReq);
         } else if (hasQuery) {
             return itemQuery.searchByOrganization(
-                    orgId, q, page, size,
-                    "name", "asc");
+                    orgId, q, pageReq);
         } else if (hasCat) {
             return itemQuery
                     .findByCategoryAndOrganization(
-                            orgId, category, page, size,
-                            "name", "asc");
+                            orgId, category, pageReq);
         } else {
             return itemQuery.findByOrganization(
-                    orgId, page, size, "name", "asc");
+                    orgId, pageReq);
         }
     }
 
