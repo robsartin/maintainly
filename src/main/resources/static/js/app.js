@@ -146,6 +146,31 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            document.querySelectorAll(
+                '.form-row, .add-form'
+            ).forEach(function (el) {
+                if (el.style.display !== 'none') {
+                    el.style.display = 'none';
+                }
+            });
+            return;
+        }
+
+        var tag = document.activeElement.tagName;
+        var isInput = tag === 'INPUT'
+            || tag === 'TEXTAREA' || tag === 'SELECT';
+        if (e.key === '/' && !isInput) {
+            var searchInput =
+                document.querySelector('#search input');
+            if (searchInput) {
+                e.preventDefault();
+                searchInput.focus();
+            }
+        }
+    });
+
     document.body.addEventListener('submit', function (e) {
         var form = e.target.closest('[data-open-window]');
         if (form) {
