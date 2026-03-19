@@ -7,6 +7,12 @@
 <div th:replace="~{layout :: toasts}"></div>
 <main>
 <main id="main-content">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li><a th:href="@{/}">Home</a></li>
+            <li>Vendors</li>
+        </ol>
+    </nav>
 
     <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
     <div th:if="${noOrganization}" class="alert alert-warning">
