@@ -78,48 +78,28 @@ public class ItemApiController {
             @Parameter(description = "Category filter")
             @RequestParam(required = false)
                     String category,
+            @Parameter(description = "Sort field")
+            @RequestParam(defaultValue = "name")
+                    String sort,
+            @Parameter(description = "Sort direction")
+            @RequestParam(defaultValue = "asc")
+                    String dir,
             Principal principal,
             HttpServletResponse response) {
         UUID orgId = resolveOrgId(principal);
         int clamped = Math.max(1,
                 Math.min(size, 100));
-        String cat = normalizeCategory(category);
         PageRequest pageReq = new PageRequest(
-                page, clamped);
-        PageResult<Item> result = queryItems(
-                q, cat, orgId, pageReq);
+                page, clamped, sort, dir);
+        PageResult<Item> result =
+                itemQuery.findItems(
+                        orgId, q, category, pageReq);
+        String cat = Validation.trimOrNull(category);
         LinkHeaderBuilder.addLinkHeader(
                 response, "/api/v1/items",
                 result, q, cat);
         return PageResponse.from(
                 result, ItemResponse::from);
-    }
-
-    private PageResult<Item> queryItems(
-            String q, String category,
-            UUID orgId, PageRequest pageReq) {
-        boolean hasQuery = q != null && !q.isBlank();
-        boolean hasCat = category != null;
-        if (hasQuery && hasCat) {
-            return itemQuery
-                    .searchByCategoryAndOrganization(
-                            orgId, q, category,
-                            pageReq);
-        } else if (hasQuery) {
-            return itemQuery.searchByOrganization(
-                    orgId, q, pageReq);
-        } else if (hasCat) {
-            return itemQuery
-                    .findByCategoryAndOrganization(
-                            orgId, category, pageReq);
-        } else {
-            return itemQuery.findByOrganization(
-                    orgId, pageReq);
-        }
-    }
-
-    private String normalizeCategory(String category) {
-        return Validation.trimOrNull(category);
     }
 
     /** Gets a single item by ID. */
