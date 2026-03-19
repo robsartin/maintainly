@@ -7,6 +7,12 @@
 <div th:replace="~{layout :: toasts}"></div>
 <main>
 <main id="main-content">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li><a th:href="@{/}">Home</a></li>
+            <li>Schedules</li>
+        </ol>
+    </nav>
 
     <div th:if="${error}">
         <p class="error" th:text="${error}"></p>
@@ -75,7 +81,8 @@
                             <input type="hidden" name="_method" value="DELETE"/>
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                             <button type="submit" class="btn-icon btn-delete" title="Delete schedule"
-                                    data-confirm-submit="Delete this schedule?">
+                                    data-confirm-submit="Delete this schedule?"
+                                    th:data-confirm-name="${s.serviceType}">
                                 <svg th:replace="~{fragments/icons :: icon-trash}"></svg>
                             </button>
                         </form>

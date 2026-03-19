@@ -157,11 +157,8 @@ document.addEventListener('DOMContentLoaded', function () {
         var del =
             e.target.closest('[data-confirm-submit]');
         if (del) {
-            var msg =
-                del.getAttribute('data-confirm-submit');
-            if (!confirm(msg)) {
-                e.preventDefault();
-            }
+            e.preventDefault();
+            showConfirmDialog(del);
         }
     });
 
@@ -191,8 +188,72 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    function showConfirmDialog(trigger) {
+        var msg =
+            trigger.getAttribute('data-confirm-submit');
+        var name =
+            trigger.getAttribute('data-confirm-name');
+        var overlay =
+            document.createElement('div');
+        overlay.className = 'confirm-overlay';
+        var card = document.createElement('div');
+        card.className = 'confirm-card';
+        var isDelete =
+            msg.toLowerCase().indexOf('delete') === 0;
+        var action = isDelete ? 'Delete' : 'Skip';
+        var title = document.createElement('h3');
+        title.className = 'confirm-title';
+        title.textContent = name
+            ? action + ' ' + name + '?'
+            : 'Are you sure?';
+        card.appendChild(title);
+        var body = document.createElement('p');
+        body.className = 'confirm-body';
+        body.textContent = msg;
+        card.appendChild(body);
+        var actions = document.createElement('div');
+        actions.className = 'confirm-actions';
+        var cancelBtn =
+            document.createElement('button');
+        cancelBtn.type = 'button';
+        cancelBtn.className = 'confirm-cancel';
+        cancelBtn.textContent = 'Cancel';
+        actions.appendChild(cancelBtn);
+        var confirmBtn =
+            document.createElement('button');
+        confirmBtn.type = 'button';
+        confirmBtn.className = 'confirm-delete';
+        confirmBtn.textContent = action;
+        actions.appendChild(confirmBtn);
+        card.appendChild(actions);
+        overlay.appendChild(card);
+        document.body.appendChild(overlay);
+        confirmBtn.focus();
+        cancelBtn.addEventListener('click', function () {
+            overlay.remove();
+        });
+        overlay.addEventListener('click', function (ev) {
+            if (ev.target === overlay) {
+                overlay.remove();
+            }
+        });
+        confirmBtn.addEventListener('click', function () {
+            overlay.remove();
+            var form = trigger.closest('form');
+            if (form) {
+                form.submit();
+            }
+        });
+    }
+
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') {
+            var overlay =
+                document.querySelector('.confirm-overlay');
+            if (overlay) {
+                overlay.remove();
+                return;
+            }
             document.querySelectorAll(
                 '.form-row, .add-form'
             ).forEach(function (el) {

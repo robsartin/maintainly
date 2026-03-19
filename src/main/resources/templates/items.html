@@ -7,6 +7,15 @@
 <div th:replace="~{layout :: toasts}"></div>
 <main>
 <main id="main-content">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li><a th:href="@{/}">Home</a></li>
+            <li th:if="${selectedItemId == null}">Items</li>
+            <li th:if="${selectedItemId != null}"><a th:href="@{/items}">Items</a></li>
+            <li th:if="${selectedItemId != null}"
+                th:text="${selectedItemName != null ? selectedItemName : 'Item'}"></li>
+        </ol>
+    </nav>
 
     <div th:if="${error}">
         <p class="error" th:text="${error}"></p>
@@ -180,7 +189,8 @@
                             <input type="hidden" th:name="${_csrf.parameterName}"
                                    th:value="${_csrf.token}"/>
                             <button type="submit" class="btn-icon btn-delete" title="Delete item"
-                                    data-confirm-submit="Delete this item and all its schedules and records?">
+                                    data-confirm-submit="Delete this item and all its schedules and records?"
+                                    th:data-confirm-name="${item.name}">
                                 <svg th:replace="~{fragments/icons :: icon-trash}"></svg>
                             </button>
                         </form>
@@ -321,7 +331,8 @@
                                                 <button type="submit"
                                                         class="btn-icon btn-delete"
                                                         title="Delete record"
-                                                        data-confirm-submit="Delete this service record?">
+                                                        data-confirm-submit="Delete this service record?"
+                                                        th:data-confirm-name="${r.summary}">
                                                     <svg th:replace="~{fragments/icons :: icon-trash}"></svg>
                                                 </button>
                                             </form>
@@ -413,7 +424,8 @@
                                                 <button type="submit"
                                                         class="btn-icon btn-skip"
                                                         title="Skip to next occurrence"
-                                                        data-confirm-submit="Skip this occurrence?">
+                                                        data-confirm-submit="Skip this occurrence?"
+                                                        th:data-confirm-name="${is.serviceType}">
                                                     <svg th:replace="~{fragments/icons :: icon-skip}"></svg>
                                                 </button>
                                             </form>

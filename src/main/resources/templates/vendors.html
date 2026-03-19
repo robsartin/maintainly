@@ -7,6 +7,12 @@
 <div th:replace="~{layout :: toasts}"></div>
 <main>
 <main id="main-content">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li><a th:href="@{/}">Home</a></li>
+            <li>Vendors</li>
+        </ol>
+    </nav>
 
     <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
     <div th:if="${noOrganization}" class="alert alert-warning">
@@ -132,7 +138,8 @@
                         <input type="hidden" th:name="${_csrf.parameterName}"
                                th:value="${_csrf.token}"/>
                         <button type="submit" class="btn-icon btn-delete" title="Delete vendor"
-                                data-confirm-submit="Delete this vendor?">
+                                data-confirm-submit="Delete this vendor?"
+                                th:data-confirm-name="${vendor.name}">
                             <svg th:replace="~{fragments/icons :: icon-trash}"></svg>
                         </button>
                     </form>
