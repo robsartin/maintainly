@@ -5,7 +5,6 @@
 <body>
 <header th:replace="~{layout :: header}"></header>
 <div th:replace="~{layout :: toasts}"></div>
-<main>
 <main id="main-content">
 
     <div th:if="${noOrganization}">
@@ -36,6 +35,25 @@
         <div class="dashboard-links">
             <a th:href="@{/schedules}" class="btn">View All Schedules</a>
             <a th:href="@{/items}" class="btn">View All Items</a>
+        </div>
+
+        <div class="quick-action-cards">
+            <a th:href="@{/items}" class="quick-action-card">
+                <svg th:replace="~{fragments/icons :: icon-plus}"></svg>
+                <span>Add Item</span>
+            </a>
+            <a th:href="@{/schedules}" class="quick-action-card">
+                <svg th:replace="~{fragments/icons :: icon-calendar-plus}"></svg>
+                <span>View Schedules</span>
+            </a>
+            <a th:href="@{/schedules}" class="quick-action-card">
+                <svg th:replace="~{fragments/icons :: icon-wrench}"></svg>
+                <span>View Overdue</span>
+            </a>
+            <a th:href="@{/reports}" class="quick-action-card">
+                <svg th:replace="~{fragments/icons :: icon-download}"></svg>
+                <span>Generate Report</span>
+            </a>
         </div>
 
         <section class="recent-activity">
