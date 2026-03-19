@@ -15,7 +15,7 @@
     border-radius: 4px;
     color: white;
     font-size: 0.9rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 8px var(--color-shadow, rgba(0,0,0,0.2));
     animation: toast-in 0.3s ease-out,
                toast-out 0.3s ease-in 2.7s forwards;
 }

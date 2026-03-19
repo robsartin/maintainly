@@ -1,4 +1,42 @@
+/* Apply saved theme before DOM renders to prevent flash */
+(function () {
+    var theme = localStorage.getItem('theme');
+    if (theme === 'dark') {
+        document.documentElement.setAttribute(
+            'data-theme', 'dark');
+    }
+})();
+
 document.addEventListener('DOMContentLoaded', function () {
+
+    /* --- Theme toggle --- */
+    var toggle = document.getElementById('theme-toggle');
+    if (toggle) {
+        function updateToggleLabel() {
+            var isDark = document.documentElement
+                .getAttribute('data-theme') === 'dark';
+            toggle.textContent = isDark ? '\u2600' : '\u263D';
+            toggle.setAttribute('title',
+                isDark ? 'Switch to light mode'
+                       : 'Switch to dark mode');
+        }
+        updateToggleLabel();
+
+        toggle.addEventListener('click', function () {
+            var isDark = document.documentElement
+                .getAttribute('data-theme') === 'dark';
+            if (isDark) {
+                document.documentElement
+                    .removeAttribute('data-theme');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement
+                    .setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+            }
+            updateToggleLabel();
+        });
+    }
 
     document.querySelectorAll('.toast').forEach(
         function (toast) {
