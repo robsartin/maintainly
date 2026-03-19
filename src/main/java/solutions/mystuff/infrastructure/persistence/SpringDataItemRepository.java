@@ -8,8 +8,10 @@ import solutions.mystuff.domain.model.Item;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Internal Spring Data repository for {@link Item} persistence.
@@ -87,7 +89,21 @@ interface SpringDataItemRepository
             @Param("cat") String category,
             Pageable pageable);
 
+    /**
+     * Bulk-deletes an item by ID and organization using JPQL
+     * instead of entity removal. This avoids Hibernate loading
+     * and individually deleting each child schedule and record,
+     * relying on the database {@code ON DELETE CASCADE} on
+     * {@code service_schedules.item_id} and
+     * {@code service_records.item_id} instead.
+     */
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM Item i "
+            + "WHERE i.id = :id "
+            + "AND i.organizationId = :orgId")
     void deleteByIdAndOrganizationId(
-            UUID id, UUID organizationId);
+            @Param("id") UUID id,
+            @Param("orgId") UUID organizationId);
 
 }
