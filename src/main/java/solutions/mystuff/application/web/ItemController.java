@@ -472,6 +472,9 @@ public class ItemController {
     private void addDetailAttrs(
             Model model, UUID itemId, UUID orgId) {
         model.addAttribute("selectedItemId", itemId);
+        itemQuery.findByIdAndOrganization(itemId, orgId)
+                .ifPresent(item -> model.addAttribute(
+                        "selectedItemName", item.getName()));
         model.addAttribute("itemRecords",
                 itemQuery.findRecordsByItem(
                         itemId, orgId));

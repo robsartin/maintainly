@@ -613,6 +613,32 @@ textarea:focus-visible,
     left: 0;
 }
 
+/* Breadcrumb navigation */
+.breadcrumb {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    padding: 0;
+    margin: 0 0 1rem;
+    font-size: 0.85rem;
+    color: #888;
+}
+
+.breadcrumb li + li::before {
+    content: "/";
+    padding: 0 0.4rem;
+    color: #bbb;
+}
+
+.breadcrumb a {
+    color: #1565c0;
+    text-decoration: none;
+}
+
+.breadcrumb a:hover {
+    text-decoration: underline;
+}
+
 .empty-state {
     text-align: center;
     padding: 2rem 1rem;
