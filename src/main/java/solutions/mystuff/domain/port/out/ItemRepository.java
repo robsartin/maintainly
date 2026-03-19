@@ -14,14 +14,14 @@ import solutions.mystuff.domain.model.PageResult;
  * classDiagram
  *     class ItemRepository {
  *         +findByOrganizationId(UUID) List~Item~
- *         +findByOrganizationId(UUID, int, int) PageResult~Item~
+ *         +findByOrganizationId(UUID, int, int, String, String) PageResult~Item~
  *         +searchByOrganizationId(UUID, String) List~Item~
- *         +searchByOrganizationId(UUID, String, int, int) PageResult~Item~
+ *         +searchByOrganizationId(UUID, String, int, int, String, String) PageResult~Item~
  *         +findByIdAndOrganizationId(UUID, UUID) Optional~Item~
  *         +countByOrganizationId(UUID) long
  *         +findDistinctCategoriesByOrganizationId(UUID) List~String~
- *         +findByCategoryAndOrganizationId(UUID, String, int, int) PageResult~Item~
- *         +searchByCategoryAndOrganizationId(UUID, String, String, int, int) PageResult~Item~
+ *         +findByCategoryAndOrganizationId(UUID, String, int, int, String, String) PageResult~Item~
+ *         +searchByCategoryAndOrganizationId(UUID, String, String, int, int, String, String) PageResult~Item~
  *         +save(Item) Item
  *         +deleteByIdAndOrganizationId(UUID, UUID) void
  *     }
@@ -37,7 +37,8 @@ public interface ItemRepository {
 
     /** Find a page of items belonging to an organization. */
     PageResult<Item> findByOrganizationId(
-            UUID organizationId, int page, int size);
+            UUID organizationId, int page, int size,
+            String sort, String dir);
 
     /** Search items by query within an organization. */
     List<Item> searchByOrganizationId(
@@ -46,7 +47,7 @@ public interface ItemRepository {
     /** Search items by query with pagination. */
     PageResult<Item> searchByOrganizationId(
             UUID organizationId, String query,
-            int page, int size);
+            int page, int size, String sort, String dir);
 
     /** Find a single item by ID scoped to an organization. */
     Optional<Item> findByIdAndOrganizationId(
@@ -62,12 +63,13 @@ public interface ItemRepository {
     /** Find a page of items filtered by category. */
     PageResult<Item> findByCategoryAndOrganizationId(
             UUID organizationId, String category,
-            int page, int size);
+            int page, int size, String sort, String dir);
 
     /** Search items by query and category with pagination. */
     PageResult<Item> searchByCategoryAndOrganizationId(
             UUID organizationId, String query,
-            String category, int page, int size);
+            String category, int page, int size,
+            String sort, String dir);
 
     /** Persist a new or updated item. */
     Item save(Item item);

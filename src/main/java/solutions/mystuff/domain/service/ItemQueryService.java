@@ -48,18 +48,20 @@ public class ItemQueryService implements ItemQuery {
     /** {@inheritDoc} */
     @Override
     public PageResult<Item> findByOrganization(
-            UUID orgId, int page, int size) {
+            UUID orgId, int page, int size,
+            String sort, String dir) {
         return itemRepo.findByOrganizationId(
-                orgId, page, size);
+                orgId, page, size, sort, dir);
     }
 
     /** {@inheritDoc} */
     @Override
     public PageResult<Item> searchByOrganization(
             UUID orgId, String query,
-            int page, int size) {
+            int page, int size,
+            String sort, String dir) {
         return itemRepo.searchByOrganizationId(
-                orgId, query, page, size);
+                orgId, query, page, size, sort, dir);
     }
 
     /** {@inheritDoc} */
@@ -67,10 +69,12 @@ public class ItemQueryService implements ItemQuery {
     public PageResult<Item>
             findByCategoryAndOrganization(
                     UUID orgId, String category,
-                    int page, int size) {
+                    int page, int size,
+                    String sort, String dir) {
         return itemRepo
                 .findByCategoryAndOrganizationId(
-                        orgId, category, page, size);
+                        orgId, category, page, size,
+                        sort, dir);
     }
 
     /** {@inheritDoc} */
@@ -79,11 +83,12 @@ public class ItemQueryService implements ItemQuery {
             searchByCategoryAndOrganization(
                     UUID orgId, String query,
                     String category,
-                    int page, int size) {
+                    int page, int size,
+                    String sort, String dir) {
         return itemRepo
                 .searchByCategoryAndOrganizationId(
                         orgId, query, category,
-                        page, size);
+                        page, size, sort, dir);
     }
 
     /** {@inheritDoc} */

@@ -100,17 +100,19 @@ public class ItemApiController {
             return itemQuery
                     .searchByCategoryAndOrganization(
                             orgId, q, category,
-                            page, size);
+                            page, size, "name", "asc");
         } else if (hasQuery) {
             return itemQuery.searchByOrganization(
-                    orgId, q, page, size);
+                    orgId, q, page, size,
+                    "name", "asc");
         } else if (hasCat) {
             return itemQuery
                     .findByCategoryAndOrganization(
-                            orgId, category, page, size);
+                            orgId, category, page, size,
+                            "name", "asc");
         } else {
             return itemQuery.findByOrganization(
-                    orgId, page, size);
+                    orgId, page, size, "name", "asc");
         }
     }
 

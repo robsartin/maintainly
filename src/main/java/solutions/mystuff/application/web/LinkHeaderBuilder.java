@@ -36,12 +36,14 @@ public final class LinkHeaderBuilder {
         if (page.hasPrevious()) {
             appendLink(link, basePath,
                     page.page() - 1, page.size(),
-                    q, category, "prev");
+                    q, category,
+                    page.sort(), page.dir(), "prev");
         }
         if (page.hasNext()) {
             appendLink(link, basePath,
                     page.page() + 1, page.size(),
-                    q, category, "next");
+                    q, category,
+                    page.sort(), page.dir(), "next");
         }
         if (!link.isEmpty()) {
             response.addHeader("Link",
@@ -49,10 +51,12 @@ public final class LinkHeaderBuilder {
         }
     }
 
+    @SuppressWarnings("checkstyle:ParameterNumber")
     private static void appendLink(
             StringBuilder sb, String basePath,
             int page, int size,
-            String q, String category, String rel) {
+            String q, String category,
+            String sort, String dir, String rel) {
         if (!sb.isEmpty()) {
             sb.append(", ");
         }
@@ -67,6 +71,16 @@ public final class LinkHeaderBuilder {
         if (category != null && !category.isBlank()) {
             sb.append("&category=").append(
                     URLEncoder.encode(category,
+                            StandardCharsets.UTF_8));
+        }
+        if (sort != null && !sort.isBlank()) {
+            sb.append("&sort=").append(
+                    URLEncoder.encode(sort,
+                            StandardCharsets.UTF_8));
+        }
+        if (dir != null && !dir.isBlank()) {
+            sb.append("&dir=").append(
+                    URLEncoder.encode(dir,
                             StandardCharsets.UTF_8));
         }
         sb.append(">; rel=\"").append(rel).append("\"");

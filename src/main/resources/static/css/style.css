@@ -563,6 +563,25 @@ a.btn-icon:hover {
 
 .nowrap { white-space: nowrap; }
 
+th.sortable a {
+    color: white;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+th.sortable a:hover {
+    text-decoration: underline;
+}
+
+th.sortable a.sort-active {
+    font-weight: bold;
+}
+
+.sort-arrow {
+    font-size: 0.7rem;
+    line-height: 1;
 /* Toast notifications */
 
 .toast-container {
@@ -601,6 +620,7 @@ a.btn-icon:hover {
 @keyframes toast-out {
     from { opacity: 1; transform: translateX(0); }
     to   { opacity: 0; transform: translateX(100%); }
+
 /* Focus styles for keyboard navigation */
 a:focus-visible,
 button:focus-visible,
