@@ -144,4 +144,69 @@ class ItemQueryServiceTest {
                 service.searchByCategoryAndOrganization(
                         orgId, "test", "HVAC", pageReq));
     }
+
+    @Test
+    @DisplayName("should dispatch findItems with no filter")
+    void shouldDispatchFindItemsNoFilter() {
+        PageResult<Item> expected = new PageResult<>(
+                List.of(), 0, 10, false);
+        when(itemRepo.findByOrganizationId(
+                orgId, pageReq))
+                .thenReturn(expected);
+        assertEquals(expected,
+                service.findItems(
+                        orgId, null, null, pageReq));
+    }
+
+    @Test
+    @DisplayName("should dispatch findItems with query")
+    void shouldDispatchFindItemsWithQuery() {
+        PageResult<Item> expected = new PageResult<>(
+                List.of(), 0, 10, false);
+        when(itemRepo.searchByOrganizationId(
+                orgId, "test", pageReq))
+                .thenReturn(expected);
+        assertEquals(expected,
+                service.findItems(
+                        orgId, "test", null, pageReq));
+    }
+
+    @Test
+    @DisplayName("should dispatch findItems with category")
+    void shouldDispatchFindItemsWithCategory() {
+        PageResult<Item> expected = new PageResult<>(
+                List.of(), 0, 10, false);
+        when(itemRepo.findByCategoryAndOrganizationId(
+                orgId, "HVAC", pageReq))
+                .thenReturn(expected);
+        assertEquals(expected,
+                service.findItems(
+                        orgId, null, "HVAC", pageReq));
+    }
+
+    @Test
+    @DisplayName("should dispatch findItems with both")
+    void shouldDispatchFindItemsWithBoth() {
+        PageResult<Item> expected = new PageResult<>(
+                List.of(), 0, 10, false);
+        when(itemRepo.searchByCategoryAndOrganizationId(
+                orgId, "test", "HVAC", pageReq))
+                .thenReturn(expected);
+        assertEquals(expected,
+                service.findItems(
+                        orgId, "test", "HVAC", pageReq));
+    }
+
+    @Test
+    @DisplayName("should treat blank as null in findItems")
+    void shouldTreatBlankAsNullInFindItems() {
+        PageResult<Item> expected = new PageResult<>(
+                List.of(), 0, 10, false);
+        when(itemRepo.findByOrganizationId(
+                orgId, pageReq))
+                .thenReturn(expected);
+        assertEquals(expected,
+                service.findItems(
+                        orgId, "  ", "  ", pageReq));
+    }
 }

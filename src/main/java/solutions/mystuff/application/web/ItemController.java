@@ -9,7 +9,6 @@ import solutions.mystuff.domain.model.AppUser;
 import solutions.mystuff.domain.model.FrequencyUnit;
 import solutions.mystuff.domain.model.Item;
 import solutions.mystuff.domain.model.ItemSpec;
-import solutions.mystuff.domain.model.LogSanitizer;
 import solutions.mystuff.domain.model.NotFoundException;
 import solutions.mystuff.domain.model.PageRequest;
 import solutions.mystuff.domain.model.PageResult;
@@ -487,12 +486,12 @@ public class ItemController {
             Model model, HttpServletResponse response) {
         int safeSize = helper.clampSize(pageReq.size());
         int safePage = Math.max(0, pageReq.page());
-        String cat = normalizeCategory(category);
         PageRequest safe = new PageRequest(
                 safePage, safeSize,
                 pageReq.sort(), pageReq.dir());
-        PageResult<Item> result = queryItems(
-                q, cat, orgId, safe);
+        PageResult<Item> result = itemQuery.findItems(
+                orgId, q, category, safe);
+        String cat = Validation.trimOrNull(category);
         if (q != null && !q.isBlank()) {
             model.addAttribute("q", q);
         }
@@ -509,42 +508,6 @@ public class ItemController {
                 vendorQuery.findAllVendors(orgId));
         model.addAttribute("frequencyUnits",
                 FrequencyUnit.values());
-    }
-
-    private PageResult<Item> queryItems(
-            String q, String category,
-            UUID orgId, PageRequest pageReq) {
-        boolean hasQuery = q != null && !q.isBlank();
-        boolean hasCat = category != null;
-        if (hasQuery && hasCat) {
-            log.info("Searching items query={} cat={}",
-                    LogSanitizer.sanitize(q),
-                    LogSanitizer.sanitize(category));
-            return itemQuery
-                    .searchByCategoryAndOrganization(
-                            orgId, q, category,
-                            pageReq);
-        } else if (hasQuery) {
-            log.info("Searching items query={}",
-                    LogSanitizer.sanitize(q));
-            return itemQuery.searchByOrganization(
-                    orgId, q, pageReq);
-        } else if (hasCat) {
-            log.info("Listing items cat={}",
-                    LogSanitizer.sanitize(category));
-            return itemQuery
-                    .findByCategoryAndOrganization(
-                            orgId, category, pageReq);
-        } else {
-            log.info("Listing items page={}",
-                    pageReq.page());
-            return itemQuery.findByOrganization(
-                    orgId, pageReq);
-        }
-    }
-
-    private String normalizeCategory(String category) {
-        return Validation.trimOrNull(category);
     }
 
     private Item findItem(UUID itemId, UUID orgId) {

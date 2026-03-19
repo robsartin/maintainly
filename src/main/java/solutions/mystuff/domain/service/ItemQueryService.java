@@ -9,6 +9,7 @@ import solutions.mystuff.domain.model.PageRequest;
 import solutions.mystuff.domain.model.PageResult;
 import solutions.mystuff.domain.model.ServiceRecord;
 import solutions.mystuff.domain.model.ServiceSchedule;
+import solutions.mystuff.domain.model.Validation;
 import solutions.mystuff.domain.port.in.ItemQuery;
 import solutions.mystuff.domain.port.out.ItemRepository;
 import solutions.mystuff.domain.port.out
@@ -44,6 +45,26 @@ public class ItemQueryService implements ItemQuery {
         this.itemRepo = itemRepo;
         this.recordRepo = recordRepo;
         this.scheduleRepo = scheduleRepo;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public PageResult<Item> findItems(
+            UUID orgId, String query,
+            String category, PageRequest pageReq) {
+        String q = Validation.trimOrNull(query);
+        String cat = Validation.trimOrNull(category);
+        if (q != null && cat != null) {
+            return searchByCategoryAndOrganization(
+                    orgId, q, cat, pageReq);
+        } else if (q != null) {
+            return searchByOrganization(
+                    orgId, q, pageReq);
+        } else if (cat != null) {
+            return findByCategoryAndOrganization(
+                    orgId, cat, pageReq);
+        }
+        return findByOrganization(orgId, pageReq);
     }
 
     /** {@inheritDoc} */

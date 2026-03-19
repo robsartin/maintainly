@@ -16,6 +16,7 @@ import solutions.mystuff.domain.model.ServiceSchedule;
  * <div class="mermaid">
  * classDiagram
  *     class ItemQuery {
+ *         +findItems(UUID, String, String, PageRequest) PageResult
  *         +findByOrganization(UUID, PageRequest) PageResult
  *         +searchByOrganization(UUID, String, PageRequest) PageResult
  *         +findByCategoryAndOrganization(UUID, String, PageRequest) PageResult
@@ -28,6 +29,15 @@ import solutions.mystuff.domain.model.ServiceSchedule;
  * @see solutions.mystuff.domain.model.Item
  */
 public interface ItemQuery {
+
+    /**
+     * Unified item search with optional query and category.
+     * Dispatches to the appropriate specific method based
+     * on which parameters are non-null/non-blank.
+     */
+    PageResult<Item> findItems(
+            UUID orgId, String query,
+            String category, PageRequest pageReq);
 
     /** Find a page of items for an organization. */
     PageResult<Item> findByOrganization(
