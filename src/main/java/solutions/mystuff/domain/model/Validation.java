@@ -6,6 +6,19 @@ import java.util.regex.Pattern;
 /**
  * Shared validation helpers usable by both domain services
  * and the web layer, eliminating duplicated checks.
+ *
+ * <div class="mermaid">
+ * classDiagram
+ *     class Validation {
+ *         +requireNotBlank(String, String) String
+ *         +requireMaxLength(String, String, int) void
+ *         +trimOrNull(String) String
+ *         +requireValidEmail(String, String) void
+ *         +requirePositive(int, String) void
+ *         +requireYearInRange(Integer, String) void
+ *         +requireNonNegative(BigDecimal, String) void
+ *     }
+ * </div>
  */
 public final class Validation {
 
