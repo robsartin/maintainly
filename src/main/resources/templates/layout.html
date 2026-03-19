@@ -102,5 +102,11 @@
         </form>
     </nav>
 </header>
+<div th:fragment="toasts" class="toast-container">
+    <div th:if="${success}" class="toast toast-success"
+         th:text="${success}"></div>
+    <div th:if="${error}" class="toast toast-error"
+         th:text="${error}"></div>
+</div>
 </body>
 </html>

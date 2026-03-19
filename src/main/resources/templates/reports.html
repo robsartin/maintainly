@@ -4,7 +4,10 @@
 <head th:replace="~{layout :: head}"></head>
 <body>
 <header th:replace="~{layout :: header}"></header>
+<div th:replace="~{layout :: toasts}"></div>
+<main>
 <main id="main-content">
+
     <div th:if="${noOrganization}">
         <p>You are not assigned to an organization.
            Please contact an administrator.</p>
