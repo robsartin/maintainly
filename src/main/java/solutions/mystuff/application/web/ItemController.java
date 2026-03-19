@@ -37,6 +37,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation
         .RequestParam;
+import org.springframework.web.servlet.mvc
+        .support.RedirectAttributes;
 
 /**
  * Handles item CRUD and service operations at /items endpoints.
@@ -196,7 +198,8 @@ public class ItemController {
             @RequestParam(required = false)
                     String purchaseDate,
             @RequestParam(required = false) String notes,
-            Principal principal) {
+            Principal principal,
+            RedirectAttributes redirectAttrs) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
         UUID orgId = user.getOrganization().getId();
@@ -207,6 +210,8 @@ public class ItemController {
                 modelNumber, modelYear, category,
                 pd, notes);
         itemService.createItem(orgId, spec);
+        redirectAttrs.addFlashAttribute(
+                "success", "Item created");
         return "redirect:/items";
     }
 
@@ -243,7 +248,8 @@ public class ItemController {
             @RequestParam(required = false)
                     String category,
             @RequestParam(required = false) String notes,
-            Principal principal) {
+            Principal principal,
+            RedirectAttributes redirectAttrs) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
         UUID orgId = user.getOrganization().getId();
@@ -254,6 +260,8 @@ public class ItemController {
                 modelNumber, modelYear, category,
                 pd, notes);
         itemService.updateItem(orgId, itemId, spec);
+        redirectAttrs.addFlashAttribute(
+                "success", "Item updated");
         return "redirect:/items";
     }
 
@@ -272,12 +280,15 @@ public class ItemController {
     public String deleteItem(
             @Parameter(description = "Item UUID")
             @PathVariable("id") UUID itemId,
-            Principal principal) {
+            Principal principal,
+            RedirectAttributes redirectAttrs) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
         itemService.deleteItem(
                 user.getOrganization().getId(),
                 itemId);
+        redirectAttrs.addFlashAttribute(
+                "success", "Item deleted");
         return "redirect:/items";
     }
 
@@ -312,7 +323,8 @@ public class ItemController {
                     boolean oneOff,
             @RequestParam(required = false)
                     BigDecimal cost,
-            Principal principal) {
+            Principal principal,
+            RedirectAttributes redirectAttrs) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
         UUID orgId = user.getOrganization().getId();
@@ -332,6 +344,8 @@ public class ItemController {
             scheduleService.completeNextForItem(
                     orgId, itemId, completion);
         }
+        redirectAttrs.addFlashAttribute(
+                "success", "Service record logged");
         return "redirect:/items";
     }
 
@@ -359,7 +373,8 @@ public class ItemController {
                     String techName,
             @RequestParam(required = false)
                     BigDecimal cost,
-            Principal principal) {
+            Principal principal,
+            RedirectAttributes redirectAttrs) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
         UUID orgId = user.getOrganization().getId();
@@ -367,6 +382,8 @@ public class ItemController {
                 serviceDate, "Service date");
         recordMgmt.updateRecord(orgId, recordId,
                 summary, date, techName, cost);
+        redirectAttrs.addFlashAttribute(
+                "success", "Record updated");
         return "redirect:/items/" + itemId;
     }
 
@@ -385,11 +402,14 @@ public class ItemController {
     public String deleteRecord(
             @PathVariable("itemId") UUID itemId,
             @PathVariable("recordId") UUID recordId,
-            Principal principal) {
+            Principal principal,
+            RedirectAttributes redirectAttrs) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
         UUID orgId = user.getOrganization().getId();
         recordMgmt.deleteRecord(orgId, recordId);
+        redirectAttrs.addFlashAttribute(
+                "success", "Record deleted");
         return "redirect:/items/" + itemId;
     }
 
@@ -417,7 +437,8 @@ public class ItemController {
                     String newVendorPhone,
             @RequestParam(required = false)
                     String redirectTo,
-            Principal principal) {
+            Principal principal,
+            RedirectAttributes redirectAttrs) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
         UUID orgId = user.getOrganization().getId();
@@ -429,6 +450,8 @@ public class ItemController {
         scheduleService.createSchedule(orgId,
                 itemId, serviceType, vendor, due,
                 frequencyInterval, frequencyUnit);
+        redirectAttrs.addFlashAttribute(
+                "success", "Schedule created");
         if ("schedules".equals(redirectTo)) {
             return "redirect:/schedules";
         }

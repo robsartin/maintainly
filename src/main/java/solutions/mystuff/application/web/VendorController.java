@@ -31,6 +31,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc
+        .support.RedirectAttributes;
 
 /**
  * Handles vendor CRUD, import, and export at /vendors endpoints.
@@ -162,7 +164,8 @@ public class VendorController {
                     + " max 50 chars each)")
             @RequestParam(required = false)
                     List<String> altPhoneLabel,
-            Principal principal) {
+            Principal principal,
+            RedirectAttributes redirectAttrs) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
         UUID orgId =
@@ -174,6 +177,8 @@ public class VendorController {
                 buildAltPhones(altPhoneNumber,
                         altPhoneLabel));
         vendorService.createVendor(orgId, data);
+        redirectAttrs.addFlashAttribute(
+                "success", "Vendor created");
         return "redirect:/vendors";
     }
 
@@ -246,7 +251,8 @@ public class VendorController {
             @Parameter(description = "Alt phone labels")
             @RequestParam(required = false)
                     List<String> altPhoneLabel,
-            Principal principal) {
+            Principal principal,
+            RedirectAttributes redirectAttrs) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
         UUID orgId =
@@ -259,6 +265,8 @@ public class VendorController {
                         altPhoneLabel));
         vendorService.updateVendor(
                 orgId, vendorId, data);
+        redirectAttrs.addFlashAttribute(
+                "success", "Vendor updated");
         return "redirect:/vendors";
     }
 
@@ -278,12 +286,15 @@ public class VendorController {
     public String deleteVendor(
             @Parameter(description = "Vendor UUID")
             @PathVariable("id") UUID vendorId,
-            Principal principal) {
+            Principal principal,
+            RedirectAttributes redirectAttrs) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
         vendorService.deleteVendor(
                 user.getOrganization().getId(),
                 vendorId);
+        redirectAttrs.addFlashAttribute(
+                "success", "Vendor deleted");
         return "redirect:/vendors";
     }
 
@@ -352,7 +363,8 @@ public class VendorController {
             @Parameter(description = "vCard (.vcf)"
                     + " file to import")
             @RequestParam("file") MultipartFile file,
-            Principal principal) {
+            Principal principal,
+            RedirectAttributes redirectAttrs) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
         try {
@@ -367,6 +379,9 @@ public class VendorController {
                     user.getOrganization().getId(),
                     content).size();
             log.info("Imported {} vendors", count);
+            redirectAttrs.addFlashAttribute(
+                    "success",
+                    "Imported " + count + " vendors");
             return "redirect:/vendors";
         } catch (IllegalArgumentException e) {
             throw e;

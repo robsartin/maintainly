@@ -29,6 +29,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation
         .RequestParam;
+import org.springframework.web.servlet.mvc
+        .support.RedirectAttributes;
 
 /**
  * Manages service schedule CRUD at /schedules endpoints.
@@ -159,7 +161,8 @@ public class ScheduleController {
                     + " instead of /schedules")
             @RequestParam(required = false)
                     String redirectTo,
-            Principal principal) {
+            Principal principal,
+            RedirectAttributes redirectAttrs) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
         UUID orgId = user.getOrganization().getId();
@@ -174,6 +177,8 @@ public class ScheduleController {
         ServiceSchedule sched =
                 scheduleService.completeSchedule(
                         scheduleId, orgId, completion);
+        redirectAttrs.addFlashAttribute(
+                "success", "Schedule completed");
         if ("item".equals(redirectTo)) {
             return "redirect:/items/"
                     + sched.getItem().getId();
@@ -199,13 +204,16 @@ public class ScheduleController {
     public String skipSchedule(
             @Parameter(description = "Schedule UUID")
             @PathVariable("id") UUID scheduleId,
-            Principal principal) {
+            Principal principal,
+            RedirectAttributes redirectAttrs) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
         UUID orgId = user.getOrganization().getId();
         ServiceSchedule sched =
                 scheduleService.skipSchedule(
                         scheduleId, orgId);
+        redirectAttrs.addFlashAttribute(
+                "success", "Schedule skipped");
         return "redirect:/items/"
                 + sched.getItem().getId();
     }
@@ -225,12 +233,15 @@ public class ScheduleController {
     public String deleteSchedule(
             @Parameter(description = "Schedule UUID")
             @PathVariable("id") UUID scheduleId,
-            Principal principal) {
+            Principal principal,
+            RedirectAttributes redirectAttrs) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
         UUID orgId = user.getOrganization().getId();
         scheduleService.deactivateSchedule(
                 scheduleId, orgId);
+        redirectAttrs.addFlashAttribute(
+                "success", "Schedule deleted");
         return "redirect:/schedules";
     }
 
@@ -279,7 +290,8 @@ public class ScheduleController {
                     + " vendor creation")
             @RequestParam(required = false)
                     String newVendorPhone,
-            Principal principal) {
+            Principal principal,
+            RedirectAttributes redirectAttrs) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
         UUID orgId = user.getOrganization().getId();
@@ -291,6 +303,8 @@ public class ScheduleController {
         scheduleService.editSchedule(scheduleId, orgId,
                 serviceType, due, frequencyInterval,
                 frequencyUnit, vendor);
+        redirectAttrs.addFlashAttribute(
+                "success", "Schedule updated");
         return "redirect:/schedules";
     }
 
