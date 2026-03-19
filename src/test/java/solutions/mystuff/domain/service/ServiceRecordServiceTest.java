@@ -24,13 +24,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@DisplayName("RecordCreationService")
-class RecordCreationServiceTest {
+@DisplayName("ServiceRecordService")
+class ServiceRecordServiceTest {
 
     private final ServiceRecordRepository repo =
             mock(ServiceRecordRepository.class);
-    private final RecordCreationService service =
-            new RecordCreationService(repo);
+    private final ServiceRecordService service =
+            new ServiceRecordService(repo);
 
     private final UUID orgId = UUID.randomUUID();
 

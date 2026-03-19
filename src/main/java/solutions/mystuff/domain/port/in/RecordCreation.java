@@ -14,7 +14,7 @@ import solutions.mystuff.domain.model.ServiceSchedule;
  *     class RecordCreation {
  *         +createRecord(UUID, Item, ServiceSchedule, ServiceCompletion) void
  *     }
- *     RecordCreationService ..|> RecordCreation
+ *     ServiceRecordService ..|> RecordCreation
  * </div>
  *
  * @see solutions.mystuff.domain.model.ServiceRecord
