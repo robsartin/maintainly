@@ -18,6 +18,9 @@
             <div th:if="${#lists.isEmpty(schedules)}" class="empty-state">
                 <p>No upcoming service. Create a schedule from the <a th:href="@{/items}">Items</a> page.</p>
             </div>
+            <p th:if="${#lists.isEmpty(schedules)}">No upcoming service.</p>
+            <div class="table-scroll-wrapper">
+
             <table th:unless="${#lists.isEmpty(schedules)}">
                 <thead>
                 <tr>
@@ -133,6 +136,7 @@
                 </th:block>
                 </tbody>
             </table>
+            </div>
             <nav th:if="${schedPage != null and (schedPage.hasPrevious() or schedPage.hasNext())}" class="pagination">
                 <a th:if="${schedPage.hasPrevious()}"
                    th:href="@{/schedules(page=${schedPage.page() - 1},size=${schedPage.size()})}">Prev</a>
