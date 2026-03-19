@@ -19,7 +19,7 @@ import solutions.mystuff.domain.model.ServiceRecord;
  *         +updateRecord(UUID, UUID, String, LocalDate, String, BigDecimal) ServiceRecord
  *         +deleteRecord(UUID, UUID) void
  *     }
- *     RecordCreationService ..|> RecordManagement
+ *     ServiceRecordService ..|> RecordManagement
  * </div>
  *
  * @see RecordCreation

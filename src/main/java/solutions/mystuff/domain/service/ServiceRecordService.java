@@ -28,13 +28,13 @@ import org.springframework.stereotype.Service;
  *
  * <div class="mermaid">
  * sequenceDiagram
- *     Controller->>RecordCreationService: createRecord(...)
- *     RecordCreationService->>RecordCreationService: validate
- *     RecordCreationService->>ServiceRecordRepository: save
- *     Controller->>RecordCreationService: updateRecord(...)
- *     RecordCreationService->>ServiceRecordRepository: save
- *     Controller->>RecordCreationService: deleteRecord(...)
- *     RecordCreationService->>ServiceRecordRepository: delete
+ *     Controller->>ServiceRecordService: createRecord(...)
+ *     ServiceRecordService->>ServiceRecordService: validate
+ *     ServiceRecordService->>ServiceRecordRepository: save
+ *     Controller->>ServiceRecordService: updateRecord(...)
+ *     ServiceRecordService->>ServiceRecordRepository: save
+ *     Controller->>ServiceRecordService: deleteRecord(...)
+ *     ServiceRecordService->>ServiceRecordRepository: delete
  * </div>
  *
  * @see RecordCreation
@@ -42,18 +42,18 @@ import org.springframework.stereotype.Service;
  * @see ServiceRecordRepository
  */
 @Service
-public class RecordCreationService
+public class ServiceRecordService
         implements RecordCreation, RecordManagement {
 
     private static final Logger log =
             LoggerFactory.getLogger(
-                    RecordCreationService.class);
+                    ServiceRecordService.class);
     private static final int MAX_SUMMARY = 250;
     private static final int MAX_TECH = 200;
 
     private final ServiceRecordRepository recordRepo;
 
-    public RecordCreationService(
+    public ServiceRecordService(
             ServiceRecordRepository recordRepo) {
         this.recordRepo = recordRepo;
     }
