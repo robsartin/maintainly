@@ -77,7 +77,19 @@ th {
     color: white;
 }
 
-tr.schedule-overdue {
+/* Table row striping and hover highlights */
+tbody tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+
+tbody tr:hover {
+    background-color: #e8f0fe;
+}
+
+/* Preserve color-coded rows over striping/hover */
+tr.schedule-overdue,
+tr.schedule-overdue:nth-child(even),
+tr.schedule-overdue:hover {
     background: #ffebee;
 }
 
@@ -86,7 +98,9 @@ tr.schedule-overdue td {
     font-weight: bold;
 }
 
-tr.schedule-soon {
+tr.schedule-soon,
+tr.schedule-soon:nth-child(even),
+tr.schedule-soon:hover {
     background: #fffde7;
 }
 
@@ -94,7 +108,9 @@ tr.schedule-soon td {
     color: #f57f17;
 }
 
-tr.schedule-ok {
+tr.schedule-ok,
+tr.schedule-ok:nth-child(even),
+tr.schedule-ok:hover {
     background: #e8f5e9;
 }
 
@@ -229,7 +245,9 @@ td.actions {
     gap: 0.35rem;
 }
 
-tr.form-row td {
+tr.form-row td,
+tr.form-row:nth-child(even) td,
+tr.form-row:hover td {
     background: #fafafa;
     padding: 0.5rem 1rem;
 }
@@ -278,16 +296,21 @@ input[type="number"], select {
     cursor: pointer;
 }
 
-.item-row:hover {
+.item-row:hover,
+.item-row:nth-child(even):hover {
     background-color: #e3f2fd;
 }
 
-.item-row.selected {
+.item-row.selected,
+.item-row.selected:nth-child(even),
+.item-row.selected:hover {
     background-color: #bbdefb;
     font-weight: bold;
 }
 
-tr.detail-row td {
+tr.detail-row td,
+tr.detail-row:nth-child(even) td,
+tr.detail-row:hover td {
     background: #f0f4f8;
     padding: 1rem;
 }
