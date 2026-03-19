@@ -23,18 +23,13 @@
                 <tbody>
                 <tr>
                     <td>Service Due Soon</td>
-                    <td>Schedules due within a
-                        date range</td>
+                    <td>All schedules due through
+                        a given date</td>
                     <td>
                         <form class="inline-form"
                               action="/reports/service-summary"
                               method="get" target="_blank">
-                            <label>From
-                                <input type="date"
-                                       name="startDate"
-                                       th:value="${defaultStart}"/>
-                            </label>
-                            <label>To
+                            <label>Through
                                 <input type="date"
                                        name="endDate"
                                        th:value="${defaultEnd}"/>
