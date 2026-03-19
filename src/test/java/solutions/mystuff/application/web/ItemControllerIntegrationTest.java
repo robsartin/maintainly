@@ -163,7 +163,7 @@ class ItemControllerIntegrationTest {
         String html = result.getResponse()
                 .getContentAsString();
         assertTrue(
-                html.contains("Clear search"),
+                html.contains("Clear filters"),
                 "should show clear search button");
     }
 
@@ -177,7 +177,7 @@ class ItemControllerIntegrationTest {
         String html = result.getResponse()
                 .getContentAsString();
         assertTrue(
-                !html.contains("Clear search"),
+                !html.contains("Clear filters"),
                 "should not show clear search button");
     }
 
