@@ -11,7 +11,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.test.web.servlet
         .request.MockMvcRequestBuilders.delete;
@@ -201,6 +203,77 @@ class RestApiIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content",
                         notNullValue()));
+    }
+
+    @Test
+    @DisplayName("should filter items by category")
+    void shouldFilterItemsByCategory()
+            throws Exception {
+        mockMvc.perform(post("/api/v1/items")
+                        .header("Authorization",
+                                "Bearer " + token)
+                        .contentType(
+                                MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Cat Filter"
+                                + " Item\","
+                                + "\"category\":\"HVAC\"}"))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(get("/api/v1/items")
+                        .param("category", "HVAC")
+                        .header("Authorization",
+                                "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content",
+                        notNullValue()))
+                .andExpect(jsonPath(
+                        "$.content[*].category",
+                        everyItem(is("HVAC"))));
+    }
+
+    @Test
+    @DisplayName(
+            "should filter by category and search")
+    void shouldFilterByCategoryAndSearch()
+            throws Exception {
+        mockMvc.perform(post("/api/v1/items")
+                        .header("Authorization",
+                                "Bearer " + token)
+                        .contentType(
+                                MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Searchable"
+                                + " HVAC Unit\","
+                                + "\"category\":\"HVAC\"}"))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(get("/api/v1/items")
+                        .param("category", "HVAC")
+                        .param("q", "Searchable")
+                        .header("Authorization",
+                                "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content",
+                        notNullValue()))
+                .andExpect(jsonPath(
+                        "$.content[*].category",
+                        everyItem(is("HVAC"))));
+    }
+
+    @Test
+    @DisplayName(
+            "should ignore blank category parameter")
+    void shouldIgnoreBlankCategory()
+            throws Exception {
+        mockMvc.perform(get("/api/v1/items")
+                        .param("category", "  ")
+                        .header("Authorization",
+                                "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content",
+                        notNullValue()))
+                .andExpect(jsonPath(
+                        "$.content.length()",
+                        greaterThan(0)));
     }
 
     @Test
