@@ -132,7 +132,11 @@ public class JpaItemRepositoryAdapter
         return delegate.save(item);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Deletes an item via bulk JPQL, bypassing Hibernate
+     * entity-level cascade. The database {@code ON DELETE CASCADE}
+     * removes child schedules and records in a single statement.
+     */
     @Override
     public void deleteByIdAndOrganizationId(
             UUID id, UUID organizationId) {
