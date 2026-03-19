@@ -84,8 +84,19 @@
                     </button>
                 </form>
             </div>
+            <div th:if="${#lists.isEmpty(items)}" class="empty-state">
+                <p>No items yet. Click <strong>+ Add Item</strong> above to get started.</p>
+                <div class="empty-state-cta">
+                    <button type="button" class="btn-icon btn-add"
+                            data-toggle-form="add-item-form">
+                        <svg th:replace="~{fragments/icons :: icon-plus}"></svg>
+                        Add Item
+                    </button>
+                </div>
+            </div>
             <p th:if="${#lists.isEmpty(items)}">No items found.</p>
             <div class="table-scroll-wrapper">
+
             <table th:unless="${#lists.isEmpty(items)}">
                 <thead>
                 <tr>

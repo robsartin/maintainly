@@ -129,18 +129,22 @@ button:hover {
 
 td.actions .btn-icon {
     background: transparent;
-    color: #333;
-    opacity: 0;
-    transition: opacity 0.15s;
+    color: #999;
+    transition: color 0.15s, background 0.15s;
 }
 
 td.actions .btn-icon:hover {
     background: rgba(0,0,0,0.08);
-    color: #000;
+    color: #333;
 }
 
-tr:hover > td.actions .btn-icon {
-    opacity: 1;
+td.actions .btn-delete {
+    color: #ccc;
+}
+
+td.actions .btn-delete:hover {
+    color: #e53935;
+    background: rgba(229,57,53,0.08);
 }
 
 td.actions form {
@@ -586,6 +590,20 @@ textarea:focus-visible,
 
 .skip-link:focus {
     left: 0;
+.empty-state {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: #888;
+    font-size: 0.95rem;
+}
+
+.empty-state .empty-state-cta {
+    margin-top: 0.75rem;
+}
+
+.empty-state .empty-state-cta button {
+    font-size: 0.9rem;
+
 /* --- Table scroll wrapper (added by template or CSS) --- */
 .table-scroll-wrapper {
     overflow-x: auto;
