@@ -8,6 +8,7 @@ import solutions.mystuff.domain.model.Item;
 import solutions.mystuff.domain.model.ItemSpec;
 import solutions.mystuff.domain.model.NotFoundException;
 import solutions.mystuff.domain.model.PageResult;
+import solutions.mystuff.domain.model.Validation;
 import solutions.mystuff.domain.port.in.ItemManagement;
 import solutions.mystuff.domain.port.in.ItemQuery;
 import solutions.mystuff.domain.port.in.UserResolver;
@@ -117,10 +118,7 @@ public class ItemApiController {
     }
 
     private String normalizeCategory(String category) {
-        if (category == null || category.isBlank()) {
-            return null;
-        }
-        return category;
+        return Validation.trimOrNull(category);
     }
 
     /** Gets a single item by ID. */

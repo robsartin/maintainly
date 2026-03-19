@@ -582,6 +582,8 @@ th.sortable a.sort-active {
 .sort-arrow {
     font-size: 0.7rem;
     line-height: 1;
+}
+
 /* Toast notifications */
 
 .toast-container {
@@ -620,6 +622,7 @@ th.sortable a.sort-active {
 @keyframes toast-out {
     from { opacity: 1; transform: translateX(0); }
     to   { opacity: 0; transform: translateX(100%); }
+}
 
 /* Focus styles for keyboard navigation */
 a:focus-visible,
@@ -648,6 +651,7 @@ textarea:focus-visible,
 
 .skip-link:focus {
     left: 0;
+}
 
 .empty-state {
     text-align: center;
@@ -662,6 +666,7 @@ textarea:focus-visible,
 
 .empty-state .empty-state-cta button {
     font-size: 0.9rem;
+}
 
 /* --- Table scroll wrapper (added by template or CSS) --- */
 .table-scroll-wrapper {
