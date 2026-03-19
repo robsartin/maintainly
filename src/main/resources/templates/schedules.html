@@ -16,6 +16,7 @@
         <section id="schedules">
             <h2>Upcoming Service</h2>
             <p th:if="${#lists.isEmpty(schedules)}">No upcoming service.</p>
+            <div class="table-scroll-wrapper">
             <table th:unless="${#lists.isEmpty(schedules)}">
                 <thead>
                 <tr>
@@ -131,6 +132,7 @@
                 </th:block>
                 </tbody>
             </table>
+            </div>
             <nav th:if="${schedPage != null and (schedPage.hasPrevious() or schedPage.hasNext())}" class="pagination">
                 <a th:if="${schedPage.hasPrevious()}"
                    th:href="@{/schedules(page=${schedPage.page() - 1},size=${schedPage.size()})}">Prev</a>
