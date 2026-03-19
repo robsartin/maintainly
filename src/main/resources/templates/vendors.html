@@ -6,6 +6,8 @@
 <header th:replace="~{layout :: header}"></header>
 <div th:replace="~{layout :: toasts}"></div>
 <main>
+<main id="main-content">
+
     <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
     <div th:if="${noOrganization}" class="alert alert-warning">
         No organization assigned. Please contact your administrator.

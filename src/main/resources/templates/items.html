@@ -6,6 +6,8 @@
 <header th:replace="~{layout :: header}"></header>
 <div th:replace="~{layout :: toasts}"></div>
 <main>
+<main id="main-content">
+
     <div th:if="${error}">
         <p class="error" th:text="${error}"></p>
     </div>
