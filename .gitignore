@@ -17,3 +17,5 @@ replay_pid*
 .DS_Store
 .env
 .CLAUDE.md.swp
+.claude/worktrees/
+.claude/scheduled_tasks.lock
