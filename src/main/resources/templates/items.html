@@ -27,7 +27,7 @@
                     <svg th:replace="~{fragments/icons :: icon-search}"></svg>
                     Search
                 </button>
-                <a th:if="${q or selectedCategory}" th:href="@{/items}"
+                <a th:if="${q != null or selectedCategory != null}" th:href="@{/items}"
                    class="btn-icon btn-cancel" title="Clear filters">
                     <svg th:replace="~{fragments/icons :: icon-cancel}"></svg>
                 </a>
