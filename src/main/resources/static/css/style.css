@@ -22,6 +22,8 @@
     --color-action-hover-text: #333;
     --color-delete-icon: #ccc;
     --color-stat-card-bg: #e8f5e9;
+    --color-row-stripe: #f8f9fa;
+    --color-row-hover: #e8f0fe;
 }
 
 [data-theme="dark"] {
@@ -48,6 +50,8 @@
     --color-action-hover-text: #e0e0e0;
     --color-delete-icon: #777;
     --color-stat-card-bg: #2d3a2d;
+    --color-row-stripe: #262626;
+    --color-row-hover: #333;
 }
 
 [data-theme="dark"] input[type="text"],
@@ -141,11 +145,11 @@ th {
 
 /* Table row striping and hover highlights */
 tbody tr:nth-child(even) {
-    background-color: #f8f9fa;
+    background-color: var(--color-row-stripe);
 }
 
 tbody tr:hover {
-    background-color: #e8f0fe;
+    background-color: var(--color-row-hover);
 }
 
 /* Preserve color-coded rows over striping/hover */
@@ -307,13 +311,10 @@ td.actions {
     gap: 0.35rem;
 }
 
-tr.form-row td {
-    background: var(--bg-form);
 tr.form-row td,
 tr.form-row:nth-child(even) td,
 tr.form-row:hover td {
-    background: #fafafa;
-
+    background: var(--bg-form);
     padding: 0.5rem 1rem;
 }
 
@@ -370,26 +371,23 @@ input[type="number"], select {
     font-weight: bold;
 }
 
-tr.detail-row td {
+tr.detail-row td,
+tr.detail-row:nth-child(even) td,
+tr.detail-row:hover td {
     background: var(--bg-detail);
+    padding: 1rem;
+}
+
 .item-row:hover,
 .item-row:nth-child(even):hover {
-    background-color: #e3f2fd;
+    background-color: var(--color-item-hover);
 }
 
 .item-row.selected,
 .item-row.selected:nth-child(even),
 .item-row.selected:hover {
-    background-color: #bbdefb;
+    background-color: var(--color-item-selected);
     font-weight: bold;
-}
-
-tr.detail-row td,
-tr.detail-row:nth-child(even) td,
-tr.detail-row:hover td {
-    background: #f0f4f8;
-
-    padding: 1rem;
 }
 
 .item-detail h4 {
@@ -672,10 +670,10 @@ a.btn-icon:hover {
     padding: 1.5rem;
     border-radius: 8px;
     text-align: center;
-    background: white;
+    background: var(--bg-card);
     text-decoration: none;
-    color: #333;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    color: var(--color-text);
+    box-shadow: 0 1px 3px var(--color-shadow);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -811,6 +809,8 @@ textarea:focus-visible,
     color: var(--color-primary);
     border-color: var(--color-primary);
     background: transparent;
+}
+
 /* Confirm dialog */
 
 .confirm-overlay {
@@ -824,7 +824,7 @@ textarea:focus-visible,
 }
 
 .confirm-card {
-    background: white;
+    background: var(--bg-card);
     border-radius: 8px;
     padding: 1.5rem;
     max-width: 400px;
@@ -834,13 +834,13 @@ textarea:focus-visible,
 
 .confirm-title {
     margin: 0 0 0.5rem;
-    color: #333;
+    color: var(--color-text);
     font-size: 1.1rem;
 }
 
 .confirm-body {
     margin: 0 0 1.25rem;
-    color: #555;
+    color: var(--color-text);
     font-size: 0.9rem;
     line-height: 1.4;
 }
