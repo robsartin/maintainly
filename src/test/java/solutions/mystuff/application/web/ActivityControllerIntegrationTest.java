@@ -20,39 +20,32 @@ import static org.springframework.test.web.servlet
         .result.MockMvcResultMatchers.view;
 
 /**
- * Integration tests for {@link DashboardController}.
+ * Integration tests for {@link ActivityController}.
  *
  * <div class="mermaid">
  * sequenceDiagram
- *     Test->>MockMvc: GET /
- *     MockMvc->>DashboardController: dashboard(...)
- *     DashboardController-->>MockMvc: dashboard view
+ *     Test-&gt;&gt;MockMvc: GET /activity
+ *     MockMvc-&gt;&gt;ActivityController: activity(...)
+ *     ActivityController--&gt;&gt;MockMvc: activity view
  * </div>
  */
 @SpringBootTest
 @AutoConfigureMockMvc
-@DisplayName("Dashboard Controller Integration")
-class DashboardControllerIntegrationTest {
+@DisplayName("Activity Controller Integration")
+class ActivityControllerIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @Test
-    @DisplayName("should render dashboard for user with org")
-    void shouldRenderDashboardWhenUserHasOrg()
+    @DisplayName("should render activity page for user"
+            + " with org")
+    void shouldRenderActivityWhenUserHasOrg()
             throws Exception {
-        mockMvc.perform(get("/")
+        mockMvc.perform(get("/activity")
                         .with(user("dev").roles("USER")))
                 .andExpect(status().isOk())
-                .andExpect(view().name("dashboard"))
-                .andExpect(model().attributeExists(
-                        "overdueCount"))
-                .andExpect(model().attributeExists(
-                        "dueSoonCount"))
-                .andExpect(model().attributeExists(
-                        "totalItems"))
-                .andExpect(model().attributeExists(
-                        "recentRecords"))
+                .andExpect(view().name("activity"))
                 .andExpect(model().attributeExists(
                         "auditEntries"))
                 .andExpect(model().attributeExists(
@@ -65,13 +58,12 @@ class DashboardControllerIntegrationTest {
     @DisplayName("should show no-org for unknown user")
     void shouldShowNoOrgWhenUserLacksOrganization()
             throws Exception {
-        mockMvc.perform(get("/")
+        mockMvc.perform(get("/activity")
                         .with(user("unknown")
                                 .roles("USER")))
                 .andExpect(status().isOk())
-                .andExpect(view().name("dashboard"))
+                .andExpect(view().name("activity"))
                 .andExpect(model().attribute(
                         "noOrganization", true));
     }
-
 }
