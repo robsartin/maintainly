@@ -3,6 +3,7 @@ package solutions.mystuff.domain.model;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -30,12 +31,15 @@ import jakarta.persistence.Table;
  *         Integer modelYear
  *         String serialNumber
  *         String category
+ *         UUID facilityId
  *     }
  *     Item --|> OrgOwnedEntity
  *     Item "1" --> "*" ServiceSchedule
  *     Item "1" --> "*" ServiceRecord
+ *     Facility "0..1" --> "*" Item
  * </div>
  *
+ * @see Facility
  * @see ServiceSchedule
  * @see ServiceRecord
  * @see OrgOwnedEntity
@@ -70,6 +74,9 @@ public class Item extends OrgOwnedEntity {
 
     @Column(length = 100)
     private String category;
+
+    @Column(name = "facility_id")
+    private UUID facilityId;
 
     @Column(columnDefinition = "TEXT")
     private String notes;
@@ -156,6 +163,14 @@ public class Item extends OrgOwnedEntity {
 
     public void setCategory(String category) {
         this.category = category;
+    }
+
+    public UUID getFacilityId() {
+        return facilityId;
+    }
+
+    public void setFacilityId(UUID facilityId) {
+        this.facilityId = facilityId;
     }
 
     public String getNotes() {

@@ -89,6 +89,13 @@
                     <label>Purchased <input type="date" name="purchaseDate"/></label>
                     <label>Notes <input type="text" name="notes"
                                         placeholder="Notes"/></label>
+                    <label>Facility
+                        <select name="facilityId">
+                            <option value="">-- None --</option>
+                            <option th:each="f : ${facilities}"
+                                    th:value="${f.id}" th:text="${f.name}"></option>
+                        </select>
+                    </label>
                     <button type="submit" class="btn-icon btn-add">
                         <svg th:replace="~{fragments/icons :: icon-save}"></svg>
                         Save
@@ -222,6 +229,14 @@
                                                     th:value="${item.purchaseDate}"/></label>
                             <label>Notes <input type="text" name="notes"
                                                 th:value="${item.notes}"/></label>
+                            <label>Facility
+                                <select name="facilityId">
+                                    <option value="">-- None --</option>
+                                    <option th:each="f : ${facilities}"
+                                            th:value="${f.id}" th:text="${f.name}"
+                                            th:selected="${item.facilityId != null and item.facilityId.equals(f.id)}"></option>
+                                </select>
+                            </label>
                             <button type="submit" class="btn-icon btn-add">
                                 <svg th:replace="~{fragments/icons :: icon-save}"></svg>
                                 Save
