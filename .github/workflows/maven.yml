@@ -30,6 +30,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v5
+    - name: Lint CSS
+      run: |
+        npm install --no-save stylelint stylelint-config-standard
+        npx stylelint "src/main/resources/static/css/**/*.css"
     - name: Set up JDK 25
       uses: actions/setup-java@v5
       with:
