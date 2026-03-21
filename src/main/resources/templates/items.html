@@ -475,6 +475,25 @@
                             </div>
                             <p th:if="${itemSchedules == null or #lists.isEmpty(itemSchedules)}"
                                class="detail-empty">No schedules.</p>
+                            <div class="detail-section"
+                                 th:if="${itemAuditEntries != null and !#lists.isEmpty(itemAuditEntries)}">
+                                <h4>Audit History</h4>
+                                <table class="detail-table">
+                                    <thead><tr>
+                                        <th>Time</th><th>User</th>
+                                        <th>Action</th><th>Details</th>
+                                    </tr></thead>
+                                    <tbody>
+                                    <tr th:each="ae : ${itemAuditEntries}">
+                                        <td th:text="${#temporals.format(ae.timestamp, 'yyyy-MM-dd HH:mm')}"
+                                            style="white-space:nowrap"></td>
+                                        <td th:text="${ae.username}"></td>
+                                        <td th:text="${ae.action}"></td>
+                                        <td th:text="${ae.details}"></td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </td>
                 </tr>
