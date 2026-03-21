@@ -19,8 +19,8 @@ import static org.mockito.Mockito.when;
  *
  * <div class="mermaid">
  * sequenceDiagram
- *     Test->>FacilityQueryService: findByOrganization(orgId)
- *     FacilityQueryService->>FacilityRepository: findByOrganizationId(orgId)
+ *     Test->>FacilityQueryService: findAllFacilities(orgId)
+ *     FacilityQueryService->>FacilityRepository: findAllFacilitiesId(orgId)
  *     FacilityRepository-->>Test: result
  * </div>
  */
@@ -39,10 +39,10 @@ class FacilityQueryServiceTest {
     void shouldDelegateToRepository() {
         Facility f = new Facility();
         f.setName("Main Office");
-        when(facilityRepo.findByOrganizationId(orgId))
+        when(facilityRepo.findAllFacilitiesId(orgId))
                 .thenReturn(List.of(f));
         List<Facility> result =
-                service.findByOrganization(orgId);
+                service.findAllFacilities(orgId);
         assertEquals(1, result.size());
         assertEquals("Main Office",
                 result.get(0).getName());
@@ -51,9 +51,9 @@ class FacilityQueryServiceTest {
     @Test
     @DisplayName("should return empty list when none exist")
     void shouldReturnEmptyWhenNoneFacilitiesExist() {
-        when(facilityRepo.findByOrganizationId(orgId))
+        when(facilityRepo.findAllFacilitiesId(orgId))
                 .thenReturn(List.of());
-        assertTrue(service.findByOrganization(orgId)
+        assertTrue(service.findAllFacilities(orgId)
                 .isEmpty());
     }
 }

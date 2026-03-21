@@ -1,6 +1,7 @@
 package solutions.mystuff.domain.service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.Facility;
@@ -15,8 +16,8 @@ import org.springframework.transaction.annotation
  *
  * <div class="mermaid">
  * sequenceDiagram
- *     Controller->>FacilityQueryService: findByOrganization(orgId)
- *     FacilityQueryService->>FacilityRepository: findByOrganizationId(orgId)
+ *     Controller->>FacilityQueryService: findAllFacilities
+ *     FacilityQueryService->>FacilityRepository: findByOrganizationId
  *     FacilityRepository-->>Controller: List of Facility
  * </div>
  *
@@ -37,7 +38,16 @@ public class FacilityQueryService
 
     /** {@inheritDoc} */
     @Override
-    public List<Facility> findByOrganization(UUID orgId) {
+    public List<Facility> findAllFacilities(UUID orgId) {
         return facilityRepo.findByOrganizationId(orgId);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Optional<Facility> findFacility(
+            UUID facilityId, UUID orgId) {
+        return facilityRepo
+                .findByIdAndOrganizationId(
+                        facilityId, orgId);
     }
 }
