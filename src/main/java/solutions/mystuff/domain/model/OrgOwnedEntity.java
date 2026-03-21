@@ -26,12 +26,14 @@ import jakarta.persistence.MappedSuperclass;
  *     class ServiceSchedule
  *     class ServiceRecord
  *     class VendorAltPhone
+ *     class Facility
  *     OrgOwnedEntity --|> BaseEntity
  *     Item --|> OrgOwnedEntity
  *     Vendor --|> OrgOwnedEntity
  *     ServiceSchedule --|> OrgOwnedEntity
  *     ServiceRecord --|> OrgOwnedEntity
  *     VendorAltPhone --|> OrgOwnedEntity
+ *     Facility --|> OrgOwnedEntity
  * </div>
  *
  * @see BaseEntity

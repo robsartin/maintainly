@@ -21,6 +21,8 @@ import solutions.mystuff.domain.model.ServiceSchedule;
  *         +findByItemIdAndOrganizationId(UUID, UUID) List~ServiceSchedule~
  *         +countActiveBeforeDate(UUID, LocalDate) long
  *         +countActiveBetweenDates(UUID, LocalDate, LocalDate) long
+ *         +countActiveBeforeDateByFacility(UUID, UUID, LocalDate) long
+ *         +countActiveBetweenDatesByFacility(UUID, UUID, LocalDate, LocalDate) long
  *         +save(ServiceSchedule) ServiceSchedule
  *     }
  *     JpaScheduleRepositoryAdapter ..|> ServiceScheduleRepository
@@ -61,6 +63,16 @@ public interface ServiceScheduleRepository {
     /** Count active schedules with next due date between two dates (exclusive, inclusive). */
     long countActiveBetweenDates(
             UUID organizationId,
+            LocalDate from, LocalDate to);
+
+    /** Count overdue schedules for items in a facility. */
+    long countActiveBeforeDateByFacility(
+            UUID organizationId, UUID facilityId,
+            LocalDate date);
+
+    /** Count due-soon schedules for items in a facility. */
+    long countActiveBetweenDatesByFacility(
+            UUID organizationId, UUID facilityId,
             LocalDate from, LocalDate to);
 
     /** Persist a new or updated service schedule. */

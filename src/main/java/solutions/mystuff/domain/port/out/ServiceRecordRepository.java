@@ -19,6 +19,7 @@ import solutions.mystuff.domain.model.ServiceRecord;
  *         +findByIdAndOrganizationId(UUID, UUID) Optional~ServiceRecord~
  *         +findByOrganizationId(UUID) List~ServiceRecord~
  *         +findRecentByOrganizationId(UUID, int) List~ServiceRecord~
+ *         +findRecentByFacility(UUID, UUID, int) List~ServiceRecord~
  *         +save(ServiceRecord) ServiceRecord
  *         +deleteByIdAndOrganizationId(UUID, UUID) void
  *     }
@@ -44,6 +45,11 @@ public interface ServiceRecordRepository {
     /** Find the most recent service records for an organization. */
     List<ServiceRecord> findRecentByOrganizationId(
             UUID organizationId, int limit);
+
+    /** Find recent records scoped to a facility. */
+    List<ServiceRecord> findRecentByFacility(
+            UUID organizationId, UUID facilityId,
+            int limit);
 
     /** Persist a new or updated service record. */
     ServiceRecord save(ServiceRecord record);
