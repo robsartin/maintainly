@@ -119,10 +119,13 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        if (e.target.closest('[data-stop-propagation]')) {
+            return;
+        }
+
         var link =
             e.target.closest('[data-navigate]');
-        if (link && !e.target.closest('td.actions')
-                && !e.target.closest('td.bulk-check')) {
+        if (link && !e.target.closest('td.actions')) {
             window.location.href =
                 link.getAttribute('data-navigate');
             return;

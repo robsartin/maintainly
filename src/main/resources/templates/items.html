@@ -189,7 +189,7 @@
                 <tr class="item-row"
                     th:classappend="${selectedItemId != null and selectedItemId.equals(item.id)} ? ' selected'"
                     th:data-navigate="@{/items/{id}(id=${item.id})}">
-                    <td class="bulk-check" onclick="event.stopPropagation()">
+                    <td class="bulk-check" data-stop-propagation>
                         <input type="checkbox" class="item-checkbox"
                                th:value="${item.id}"/>
                     </td>
