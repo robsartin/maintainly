@@ -95,6 +95,14 @@ public class JpaItemRepositoryAdapter
 
     /** {@inheritDoc} */
     @Override
+    public long countByFacilityId(
+            UUID organizationId, UUID facilityId) {
+        return delegate.countByFacilityId(
+                organizationId, facilityId);
+    }
+
+    /** {@inheritDoc} */
+    @Override
     public List<String>
             findDistinctCategoriesByOrganizationId(
                     UUID organizationId) {
@@ -146,6 +154,27 @@ public class JpaItemRepositoryAdapter
             UUID id, UUID organizationId) {
         delegate.deleteByIdAndOrganizationId(
                 id, organizationId);
+    }
+
+    /**
+     * Bulk-deletes items via JPQL, bypassing Hibernate
+     * entity-level cascade. The database
+     * {@code ON DELETE CASCADE} removes children.
+     */
+    @Override
+    public void deleteAllByIdsAndOrganizationId(
+            List<UUID> ids, UUID organizationId) {
+        delegate.deleteAllByIdsAndOrganizationId(
+                ids, organizationId);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void updateCategoryByIdsAndOrganizationId(
+            List<UUID> ids, UUID organizationId,
+            String category) {
+        delegate.updateCategoryByIdsAndOrganizationId(
+                ids, organizationId, category);
     }
 
     private static final Set<String> SORTABLE_FIELDS =

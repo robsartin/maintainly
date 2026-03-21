@@ -130,4 +130,24 @@ public interface JpaServiceRecordRepository
         return findRecentByOrgId(organizationId,
                 PageRequest.of(0, limit));
     }
+
+    /** Paginated helper for recent records by facility. */
+    @Query("SELECT r FROM ServiceRecord r "
+            + "JOIN FETCH r.item "
+            + "LEFT JOIN FETCH r.vendor "
+            + "WHERE r.organizationId = :orgId "
+            + "AND r.item.facilityId = :facId "
+            + "ORDER BY r.serviceDate DESC")
+    List<ServiceRecord> findRecentByFacilityId(
+            @Param("orgId") UUID organizationId,
+            @Param("facId") UUID facilityId,
+            org.springframework.data.domain.Pageable pg);
+
+    @Override
+    default List<ServiceRecord> findRecentByFacility(
+            UUID organizationId, UUID facilityId,
+            int limit) {
+        return findRecentByFacilityId(organizationId,
+                facilityId, PageRequest.of(0, limit));
+    }
 }

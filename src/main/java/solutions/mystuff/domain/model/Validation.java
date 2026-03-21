@@ -1,6 +1,7 @@
 package solutions.mystuff.domain.model;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.regex.Pattern;
 
 /**
@@ -17,6 +18,7 @@ import java.util.regex.Pattern;
  *         +requirePositive(int, String) void
  *         +requireYearInRange(Integer, String) void
  *         +requireNonNegative(BigDecimal, String) void
+ *         +requireNotEmpty(List, String) void
  *     }
  * </div>
  */
@@ -94,6 +96,15 @@ public final class Validation {
                             + " must be between "
                             + MIN_YEAR + " and "
                             + MAX_YEAR);
+        }
+    }
+
+    /** Validates that the list is not null or empty. */
+    public static void requireNotEmpty(
+            List<?> list, String fieldName) {
+        if (list == null || list.isEmpty()) {
+            throw new IllegalArgumentException(
+                    fieldName + " must not be empty");
         }
     }
 

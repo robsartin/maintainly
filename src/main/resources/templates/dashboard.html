@@ -12,7 +12,24 @@
            Please contact an administrator.</p>
     </div>
     <div th:unless="${noOrganization}">
-        <h1>Dashboard</h1>
+        <h1 th:if="${selectedFacilityName}"
+            th:text="'Dashboard — ' + ${selectedFacilityName}">Dashboard</h1>
+        <h1 th:unless="${selectedFacilityName}">Dashboard</h1>
+
+        <form th:if="${not #lists.isEmpty(facilities)}"
+              method="get" th:action="@{/}"
+              class="facility-selector">
+            <label for="facilityId">Facility:</label>
+            <select id="facilityId" name="facilityId"
+                    onchange="this.form.submit()">
+                <option value="">All Facilities</option>
+                <option th:each="f : ${facilities}"
+                        th:value="${f.id}"
+                        th:text="${f.name}"
+                        th:selected="${f.id == selectedFacilityId}">
+                </option>
+            </select>
+        </form>
 
         <div class="dashboard-stats">
             <div class="stat-card stat-overdue">
@@ -33,9 +50,18 @@
         </div>
 
         <div class="dashboard-links">
+            <a th:href="${selectedFacilityId != null}
+                    ? @{/schedules(facilityId=${selectedFacilityId})}
+                    : @{/schedules}"
+               class="btn">View All Schedules</a>
+            <a th:href="${selectedFacilityId != null}
+                    ? @{/items(facilityId=${selectedFacilityId})}
+                    : @{/items}"
+               class="btn">View All Items</a>
             <a th:href="@{/schedules}" class="btn">View All Schedules</a>
             <a th:href="@{/items}" class="btn">View All Items</a>
             <a th:href="@{/activity}" class="btn">View Activity Log</a>
+
         </div>
 
         <div class="quick-action-cards">
@@ -82,6 +108,26 @@
             </div>
         </section>
 
+        <section th:if="${not #lists.isEmpty(facilitySummaries)}"
+                 class="facility-breakdown">
+            <h2>Facility Breakdown</h2>
+            <div class="table-scroll-wrapper">
+            <table>
+                <thead>
+                <tr>
+                    <th>Facility</th>
+                    <th>Items</th>
+                    <th>Overdue</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="fs : ${facilitySummaries}">
+                    <td>
+                        <a th:href="@{/(facilityId=${fs.facilityId})}"
+                           th:text="${fs.facilityName}"></a>
+                    </td>
+                    <td th:text="${fs.itemCount}"></td>
+                    <td th:text="${fs.overdueCount}"></td>
         <section class="audit-feed">
             <h2>Activity Feed</h2>
             <p th:if="${auditEntries == null or #lists.isEmpty(auditEntries)}">No activity yet.</p>
@@ -103,6 +149,7 @@
                     <td th:text="${e.action}"></td>
                     <td th:text="${e.entityType}"></td>
                     <td th:text="${e.entityName}"></td>
+
                 </tr>
                 </tbody>
             </table>

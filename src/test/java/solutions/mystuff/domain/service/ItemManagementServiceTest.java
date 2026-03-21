@@ -1,6 +1,7 @@
 package solutions.mystuff.domain.service;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -206,6 +207,64 @@ class ItemManagementServiceTest {
                 null, null, null, null);
         Item item = service.createItem(orgId, spec);
         assertNull(item.getModelYear());
+    }
+
+    @Test
+    @DisplayName("should bulk delete items")
+    void shouldBulkDeleteItems() {
+        List<UUID> ids = List.of(
+                UuidV7.generate(), UuidV7.generate());
+        service.bulkDelete(orgId, ids);
+        verify(itemRepo)
+                .deleteAllByIdsAndOrganizationId(
+                        ids, orgId);
+    }
+
+    @Test
+    @DisplayName("should reject empty list on"
+            + " bulk delete")
+    void shouldRejectEmptyBulkDelete() {
+        assertThrows(IllegalArgumentException.class,
+                () -> service.bulkDelete(
+                        orgId, List.of()));
+    }
+
+    @Test
+    @DisplayName("should reject null list on"
+            + " bulk delete")
+    void shouldRejectNullBulkDelete() {
+        assertThrows(IllegalArgumentException.class,
+                () -> service.bulkDelete(orgId, null));
+    }
+
+    @Test
+    @DisplayName("should bulk update category")
+    void shouldBulkUpdateCategory() {
+        List<UUID> ids = List.of(UuidV7.generate());
+        service.bulkUpdateCategory(
+                orgId, ids, "Plumbing");
+        verify(itemRepo)
+                .updateCategoryByIdsAndOrganizationId(
+                        ids, orgId, "Plumbing");
+    }
+
+    @Test
+    @DisplayName("should reject blank category on"
+            + " bulk update")
+    void shouldRejectBlankBulkCategory() {
+        List<UUID> ids = List.of(UuidV7.generate());
+        assertThrows(IllegalArgumentException.class,
+                () -> service.bulkUpdateCategory(
+                        orgId, ids, "  "));
+    }
+
+    @Test
+    @DisplayName("should reject empty list on"
+            + " bulk category update")
+    void shouldRejectEmptyBulkCategory() {
+        assertThrows(IllegalArgumentException.class,
+                () -> service.bulkUpdateCategory(
+                        orgId, List.of(), "HVAC"));
     }
 
     @Test

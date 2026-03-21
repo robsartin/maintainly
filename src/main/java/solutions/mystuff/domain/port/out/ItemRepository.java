@@ -23,8 +23,11 @@ import solutions.mystuff.domain.model.PageResult;
  *         +findDistinctCategoriesByOrganizationId(UUID) List~String~
  *         +findByCategoryAndOrganizationId(UUID, String, PageRequest) PageResult~Item~
  *         +searchByCategoryAndOrganizationId(UUID, String, String, PageRequest) PageResult~Item~
+ *         +countByFacilityId(UUID, UUID) long
  *         +save(Item) Item
  *         +deleteByIdAndOrganizationId(UUID, UUID) void
+ *         +deleteAllByIdsAndOrganizationId(List~UUID~, UUID) void
+ *         +updateCategoryByIdsAndOrganizationId(List~UUID~, UUID, String) void
  *     }
  *     JpaItemRepositoryAdapter ..|> ItemRepository
  * </div>
@@ -70,10 +73,23 @@ public interface ItemRepository {
             UUID organizationId, String query,
             String category, PageRequest pageReq);
 
+    /** Count items assigned to a specific facility. */
+    long countByFacilityId(
+            UUID organizationId, UUID facilityId);
+
     /** Persist a new or updated item. */
     Item save(Item item);
 
     /** Delete an item by ID scoped to an organization. */
     void deleteByIdAndOrganizationId(
             UUID id, UUID organizationId);
+
+    /** Bulk-delete items by IDs scoped to an organization. */
+    void deleteAllByIdsAndOrganizationId(
+            List<UUID> ids, UUID organizationId);
+
+    /** Bulk-update category for items by IDs within an organization. */
+    void updateCategoryByIdsAndOrganizationId(
+            List<UUID> ids, UUID organizationId,
+            String category);
 }

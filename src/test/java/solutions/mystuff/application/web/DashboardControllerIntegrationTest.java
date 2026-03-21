@@ -58,7 +58,11 @@ class DashboardControllerIntegrationTest {
                 .andExpect(model().attributeExists(
                         "username"))
                 .andExpect(model().attributeExists(
-                        "organization"));
+                        "organization"))
+                .andExpect(model().attributeExists(
+                        "facilities"))
+                .andExpect(model().attributeExists(
+                        "facilitySummaries"));
     }
 
     @Test
@@ -72,6 +76,37 @@ class DashboardControllerIntegrationTest {
                 .andExpect(view().name("dashboard"))
                 .andExpect(model().attribute(
                         "noOrganization", true));
+    }
+
+    @Test
+    @DisplayName("should render org-wide totals when no facility selected")
+    void shouldRenderOrgWideTotalsWhenNoFacilitySelected()
+            throws Exception {
+        mockMvc.perform(get("/")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(view().name("dashboard"))
+                .andExpect(model().attributeExists(
+                        "overdueCount"))
+                .andExpect(model().attributeExists(
+                        "totalItems"))
+                .andExpect(model().attributeDoesNotExist(
+                        "selectedFacilityName"));
+    }
+
+    @Test
+    @DisplayName("should accept facilityId query parameter")
+    void shouldAcceptFacilityIdWhenQueryParamProvided()
+            throws Exception {
+        mockMvc.perform(get("/")
+                        .param("facilityId",
+                                "00000000-0000-0000-0000-"
+                                + "000000000001")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(view().name("dashboard"))
+                .andExpect(model().attributeExists(
+                        "overdueCount"));
     }
 
 }

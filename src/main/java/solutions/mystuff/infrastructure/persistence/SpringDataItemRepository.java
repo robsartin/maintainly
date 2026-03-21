@@ -1,5 +1,6 @@
 package solutions.mystuff.infrastructure.persistence;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -60,6 +61,13 @@ interface SpringDataItemRepository
 
     long countByOrganizationId(UUID organizationId);
 
+    @Query("SELECT COUNT(i) FROM Item i "
+            + "WHERE i.organizationId = :orgId "
+            + "AND i.facilityId = :facId")
+    long countByFacilityId(
+            @Param("orgId") UUID organizationId,
+            @Param("facId") UUID facilityId);
+
     @Query("SELECT DISTINCT i.category FROM Item i "
             + "WHERE i.organizationId = :orgId "
             + "AND i.category IS NOT NULL "
@@ -105,5 +113,33 @@ interface SpringDataItemRepository
     void deleteByIdAndOrganizationId(
             @Param("id") UUID id,
             @Param("orgId") UUID organizationId);
+
+    /**
+     * Bulk-deletes items by IDs and organization using JPQL.
+     * Relies on the database {@code ON DELETE CASCADE} on
+     * child tables.
+     */
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM Item i "
+            + "WHERE i.id IN :ids "
+            + "AND i.organizationId = :orgId")
+    void deleteAllByIdsAndOrganizationId(
+            @Param("ids") Collection<UUID> ids,
+            @Param("orgId") UUID organizationId);
+
+    /**
+     * Bulk-updates category for items by IDs within an
+     * organization.
+     */
+    @Modifying
+    @Transactional
+    @Query("UPDATE Item i SET i.category = :cat "
+            + "WHERE i.id IN :ids "
+            + "AND i.organizationId = :orgId")
+    void updateCategoryByIdsAndOrganizationId(
+            @Param("ids") Collection<UUID> ids,
+            @Param("orgId") UUID organizationId,
+            @Param("cat") String category);
 
 }

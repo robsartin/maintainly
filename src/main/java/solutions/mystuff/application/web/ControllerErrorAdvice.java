@@ -37,15 +37,20 @@ public class ControllerErrorAdvice {
                     "/vendors",
                     new ErrorViewConfig(
                             "redirect:/vendors", null),
-                    "/facilities",
+                    "/settings/groups",
                     new ErrorViewConfig(
-                            "redirect:/facilities",
+                            "redirect:/settings/groups",
+
                             null),
                     "/settings",
                     new ErrorViewConfig(
                             "redirect:/settings", null),
                     "/reports",
-                    new ErrorViewConfig("reports", null));
+                    new ErrorViewConfig("reports", null),
+                    "/facilities",
+                    new ErrorViewConfig(
+                            "redirect:/facilities",
+                            null));
 
     private static final ErrorViewConfig DEFAULT_VIEW =
             new ErrorViewConfig("items", "items");
@@ -110,12 +115,19 @@ public class ControllerErrorAdvice {
             HttpServletResponse response,
             HttpStatus status) {
         String path = request.getRequestURI();
-        for (Map.Entry<String, ErrorViewConfig> entry
-                : VIEW_REGISTRY.entrySet()) {
-            if (path.startsWith(entry.getKey())) {
-                return applyConfig(model, response,
-                        status, entry.getValue());
+        String bestKey = null;
+        for (String key : VIEW_REGISTRY.keySet()) {
+            if (path.startsWith(key)
+                    && (bestKey == null
+                    || key.length()
+                            > bestKey.length())) {
+                bestKey = key;
             }
+        }
+        if (bestKey != null) {
+            return applyConfig(model, response,
+                    status,
+                    VIEW_REGISTRY.get(bestKey));
         }
         return applyConfig(model, response,
                 status, DEFAULT_VIEW);

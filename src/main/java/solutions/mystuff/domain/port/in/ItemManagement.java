@@ -1,5 +1,6 @@
 package solutions.mystuff.domain.port.in;
 
+import java.util.List;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.Item;
@@ -14,6 +15,8 @@ import solutions.mystuff.domain.model.ItemSpec;
  *         +createItem(UUID, ItemSpec) Item
  *         +updateItem(UUID, UUID, ItemSpec) Item
  *         +deleteItem(UUID, UUID) void
+ *         +bulkDelete(UUID, List~UUID~) void
+ *         +bulkUpdateCategory(UUID, List~UUID~, String) void
  *     }
  *     ItemManagementService ..|> ItemManagement
  * </div>
@@ -31,5 +34,12 @@ public interface ItemManagement {
 
     /** Delete an item by ID within an organization. */
     void deleteItem(UUID orgId, UUID itemId);
+
+    /** Bulk-delete items by IDs within an organization. */
+    void bulkDelete(UUID orgId, List<UUID> itemIds);
+
+    /** Bulk-update category for items within an organization. */
+    void bulkUpdateCategory(UUID orgId,
+            List<UUID> itemIds, String category);
 
 }

@@ -2,6 +2,7 @@ package solutions.mystuff.domain.model;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.UUID;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,7 @@ class ItemTest {
         assertNull(item.getModelYear());
         assertNull(item.getSerialNumber());
         assertNull(item.getPurchaseDate());
+        assertNull(item.getFacilityId());
         assertNull(item.getNotes());
         assertNotNull(item.getServiceSchedules());
         assertNotNull(item.getServiceRecords());
@@ -47,9 +49,12 @@ class ItemTest {
         item.setPurchaseDate(
                 LocalDate.of(2020, 6, 15));
         item.setNotes("Installed by ABC");
+        UUID facId = UuidV7.generate();
+        item.setFacilityId(facId);
         item.setServiceSchedules(new ArrayList<>());
         item.setServiceRecords(new ArrayList<>());
         assertEquals(orgId, item.getOrganizationId());
+        assertEquals(facId, item.getFacilityId());
         assertEquals("Main Furnace", item.getName());
         assertEquals("Basement", item.getLocation());
         assertEquals("Carrier", item.getManufacturer());

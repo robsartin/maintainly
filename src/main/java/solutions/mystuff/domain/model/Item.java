@@ -34,6 +34,7 @@ import jakarta.persistence.Table;
  *         UUID facilityId
  *     }
  *     Item --|> OrgOwnedEntity
+ *     Item "*" --> "0..1" Facility
  *     Item "1" --> "*" ServiceSchedule
  *     Item "1" --> "*" ServiceRecord
  *     Facility "0..1" --> "*" Item

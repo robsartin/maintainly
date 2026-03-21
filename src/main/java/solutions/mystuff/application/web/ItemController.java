@@ -3,6 +3,7 @@ package solutions.mystuff.application.web;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.AppUser;
@@ -33,6 +34,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.security.access.prepost
+        .PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -51,7 +54,7 @@ import org.springframework.web.servlet.mvc
  * <div class="mermaid">
  * sequenceDiagram
  *     Browser->>ItemController: GET/POST/PUT/DELETE /items
- *     ItemController->>ItemManagement: create/update/delete
+ *     ItemController->>ItemManagement: create/update/delete/bulk
  *     ItemController->>ItemQuery: find/search/filter
  *     ItemController-->>Browser: HTML (Thymeleaf)
  * </div>
@@ -201,6 +204,7 @@ public class ItemController {
                             description = "Validation"
                                     + " error")})
     @PostMapping("/items")
+    @PreAuthorize("@roleCheck.canWrite(#principal)")
     public String addItem(
             @RequestParam String name,
             @RequestParam(required = false)
@@ -257,6 +261,7 @@ public class ItemController {
                             description = "Item not"
                                     + " found")})
     @PutMapping("/items/{id}")
+    @PreAuthorize("@roleCheck.canWrite(#principal)")
     public String editItem(
             @PathVariable("id") UUID itemId,
             @RequestParam String name,
@@ -314,6 +319,7 @@ public class ItemController {
                             description = "Item not"
                                     + " found")})
     @DeleteMapping("/items/{id}")
+    @PreAuthorize("@roleCheck.canDelete(#principal)")
     public String deleteItem(
             @Parameter(description = "Item UUID")
             @PathVariable("id") UUID itemId,
@@ -334,6 +340,54 @@ public class ItemController {
         return "redirect:/items";
     }
 
+    @Operation(summary = "Bulk delete items",
+            description = "Deletes multiple items by ID.",
+            responses = {
+                    @ApiResponse(responseCode = "302",
+                            description = "Redirect to"
+                                    + " /items")})
+    @PostMapping("/items/bulk-delete")
+    public String bulkDelete(
+            @RequestParam("itemIds")
+                    List<UUID> itemIds,
+            Principal principal,
+            RedirectAttributes redirectAttrs) {
+        AppUser user = helper.resolveUser(principal);
+        helper.setOrgMdc(user);
+        itemService.bulkDelete(
+                user.getOrganization().getId(),
+                itemIds);
+        redirectAttrs.addFlashAttribute("success",
+                itemIds.size() + " item(s) deleted");
+        return "redirect:/items";
+    }
+
+    @Operation(summary = "Bulk update category",
+            description = "Updates category for"
+                    + " multiple items.",
+            responses = {
+                    @ApiResponse(responseCode = "302",
+                            description = "Redirect to"
+                                    + " /items")})
+    @PostMapping("/items/bulk-category")
+    public String bulkUpdateCategory(
+            @RequestParam("itemIds")
+                    List<UUID> itemIds,
+            @RequestParam("category")
+                    String category,
+            Principal principal,
+            RedirectAttributes redirectAttrs) {
+        AppUser user = helper.resolveUser(principal);
+        helper.setOrgMdc(user);
+        itemService.bulkUpdateCategory(
+                user.getOrganization().getId(),
+                itemIds, category);
+        redirectAttrs.addFlashAttribute("success",
+                itemIds.size()
+                        + " item(s) updated");
+        return "redirect:/items";
+    }
+
     @Operation(summary = "Log service record",
             description = "Logs a service visit for an"
                     + " item.",
@@ -348,6 +402,7 @@ public class ItemController {
                             description = "Item not"
                                     + " found")})
     @PostMapping("/items/{id}/service-records")
+    @PreAuthorize("@roleCheck.canWrite(#principal)")
     public String logItemService(
             @PathVariable("id") UUID itemId,
             @RequestParam String summary,
@@ -410,6 +465,7 @@ public class ItemController {
                             description = "Record not"
                                     + " found")})
     @PutMapping("/items/{itemId}/records/{recordId}")
+    @PreAuthorize("@roleCheck.canWrite(#principal)")
     public String editRecord(
             @PathVariable("itemId") UUID itemId,
             @PathVariable("recordId") UUID recordId,
@@ -448,6 +504,7 @@ public class ItemController {
                                     + " found")})
     @DeleteMapping(
             "/items/{itemId}/records/{recordId}")
+    @PreAuthorize("@roleCheck.canDelete(#principal)")
     public String deleteRecord(
             @PathVariable("itemId") UUID itemId,
             @PathVariable("recordId") UUID recordId,
@@ -475,6 +532,7 @@ public class ItemController {
                             description = "Validation"
                                     + " error")})
     @PostMapping("/items/{id}/schedules")
+    @PreAuthorize("@roleCheck.canWrite(#principal)")
     public String scheduleItemService(
             @PathVariable("id") UUID itemId,
             @RequestParam String serviceType,
