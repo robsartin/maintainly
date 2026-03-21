@@ -113,7 +113,7 @@ public class DashboardController {
     private void addFacilityList(
             UUID orgId, UUID facilityId, Model model) {
         List<Facility> facilities =
-                facilityQuery.findByOrganization(orgId);
+                facilityQuery.findAllFacilities(orgId);
         model.addAttribute("facilities", facilities);
         model.addAttribute("selectedFacilityId",
                 facilityId);
