@@ -6,11 +6,13 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.AppUser;
+import solutions.mystuff.domain.model.AuditAction;
 import solutions.mystuff.domain.model.FrequencyUnit;
 import solutions.mystuff.domain.model.PageResult;
 import solutions.mystuff.domain.model.ServiceCompletion;
 import solutions.mystuff.domain.model.ServiceSchedule;
 import solutions.mystuff.domain.model.Vendor;
+import solutions.mystuff.domain.port.in.AuditLog;
 import solutions.mystuff.domain.port.in.ScheduleLifecycle;
 import solutions.mystuff.domain.port.in.ScheduleQuery;
 import solutions.mystuff.domain.port.in.VendorQuery;
@@ -53,16 +55,19 @@ public class ScheduleController {
     private final ScheduleQuery scheduleQuery;
     private final VendorQuery vendorQuery;
     private final ScheduleLifecycle scheduleService;
+    private final AuditLog auditLog;
 
     public ScheduleController(
             ControllerHelper helper,
             ScheduleQuery scheduleQuery,
             VendorQuery vendorQuery,
-            ScheduleLifecycle scheduleService) {
+            ScheduleLifecycle scheduleService,
+            AuditLog auditLog) {
         this.helper = helper;
         this.scheduleQuery = scheduleQuery;
         this.vendorQuery = vendorQuery;
         this.scheduleService = scheduleService;
+        this.auditLog = auditLog;
     }
 
     @Operation(summary = "List schedules",
@@ -180,6 +185,10 @@ public class ScheduleController {
         ServiceSchedule sched =
                 scheduleService.completeSchedule(
                         scheduleId, orgId, completion);
+        auditLog.log(orgId, user.getUsername(),
+                "Schedule", scheduleId,
+                sched.getServiceType(),
+                AuditAction.COMPLETE, null);
         redirectAttrs.addFlashAttribute(
                 "success", "Schedule completed");
         if ("item".equals(redirectTo)) {
@@ -216,6 +225,10 @@ public class ScheduleController {
         ServiceSchedule sched =
                 scheduleService.skipSchedule(
                         scheduleId, orgId);
+        auditLog.log(orgId, user.getUsername(),
+                "Schedule", scheduleId,
+                sched.getServiceType(),
+                AuditAction.SKIP, null);
         redirectAttrs.addFlashAttribute(
                 "success", "Schedule skipped");
         return "redirect:/items/"
@@ -245,6 +258,9 @@ public class ScheduleController {
         UUID orgId = user.getOrganization().getId();
         scheduleService.deactivateSchedule(
                 scheduleId, orgId);
+        auditLog.log(orgId, user.getUsername(),
+                "Schedule", scheduleId, "Schedule",
+                AuditAction.DELETE, null);
         redirectAttrs.addFlashAttribute(
                 "success", "Schedule deleted");
         return "redirect:/schedules";
@@ -309,6 +325,9 @@ public class ScheduleController {
         scheduleService.editSchedule(scheduleId, orgId,
                 serviceType, due, frequencyInterval,
                 frequencyUnit, vendor);
+        auditLog.log(orgId, user.getUsername(),
+                "Schedule", scheduleId, serviceType,
+                AuditAction.UPDATE, null);
         redirectAttrs.addFlashAttribute(
                 "success", "Schedule updated");
         return "redirect:/schedules";

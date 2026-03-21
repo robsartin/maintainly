@@ -7,8 +7,11 @@ import java.util.List;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.AppUser;
+import solutions.mystuff.domain.model.AuditAction;
 import solutions.mystuff.domain.model.ParsedAltPhone;
+import solutions.mystuff.domain.model.Vendor;
 import solutions.mystuff.domain.model.VendorData;
+import solutions.mystuff.domain.port.in.AuditLog;
 import solutions.mystuff.domain.port.in.VendorImportExport;
 import solutions.mystuff.domain.port.in.VendorManagement;
 import solutions.mystuff.domain.port.in.VendorQuery;
@@ -56,16 +59,19 @@ public class VendorController {
     private final VendorManagement vendorService;
     private final VendorQuery vendorQuery;
     private final VendorImportExport importExport;
+    private final AuditLog auditLog;
 
     public VendorController(
             ControllerHelper helper,
             VendorManagement vendorService,
             VendorQuery vendorQuery,
-            VendorImportExport importExport) {
+            VendorImportExport importExport,
+            AuditLog auditLog) {
         this.helper = helper;
         this.vendorService = vendorService;
         this.vendorQuery = vendorQuery;
         this.importExport = importExport;
+        this.auditLog = auditLog;
     }
 
     @Operation(summary = "List vendors",
@@ -179,7 +185,12 @@ public class VendorController {
                 postalCode, country, website, notes,
                 buildAltPhones(altPhoneNumber,
                         altPhoneLabel));
-        vendorService.createVendor(orgId, data);
+        Vendor created =
+                vendorService.createVendor(orgId, data);
+        auditLog.log(orgId, user.getUsername(),
+                "Vendor", created.getId(),
+                created.getName(),
+                AuditAction.CREATE, null);
         redirectAttrs.addFlashAttribute(
                 "success", "Vendor created");
         return "redirect:/vendors";
@@ -267,8 +278,12 @@ public class VendorController {
                 postalCode, country, website, notes,
                 buildAltPhones(altPhoneNumber,
                         altPhoneLabel));
-        vendorService.updateVendor(
+        Vendor updated = vendorService.updateVendor(
                 orgId, vendorId, data);
+        auditLog.log(orgId, user.getUsername(),
+                "Vendor", updated.getId(),
+                updated.getName(),
+                AuditAction.UPDATE, null);
         redirectAttrs.addFlashAttribute(
                 "success", "Vendor updated");
         return "redirect:/vendors";
@@ -295,9 +310,14 @@ public class VendorController {
             RedirectAttributes redirectAttrs) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
-        vendorService.deleteVendor(
-                user.getOrganization().getId(),
-                vendorId);
+        UUID orgId = user.getOrganization().getId();
+        String vendorName = vendorQuery
+                .findVendor(vendorId, orgId)
+                .map(Vendor::getName).orElse("Unknown");
+        vendorService.deleteVendor(orgId, vendorId);
+        auditLog.log(orgId, user.getUsername(),
+                "Vendor", vendorId, vendorName,
+                AuditAction.DELETE, null);
         redirectAttrs.addFlashAttribute(
                 "success", "Vendor deleted");
         return "redirect:/vendors";

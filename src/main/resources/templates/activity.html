@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout :: head}"></head>
+<body>
+<header th:replace="~{layout :: header}"></header>
+<div th:replace="~{layout :: toasts}"></div>
+<main id="main-content">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li><a th:href="@{/}">Home</a></li>
+            <li>Activity</li>
+        </ol>
+    </nav>
+
+    <div th:if="${noOrganization}">
+        <p>You are not assigned to an organization.
+           Please contact an administrator.</p>
+    </div>
+    <div th:unless="${noOrganization}">
+        <h1>Activity Log</h1>
+
+        <p th:if="${auditEntries == null or #lists.isEmpty(auditEntries)}">No activity recorded yet.</p>
+        <div class="table-scroll-wrapper">
+        <table th:if="${auditEntries != null and !#lists.isEmpty(auditEntries)}">
+            <thead>
+            <tr>
+                <th>Time</th>
+                <th>User</th>
+                <th>Action</th>
+                <th>Type</th>
+                <th>Name</th>
+                <th>Details</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="e : ${auditEntries}">
+                <td th:text="${#temporals.format(e.timestamp, 'yyyy-MM-dd HH:mm')}" class="nowrap"></td>
+                <td th:text="${e.username}"></td>
+                <td th:text="${e.action}"></td>
+                <td th:text="${e.entityType}"></td>
+                <td th:text="${e.entityName}"></td>
+                <td th:text="${e.details}"></td>
+            </tr>
+            </tbody>
+        </table>
+        </div>
+    </div>
+</main>
+</body>
+</html>

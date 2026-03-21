@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.AppUser;
+import solutions.mystuff.domain.model.AuditAction;
 import solutions.mystuff.domain.model.FrequencyUnit;
 import solutions.mystuff.domain.model.Item;
 import solutions.mystuff.domain.model.ItemSpec;
@@ -14,7 +15,9 @@ import solutions.mystuff.domain.model.PageRequest;
 import solutions.mystuff.domain.model.PageResult;
 import solutions.mystuff.domain.model.Validation;
 import solutions.mystuff.domain.model.ServiceCompletion;
+import solutions.mystuff.domain.model.ServiceSchedule;
 import solutions.mystuff.domain.model.Vendor;
+import solutions.mystuff.domain.port.in.AuditLog;
 import solutions.mystuff.domain.port.in.ItemManagement;
 import solutions.mystuff.domain.port.in.ItemQuery;
 import solutions.mystuff.domain.port.in.RecordCreation;
@@ -71,6 +74,7 @@ public class ItemController {
     private final ScheduleLifecycle scheduleService;
     private final RecordCreation recordService;
     private final RecordManagement recordMgmt;
+    private final AuditLog auditLog;
 
     public ItemController(
             ControllerHelper helper,
@@ -79,7 +83,8 @@ public class ItemController {
             VendorQuery vendorQuery,
             ScheduleLifecycle scheduleService,
             RecordCreation recordService,
-            RecordManagement recordMgmt) {
+            RecordManagement recordMgmt,
+            AuditLog auditLog) {
         this.helper = helper;
         this.itemService = itemService;
         this.itemQuery = itemQuery;
@@ -87,6 +92,7 @@ public class ItemController {
         this.scheduleService = scheduleService;
         this.recordService = recordService;
         this.recordMgmt = recordMgmt;
+        this.auditLog = auditLog;
     }
 
     @Operation(summary = "List items",
@@ -223,7 +229,11 @@ public class ItemController {
                 manufacturer, modelName, serialNumber,
                 modelNumber, modelYear, category,
                 pd, notes);
-        itemService.createItem(orgId, spec);
+        Item created = itemService.createItem(orgId, spec);
+        auditLog.log(orgId, user.getUsername(),
+                "Item", created.getId(),
+                created.getName(),
+                AuditAction.CREATE, null);
         redirectAttrs.addFlashAttribute(
                 "success", "Item created");
         return "redirect:/items";
@@ -274,7 +284,12 @@ public class ItemController {
                 manufacturer, modelName, serialNumber,
                 modelNumber, modelYear, category,
                 pd, notes);
-        itemService.updateItem(orgId, itemId, spec);
+        Item updated = itemService.updateItem(
+                orgId, itemId, spec);
+        auditLog.log(orgId, user.getUsername(),
+                "Item", updated.getId(),
+                updated.getName(),
+                AuditAction.UPDATE, null);
         redirectAttrs.addFlashAttribute(
                 "success", "Item updated");
         return "redirect:/items";
@@ -300,9 +315,14 @@ public class ItemController {
             RedirectAttributes redirectAttrs) {
         AppUser user = helper.resolveUser(principal);
         helper.setOrgMdc(user);
-        itemService.deleteItem(
-                user.getOrganization().getId(),
-                itemId);
+        UUID orgId = user.getOrganization().getId();
+        String itemName = itemQuery
+                .findByIdAndOrganization(itemId, orgId)
+                .map(Item::getName).orElse("Unknown");
+        itemService.deleteItem(orgId, itemId);
+        auditLog.log(orgId, user.getUsername(),
+                "Item", itemId, itemName,
+                AuditAction.DELETE, null);
         redirectAttrs.addFlashAttribute(
                 "success", "Item deleted");
         return "redirect:/items";
@@ -361,6 +381,10 @@ public class ItemController {
             scheduleService.completeNextForItem(
                     orgId, itemId, completion);
         }
+        auditLog.log(orgId, user.getUsername(),
+                "Record", itemId, item.getName(),
+                AuditAction.CREATE,
+                "Service record logged");
         redirectAttrs.addFlashAttribute(
                 "success", "Service record logged");
         return "redirect:/items";
@@ -400,6 +424,9 @@ public class ItemController {
                 serviceDate, "Service date");
         recordMgmt.updateRecord(orgId, recordId,
                 summary, date, techName, cost);
+        auditLog.log(orgId, user.getUsername(),
+                "Record", recordId, summary,
+                AuditAction.UPDATE, null);
         redirectAttrs.addFlashAttribute(
                 "success", "Record updated");
         return "redirect:/items/" + itemId;
@@ -427,6 +454,9 @@ public class ItemController {
         helper.setOrgMdc(user);
         UUID orgId = user.getOrganization().getId();
         recordMgmt.deleteRecord(orgId, recordId);
+        auditLog.log(orgId, user.getUsername(),
+                "Record", recordId, "Service record",
+                AuditAction.DELETE, null);
         redirectAttrs.addFlashAttribute(
                 "success", "Record deleted");
         return "redirect:/items/" + itemId;
@@ -467,9 +497,13 @@ public class ItemController {
                 newVendorPhone);
         LocalDate due = InputValidator.parseDate(
                 nextDueDate, "Next due date");
-        scheduleService.createSchedule(orgId,
-                itemId, serviceType, vendor, due,
-                frequencyInterval, frequencyUnit);
+        ServiceSchedule sched =
+                scheduleService.createSchedule(orgId,
+                        itemId, serviceType, vendor, due,
+                        frequencyInterval, frequencyUnit);
+        auditLog.log(orgId, user.getUsername(),
+                "Schedule", sched.getId(),
+                serviceType, AuditAction.CREATE, null);
         redirectAttrs.addFlashAttribute(
                 "success", "Schedule created");
         if ("schedules".equals(redirectTo)) {
@@ -490,6 +524,8 @@ public class ItemController {
         model.addAttribute("itemSchedules",
                 itemQuery.findSchedulesByItem(
                         itemId, orgId));
+        model.addAttribute("itemAuditEntries",
+                auditLog.findByEntityId(itemId));
     }
 
     private void loadItems(
