@@ -1,12 +1,14 @@
-# Maintainly — Class Diagram
+# Maintainly — Class Diagrams
+
+Separated into printable sections. Each diagram renders independently on GitHub.
+
+---
+
+## 1. Domain Model — Entity Hierarchy
 
 ```mermaid
 classDiagram
     direction TB
-
-    %% ═══════════════════════════════════════
-    %% DOMAIN MODEL — Entities
-    %% ═══════════════════════════════════════
 
     class BaseEntity {
         <<abstract>>
@@ -43,7 +45,6 @@ classDiagram
         -String category
         -LocalDate purchaseDate
         -UUID facilityId
-        -String notes
     }
 
     class Facility {
@@ -74,7 +75,6 @@ classDiagram
         -LocalDate nextDueDate
         -LocalDate lastCompletedDate
         -boolean active
-        +advanceNextDueDate(LocalDate)
     }
 
     class ServiceRecord {
@@ -100,13 +100,63 @@ classDiagram
         -String username
         -String entityType
         -UUID entityId
-        -String entityName
         -AuditAction action
-        -String details
         -Instant timestamp
     }
 
-    %% Enums
+    BaseEntity <|-- OrgOwnedEntity
+    BaseEntity <|-- Organization
+    BaseEntity <|-- AppUser
+    OrgOwnedEntity <|-- Item
+    OrgOwnedEntity <|-- Facility
+    OrgOwnedEntity <|-- Vendor
+    OrgOwnedEntity <|-- VendorAltPhone
+    OrgOwnedEntity <|-- ServiceSchedule
+    OrgOwnedEntity <|-- ServiceRecord
+    OrgOwnedEntity <|-- UserGroup
+    OrgOwnedEntity <|-- AuditEntry
+```
+
+---
+
+## 2. Domain Model — Entity Relationships
+
+```mermaid
+classDiagram
+    direction LR
+
+    class Organization
+    class AppUser
+    class Item
+    class Facility
+    class Vendor
+    class VendorAltPhone
+    class ServiceSchedule
+    class ServiceRecord
+    class UserGroup
+    class UserGroupMembership
+
+    AppUser "*" --> "0..1" Organization : belongs to
+    Item "1" --> "*" ServiceSchedule : has schedules
+    Item "1" --> "*" ServiceRecord : has records
+    Vendor "1" --> "*" VendorAltPhone : has alt phones
+    ServiceSchedule "*" --> "1" Item : scheduled for
+    ServiceSchedule "*" --> "0..1" Vendor : preferred vendor
+    ServiceRecord "*" --> "1" Item : recorded for
+    ServiceRecord "*" --> "0..1" Vendor : performed by
+    ServiceRecord "*" --> "0..1" ServiceSchedule : triggered by
+    UserGroupMembership "*" --> "1" AppUser : member
+    UserGroupMembership "*" --> "1" UserGroup : in group
+```
+
+---
+
+## 3. Enums and Value Objects
+
+```mermaid
+classDiagram
+    direction TB
+
     class FrequencyUnit {
         <<enum>>
         days
@@ -133,7 +183,6 @@ classDiagram
         SKIP
     }
 
-    %% Records / Value Objects
     class ItemSpec {
         <<record>>
         +String name
@@ -148,6 +197,13 @@ classDiagram
         +String name
         +String phone
         +String email
+    }
+
+    class FacilityData {
+        <<record>>
+        +String name
+        +String addressLine1
+        +String city
     }
 
     class ServiceCompletion {
@@ -172,15 +228,13 @@ classDiagram
         +int page
         +int size
         +boolean hasNext
-        +String sort
-        +String dir
     }
 
-    class FacilityData {
+    class ItemCostSummary {
         <<record>>
-        +String name
-        +String addressLine1
-        +String city
+        +UUID itemId
+        +String itemName
+        +BigDecimal totalCost
     }
 
     class FacilitySummary {
@@ -191,14 +245,6 @@ classDiagram
         +long overdueCount
     }
 
-    class ItemCostSummary {
-        <<record>>
-        +UUID itemId
-        +String itemName
-        +BigDecimal totalCost
-    }
-
-    %% Utilities
     class Validation {
         <<utility>>
         +requireNotBlank()$
@@ -208,46 +254,15 @@ classDiagram
         +requireNonNegative()$
         +requireValidEmail()$
     }
+```
 
-    %% ═══════════════════════════════════════
-    %% INHERITANCE
-    %% ═══════════════════════════════════════
+---
 
-    BaseEntity <|-- OrgOwnedEntity
-    BaseEntity <|-- Organization
-    BaseEntity <|-- AppUser
-    OrgOwnedEntity <|-- Item
-    OrgOwnedEntity <|-- Facility
-    OrgOwnedEntity <|-- Vendor
-    OrgOwnedEntity <|-- VendorAltPhone
-    OrgOwnedEntity <|-- ServiceSchedule
-    OrgOwnedEntity <|-- ServiceRecord
-    OrgOwnedEntity <|-- UserGroup
-    OrgOwnedEntity <|-- AuditEntry
+## 4. Inbound Ports (Use Cases)
 
-    %% ═══════════════════════════════════════
-    %% ENTITY RELATIONSHIPS
-    %% ═══════════════════════════════════════
-
-    AppUser "*" --> "0..1" Organization : belongs to
-    Item "1" --> "*" ServiceSchedule : has
-    Item "1" --> "*" ServiceRecord : has
-    Vendor "1" --> "*" VendorAltPhone : has
-    ServiceSchedule "*" --> "1" Item : for
-    ServiceSchedule "*" --> "0..1" Vendor : preferred
-    ServiceRecord "*" --> "1" Item : for
-    ServiceRecord "*" --> "0..1" Vendor : by
-    ServiceRecord "*" --> "0..1" ServiceSchedule : from
-    UserGroupMembership "*" --> "1" AppUser : member
-    UserGroupMembership "*" --> "1" UserGroup : in
-    UserGroup --> AppRole : has role
-    AppUser --> AppRole : has role
-    AuditEntry --> AuditAction : records
-    ServiceSchedule --> FrequencyUnit : uses
-
-    %% ═══════════════════════════════════════
-    %% INBOUND PORTS (Use Cases)
-    %% ═══════════════════════════════════════
+```mermaid
+classDiagram
+    direction TB
 
     class ItemManagement {
         <<interface>>
@@ -263,7 +278,7 @@ classDiagram
         +findItems(UUID, String, String, PageRequest) PageResult
         +findByOrganization(UUID, PageRequest) PageResult
         +findDistinctCategories(UUID) List~String~
-        +findByIdAndOrganization(UUID, UUID) Optional~Item~
+        +findByIdAndOrganization(UUID, UUID) Optional
     }
 
     class VendorManagement {
@@ -276,7 +291,7 @@ classDiagram
     class VendorQuery {
         <<interface>>
         +findAllVendors(UUID) List~Vendor~
-        +findVendor(UUID, UUID) Optional~Vendor~
+        +findVendor(UUID, UUID) Optional
     }
 
     class ScheduleLifecycle {
@@ -287,6 +302,12 @@ classDiagram
         +deactivateSchedule(UUID, UUID)
     }
 
+    class ScheduleQuery {
+        <<interface>>
+        +findActiveByOrganization(UUID, int, int) PageResult
+        +findAllActiveByOrganization(UUID) List
+    }
+
     class RecordCreation {
         <<interface>>
         +createRecord(UUID, Item, ServiceSchedule, ServiceCompletion)
@@ -294,7 +315,7 @@ classDiagram
 
     class RecordManagement {
         <<interface>>
-        +updateRecord(UUID, UUID, String, LocalDate, String, BigDecimal) ServiceRecord
+        +updateRecord(...) ServiceRecord
         +deleteRecord(UUID, UUID)
     }
 
@@ -308,7 +329,7 @@ classDiagram
     class FacilityQuery {
         <<interface>>
         +findAllFacilities(UUID) List~Facility~
-        +findFacility(UUID, UUID) Optional~Facility~
+        +findFacility(UUID, UUID) Optional
     }
 
     class DashboardQuery {
@@ -316,33 +337,26 @@ classDiagram
         +countOverdueSchedules(UUID, LocalDate) long
         +countDueSoonSchedules(UUID, LocalDate, LocalDate) long
         +countItems(UUID) long
-        +findRecentRecords(UUID, int) List~ServiceRecord~
+        +findRecentRecords(UUID, int) List
     }
 
     class CostQuery {
         <<interface>>
         +totalSpendForYear(UUID, int) BigDecimal
         +totalSpendAllTime(UUID) BigDecimal
-        +topItemsByCost(UUID, int) List~ItemCostSummary~
-    }
-
-    class ScheduleQuery {
-        <<interface>>
-        +findActiveByOrganization(UUID, int, int) PageResult
-        +findAllActiveByOrganization(UUID) List
+        +topItemsByCost(UUID, int) List
     }
 
     class AuditLog {
         <<interface>>
         +log(UUID, String, String, UUID, String, AuditAction, String)
-        +findRecentByOrganization(UUID, int) List~AuditEntry~
-        +findByEntityId(UUID) List~AuditEntry~
+        +findRecentByOrganization(UUID, int) List
+        +findByEntityId(UUID) List
     }
 
     class GroupManagement {
         <<interface>>
         +createGroup(UUID, String, AppRole, String) UserGroup
-        +updateGroup(UUID, UUID, String, AppRole, String)
         +deleteGroup(UUID, UUID)
         +addMember(UUID, UUID, UUID)
         +removeMember(UUID, UUID, UUID)
@@ -363,21 +377,30 @@ classDiagram
         <<interface>>
         +resolveOrCreate(String) AppUser
     }
+```
 
-    %% ═══════════════════════════════════════
-    %% OUTBOUND PORTS (Repositories)
-    %% ═══════════════════════════════════════
+---
+
+## 5. Outbound Ports (Repositories)
+
+```mermaid
+classDiagram
+    direction TB
 
     class ItemRepository {
         <<interface>>
         +findByOrganizationId(UUID, PageRequest) PageResult
+        +searchByOrganizationId(UUID, String, PageRequest) PageResult
+        +findByIdAndOrganizationId(UUID, UUID) Optional
+        +findDistinctCategoriesByOrganizationId(UUID) List
         +save(Item) Item
         +deleteByIdAndOrganizationId(UUID, UUID)
     }
 
     class VendorRepository {
         <<interface>>
-        +findByOrganizationId(UUID) List~Vendor~
+        +findByOrganizationId(UUID) List
+        +findByIdAndOrganizationId(UUID, UUID) Optional
         +save(Vendor) Vendor
         +deleteByIdAndOrganizationId(UUID, UUID)
     }
@@ -385,20 +408,25 @@ classDiagram
     class ServiceScheduleRepository {
         <<interface>>
         +findActiveByOrganizationId(UUID) List
+        +findByIdAndOrganizationId(UUID, UUID) Optional
         +countActiveBeforeDate(UUID, LocalDate) long
+        +countActiveBetweenDates(UUID, LocalDate, LocalDate) long
         +save(ServiceSchedule) ServiceSchedule
     }
 
     class ServiceRecordRepository {
         <<interface>>
         +findByItemIdAndOrganizationId(UUID, UUID) List
+        +findRecentByOrganizationId(UUID, int) List
         +save(ServiceRecord) ServiceRecord
+        +deleteByIdAndOrganizationId(UUID, UUID)
         +sumCostByOrganization(UUID) BigDecimal
     }
 
     class FacilityRepository {
         <<interface>>
-        +findByOrganizationId(UUID) List~Facility~
+        +findByOrganizationId(UUID) List
+        +findByIdAndOrganizationId(UUID, UUID) Optional
         +save(Facility) Facility
         +deleteByIdAndOrganizationId(UUID, UUID)
     }
@@ -410,9 +438,38 @@ classDiagram
         +findByEntityId(UUID) List
     }
 
-    %% ═══════════════════════════════════════
-    %% DOMAIN SERVICES
-    %% ═══════════════════════════════════════
+    class AppUserRepository {
+        <<interface>>
+        +findByUsername(String) Optional
+        +save(AppUser) AppUser
+    }
+
+    class OrganizationRepository {
+        <<interface>>
+        +findById(UUID) Optional
+        +save(Organization) Organization
+    }
+
+    class UserGroupRepository {
+        <<interface>>
+        +findByOrganizationId(UUID) List
+        +save(UserGroup) UserGroup
+    }
+
+    class UserGroupMembershipRepository {
+        <<interface>>
+        +findByGroupId(UUID) List
+        +save(UserGroupMembership)
+    }
+```
+
+---
+
+## 6. Domain Services — Port Implementation
+
+```mermaid
+classDiagram
+    direction LR
 
     class ItemManagementService {
         <<service>>
@@ -448,7 +505,22 @@ classDiagram
         <<service>>
     }
 
-    %% Service implements Port
+    class ItemManagement { <<interface>> }
+    class ItemQuery { <<interface>> }
+    class VendorManagement { <<interface>> }
+    class VendorQuery { <<interface>> }
+    class ScheduleLifecycle { <<interface>> }
+    class RecordCreation { <<interface>> }
+    class RecordManagement { <<interface>> }
+    class FacilityManagement { <<interface>> }
+    class FacilityQuery { <<interface>> }
+    class DashboardQuery { <<interface>> }
+    class CostQuery { <<interface>> }
+    class ScheduleQuery { <<interface>> }
+    class AuditLog { <<interface>> }
+    class GroupManagement { <<interface>> }
+    class GroupQuery { <<interface>> }
+
     ItemManagementService ..|> ItemManagement
     ItemQueryService ..|> ItemQuery
     VendorManagementService ..|> VendorManagement
@@ -464,8 +536,38 @@ classDiagram
     AuditLogService ..|> AuditLog
     GroupManagementService ..|> GroupManagement
     GroupManagementService ..|> GroupQuery
+```
 
-    %% Service depends on Repository
+---
+
+## 7. Domain Services — Repository Dependencies
+
+```mermaid
+classDiagram
+    direction LR
+
+    class ItemManagementService { <<service>> }
+    class ItemQueryService { <<service>> }
+    class VendorManagementService { <<service>> }
+    class ScheduleLifecycleService { <<service>> }
+    class ServiceRecordService { <<service>> }
+    class FacilityManagementService { <<service>> }
+    class DashboardQueryService { <<service>> }
+    class CostQueryService { <<service>> }
+    class ScheduleQueryService { <<service>> }
+    class AuditLogService { <<service>> }
+    class GroupManagementService { <<service>> }
+
+    class ItemRepository { <<interface>> }
+    class VendorRepository { <<interface>> }
+    class ServiceScheduleRepository { <<interface>> }
+    class ServiceRecordRepository { <<interface>> }
+    class FacilityRepository { <<interface>> }
+    class AuditEntryRepository { <<interface>> }
+    class UserGroupRepository { <<interface>> }
+    class UserGroupMembershipRepository { <<interface>> }
+    class RecordCreation { <<interface>> }
+
     ItemManagementService --> ItemRepository
     ItemQueryService --> ItemRepository
     ItemQueryService --> ServiceRecordRepository
@@ -481,10 +583,17 @@ classDiagram
     CostQueryService --> ServiceRecordRepository
     ScheduleQueryService --> ServiceScheduleRepository
     AuditLogService --> AuditEntryRepository
+    GroupManagementService --> UserGroupRepository
+    GroupManagementService --> UserGroupMembershipRepository
+```
 
-    %% ═══════════════════════════════════════
-    %% APPLICATION LAYER — Controllers
-    %% ═══════════════════════════════════════
+---
+
+## 8. Application Layer — Controllers and Port Dependencies
+
+```mermaid
+classDiagram
+    direction LR
 
     class ItemController {
         <<controller>>
@@ -518,28 +627,31 @@ classDiagram
         <<controller>>
         GET /activity
     }
-    class ItemApiController {
-        <<restcontroller>>
-        GET POST PUT DELETE /api/v1/items
-    }
-    class VendorApiController {
-        <<restcontroller>>
-        GET POST /api/v1/vendors
-    }
-    class ScheduleApiController {
-        <<restcontroller>>
-        GET /api/v1/schedules
-    }
 
-    %% Controllers depend on Inbound Ports
+    class ItemManagement { <<interface>> }
+    class ItemQuery { <<interface>> }
+    class VendorManagement { <<interface>> }
+    class VendorQuery { <<interface>> }
+    class ScheduleLifecycle { <<interface>> }
+    class ScheduleQuery { <<interface>> }
+    class RecordCreation { <<interface>> }
+    class RecordManagement { <<interface>> }
+    class FacilityManagement { <<interface>> }
+    class FacilityQuery { <<interface>> }
+    class DashboardQuery { <<interface>> }
+    class CostQuery { <<interface>> }
+    class AuditLog { <<interface>> }
+    class GroupManagement { <<interface>> }
+    class GroupQuery { <<interface>> }
+
     ItemController --> ItemManagement
     ItemController --> ItemQuery
     ItemController --> RecordCreation
     ItemController --> RecordManagement
     ItemController --> ScheduleLifecycle
     ItemController --> VendorQuery
-    ItemController --> AuditLog
     ItemController --> FacilityQuery
+    ItemController --> AuditLog
     VendorController --> VendorManagement
     VendorController --> VendorQuery
     VendorController --> AuditLog
@@ -557,24 +669,105 @@ classDiagram
     GroupController --> GroupManagement
     GroupController --> GroupQuery
     ActivityController --> AuditLog
+```
+
+---
+
+## 9. REST API Controllers
+
+```mermaid
+classDiagram
+    direction LR
+
+    class ItemApiController {
+        <<restcontroller>>
+        GET /api/v1/items
+        POST /api/v1/items
+        PUT /api/v1/items/id
+        DELETE /api/v1/items/id
+    }
+    class VendorApiController {
+        <<restcontroller>>
+        GET /api/v1/vendors
+        POST /api/v1/vendors
+    }
+    class ScheduleApiController {
+        <<restcontroller>>
+        GET /api/v1/schedules
+    }
+    class AuthController {
+        <<restcontroller>>
+        POST /api/auth/token
+    }
+
+    class ItemManagement { <<interface>> }
+    class ItemQuery { <<interface>> }
+    class VendorManagement { <<interface>> }
+    class VendorQuery { <<interface>> }
+    class ScheduleQuery { <<interface>> }
+    class ApiTokenService { <<interface>> }
+    class UserResolver { <<interface>> }
+
     ItemApiController --> ItemManagement
     ItemApiController --> ItemQuery
+    ItemApiController --> UserResolver
+    VendorApiController --> VendorManagement
+    VendorApiController --> VendorQuery
+    VendorApiController --> UserResolver
+    ScheduleApiController --> ScheduleQuery
+    ScheduleApiController --> UserResolver
+    AuthController --> ApiTokenService
+```
 
-    %% ═══════════════════════════════════════
-    %% INFRASTRUCTURE — JPA Adapters
-    %% ═══════════════════════════════════════
+---
 
-    class JpaItemRepositoryAdapter {
-        <<repository>>
-    }
-    class JpaFacilityRepositoryAdapter {
-        <<repository>>
-    }
-    class JpaScheduleRepositoryAdapter {
-        <<repository>>
-    }
+## 10. Infrastructure — JPA Adapters
+
+```mermaid
+classDiagram
+    direction LR
+
+    class JpaItemRepositoryAdapter { <<repository>> }
+    class JpaFacilityRepositoryAdapter { <<repository>> }
+    class JpaScheduleRepositoryAdapter { <<repository>> }
+    class JpaServiceRecordRepository { <<repository>> }
+    class JpaVendorRepository { <<repository>> }
+    class JpaAppUserRepository { <<repository>> }
+    class JpaOrganizationRepository { <<repository>> }
+    class JpaAuditEntryRepository { <<repository>> }
+    class JpaUserGroupRepository { <<repository>> }
+    class JpaUserGroupMembershipRepository { <<repository>> }
+
+    class ItemRepository { <<interface>> }
+    class FacilityRepository { <<interface>> }
+    class ServiceScheduleRepository { <<interface>> }
+    class ServiceRecordRepository { <<interface>> }
+    class VendorRepository { <<interface>> }
+    class AppUserRepository { <<interface>> }
+    class OrganizationRepository { <<interface>> }
+    class AuditEntryRepository { <<interface>> }
+    class UserGroupRepository { <<interface>> }
+    class UserGroupMembershipRepository { <<interface>> }
 
     JpaItemRepositoryAdapter ..|> ItemRepository
     JpaFacilityRepositoryAdapter ..|> FacilityRepository
     JpaScheduleRepositoryAdapter ..|> ServiceScheduleRepository
+    JpaServiceRecordRepository ..|> ServiceRecordRepository
+    JpaVendorRepository ..|> VendorRepository
+    JpaAppUserRepository ..|> AppUserRepository
+    JpaOrganizationRepository ..|> OrganizationRepository
+    JpaAuditEntryRepository ..|> AuditEntryRepository
+    JpaUserGroupRepository ..|> UserGroupRepository
+    JpaUserGroupMembershipRepository ..|> UserGroupMembershipRepository
+
+    class SpringDataItemRepository { <<spring-data>> }
+    class SpringDataFacilityRepository { <<spring-data>> }
+    class SpringDataScheduleRepository { <<spring-data>> }
+    class PageResultConverter { <<utility>> }
+
+    JpaItemRepositoryAdapter --> SpringDataItemRepository
+    JpaItemRepositoryAdapter --> PageResultConverter
+    JpaFacilityRepositoryAdapter --> SpringDataFacilityRepository
+    JpaScheduleRepositoryAdapter --> SpringDataScheduleRepository
+    JpaScheduleRepositoryAdapter --> PageResultConverter
 ```
