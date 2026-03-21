@@ -1373,6 +1373,85 @@ class ItemControllerIntegrationTest {
                 "should render sort arrow indicator");
     }
 
+    @Test
+    @DisplayName("should bulk delete items")
+    void shouldBulkDeleteItems() throws Exception {
+        mockMvc.perform(post("/items")
+                .param("name", "Bulk Del A")
+                .with(user("dev").roles("USER"))
+                .with(csrf()));
+        mockMvc.perform(post("/items")
+                .param("name", "Bulk Del B")
+                .with(user("dev").roles("USER"))
+                .with(csrf()));
+        String idA = getItemIdByName("Bulk Del A");
+        String idB = getItemIdByName("Bulk Del B");
+        mockMvc.perform(post("/items/bulk-delete")
+                        .param("itemIds", idA + "," + idB)
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/items"));
+    }
+
+    @Test
+    @DisplayName("should bulk update category")
+    void shouldBulkUpdateCategory() throws Exception {
+        mockMvc.perform(post("/items")
+                .param("name", "Bulk Cat A")
+                .with(user("dev").roles("USER"))
+                .with(csrf()));
+        String idA = getItemIdByName("Bulk Cat A");
+        mockMvc.perform(post("/items/bulk-category")
+                        .param("itemIds", idA)
+                        .param("category", "Plumbing")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/items"));
+    }
+
+    @Test
+    @DisplayName("should render bulk toolbar markup")
+    void shouldRenderBulkToolbar() throws Exception {
+        MvcResult result = mockMvc.perform(
+                get("/items")
+                        .with(user("dev").roles("USER")))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse()
+                .getContentAsString();
+        assertTrue(html.contains("bulk-toolbar"),
+                "should include bulk toolbar");
+        assertTrue(html.contains("select-all"),
+                "should include select-all checkbox");
+        assertTrue(html.contains("item-checkbox"),
+                "should include item checkboxes");
+    }
+
+    @Test
+    @DisplayName("should reject bulk delete without IDs")
+    void shouldRejectBulkDeleteWithoutIds()
+            throws Exception {
+        mockMvc.perform(post("/items/bulk-delete")
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("should reject bulk category without"
+            + " category")
+    void shouldRejectBulkCategoryWithoutCategory()
+            throws Exception {
+        String idA = getFirstItemId();
+        mockMvc.perform(post("/items/bulk-category")
+                        .param("itemIds", idA)
+                        .with(user("dev").roles("USER"))
+                        .with(csrf()))
+                .andExpect(status().isBadRequest());
+    }
+
     private Object getModel(String attr)
             throws Exception {
         MvcResult result = mockMvc.perform(get("/items")

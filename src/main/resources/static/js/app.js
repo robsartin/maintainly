@@ -121,7 +121,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         var link =
             e.target.closest('[data-navigate]');
-        if (link && !e.target.closest('td.actions')) {
+        if (link && !e.target.closest('td.actions')
+                && !e.target.closest('td.bulk-check')) {
             window.location.href =
                 link.getAttribute('data-navigate');
             return;
@@ -245,6 +246,85 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
+    /* --- Bulk selection --- */
+    var selectAll =
+        document.getElementById('select-all');
+    if (selectAll) {
+        selectAll.addEventListener('change', function () {
+            var boxes = document.querySelectorAll(
+                '.item-checkbox');
+            boxes.forEach(function (cb) {
+                cb.checked = selectAll.checked;
+            });
+            updateBulkToolbar();
+        });
+        document.body.addEventListener('change',
+            function (e) {
+                if (e.target.classList
+                        .contains('item-checkbox')) {
+                    updateBulkToolbar();
+                }
+            });
+    }
+
+    function getSelectedIds() {
+        var ids = [];
+        document.querySelectorAll(
+            '.item-checkbox:checked'
+        ).forEach(function (cb) {
+            ids.push(cb.value);
+        });
+        return ids;
+    }
+
+    function updateBulkToolbar() {
+        var ids = getSelectedIds();
+        var toolbar =
+            document.getElementById('bulk-toolbar');
+        if (!toolbar) {
+            return;
+        }
+        if (ids.length > 0) {
+            toolbar.style.display = '';
+            document.getElementById('bulk-count')
+                .textContent = ids.length + ' selected';
+        } else {
+            toolbar.style.display = 'none';
+        }
+    }
+
+    document.body.addEventListener('submit', function (e) {
+        var bulkDelete =
+            e.target.id === 'bulk-delete-form';
+        var bulkCategory =
+            e.target.id === 'bulk-category-form';
+        if (bulkDelete || bulkCategory) {
+            var ids = getSelectedIds();
+            if (ids.length === 0) {
+                e.preventDefault();
+                return;
+            }
+            var idField = bulkDelete
+                ? 'bulk-delete-ids'
+                : 'bulk-category-ids';
+            document.getElementById(idField)
+                .value = ids.join(',');
+            if (bulkDelete) {
+                var btn = e.target.querySelector(
+                    '[data-confirm-submit]');
+                if (btn) {
+                    btn.setAttribute(
+                        'data-confirm-submit',
+                        'Delete ' + ids.length
+                            + ' selected item(s)'
+                            + ' and all their'
+                            + ' schedules and'
+                            + ' records?');
+                }
+            }
+        }
+    });
 
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') {

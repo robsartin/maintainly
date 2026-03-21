@@ -1,5 +1,6 @@
 package solutions.mystuff.domain.service;
 
+import java.util.List;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.Item;
@@ -85,6 +86,34 @@ public class ItemManagementService
         itemRepo.deleteByIdAndOrganizationId(
                 itemId, orgId);
         log.info("Deleted item {}", item.getName());
+    }
+
+    /** Validates the list and bulk-deletes items. */
+    @Override
+    @Transactional
+    public void bulkDelete(
+            UUID orgId, List<UUID> itemIds) {
+        Validation.requireNotEmpty(itemIds, "Item IDs");
+        itemRepo.deleteAllByIdsAndOrganizationId(
+                itemIds, orgId);
+        log.info("Bulk-deleted {} items", itemIds.size());
+    }
+
+    /** Validates inputs and bulk-updates category. */
+    @Override
+    @Transactional
+    public void bulkUpdateCategory(
+            UUID orgId, List<UUID> itemIds,
+            String category) {
+        Validation.requireNotEmpty(itemIds, "Item IDs");
+        String trimCat = Validation.requireNotBlank(
+                category, "Category");
+        Validation.requireMaxLength(
+                trimCat, "Category", CATEGORY_MAX);
+        itemRepo.updateCategoryByIdsAndOrganizationId(
+                itemIds, orgId, trimCat);
+        log.info("Bulk-updated category to '{}' for {}"
+                + " items", trimCat, itemIds.size());
     }
 
     private Item requireItem(UUID orgId, UUID itemId) {
