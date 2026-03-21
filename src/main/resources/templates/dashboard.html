@@ -35,6 +35,7 @@
         <div class="dashboard-links">
             <a th:href="@{/schedules}" class="btn">View All Schedules</a>
             <a th:href="@{/items}" class="btn">View All Items</a>
+            <a th:href="@{/activity}" class="btn">View Activity Log</a>
         </div>
 
         <div class="quick-action-cards">
@@ -57,7 +58,7 @@
         </div>
 
         <section class="recent-activity">
-            <h2>Recent Activity</h2>
+            <h2>Recent Service Records</h2>
             <p th:if="${#lists.isEmpty(recentRecords)}">No service records yet.</p>
             <div class="table-scroll-wrapper">
             <table th:unless="${#lists.isEmpty(recentRecords)}">
@@ -75,6 +76,33 @@
                     <td th:text="${r.item.name}"></td>
                     <td th:text="${r.serviceType}"></td>
                     <td th:text="${r.summary}"></td>
+                </tr>
+                </tbody>
+            </table>
+            </div>
+        </section>
+
+        <section class="audit-feed">
+            <h2>Activity Feed</h2>
+            <p th:if="${auditEntries == null or #lists.isEmpty(auditEntries)}">No activity yet.</p>
+            <div class="table-scroll-wrapper">
+            <table th:if="${auditEntries != null and !#lists.isEmpty(auditEntries)}">
+                <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>User</th>
+                    <th>Action</th>
+                    <th>Type</th>
+                    <th>Name</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="e : ${auditEntries}">
+                    <td th:text="${#temporals.format(e.timestamp, 'yyyy-MM-dd HH:mm')}" class="nowrap"></td>
+                    <td th:text="${e.username}"></td>
+                    <td th:text="${e.action}"></td>
+                    <td th:text="${e.entityType}"></td>
+                    <td th:text="${e.entityName}"></td>
                 </tr>
                 </tbody>
             </table>
