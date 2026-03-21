@@ -4,10 +4,15 @@
     "no-empty-source": true,
     "block-no-empty": true,
     "no-duplicate-selectors": true,
+    "declaration-block-no-duplicate-properties": true,
     "selector-class-pattern": null,
     "custom-property-pattern": null,
     "keyframes-name-pattern": null,
     "no-descending-specificity": null,
-    "declaration-block-no-duplicate-properties": true
+    "color-function-alias-notation": null,
+    "color-function-notation": null,
+    "alpha-value-notation": null,
+    "media-feature-range-notation": null,
+    "shorthand-property-no-redundant-values": null
   }
 }
