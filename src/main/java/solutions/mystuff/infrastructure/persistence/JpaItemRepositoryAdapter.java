@@ -148,6 +148,27 @@ public class JpaItemRepositoryAdapter
                 id, organizationId);
     }
 
+    /**
+     * Bulk-deletes items via JPQL, bypassing Hibernate
+     * entity-level cascade. The database
+     * {@code ON DELETE CASCADE} removes children.
+     */
+    @Override
+    public void deleteAllByIdsAndOrganizationId(
+            List<UUID> ids, UUID organizationId) {
+        delegate.deleteAllByIdsAndOrganizationId(
+                ids, organizationId);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void updateCategoryByIdsAndOrganizationId(
+            List<UUID> ids, UUID organizationId,
+            String category) {
+        delegate.updateCategoryByIdsAndOrganizationId(
+                ids, organizationId, category);
+    }
+
     private static final Set<String> SORTABLE_FIELDS =
             Set.of("name", "location", "category",
                     "manufacturer");

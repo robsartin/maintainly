@@ -25,6 +25,8 @@ import solutions.mystuff.domain.model.PageResult;
  *         +searchByCategoryAndOrganizationId(UUID, String, String, PageRequest) PageResult~Item~
  *         +save(Item) Item
  *         +deleteByIdAndOrganizationId(UUID, UUID) void
+ *         +deleteAllByIdsAndOrganizationId(List~UUID~, UUID) void
+ *         +updateCategoryByIdsAndOrganizationId(List~UUID~, UUID, String) void
  *     }
  *     JpaItemRepositoryAdapter ..|> ItemRepository
  * </div>
@@ -76,4 +78,13 @@ public interface ItemRepository {
     /** Delete an item by ID scoped to an organization. */
     void deleteByIdAndOrganizationId(
             UUID id, UUID organizationId);
+
+    /** Bulk-delete items by IDs scoped to an organization. */
+    void deleteAllByIdsAndOrganizationId(
+            List<UUID> ids, UUID organizationId);
+
+    /** Bulk-update category for items by IDs within an organization. */
+    void updateCategoryByIdsAndOrganizationId(
+            List<UUID> ids, UUID organizationId,
+            String category);
 }
