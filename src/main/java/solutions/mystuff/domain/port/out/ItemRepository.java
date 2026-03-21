@@ -23,6 +23,7 @@ import solutions.mystuff.domain.model.PageResult;
  *         +findDistinctCategoriesByOrganizationId(UUID) List~String~
  *         +findByCategoryAndOrganizationId(UUID, String, PageRequest) PageResult~Item~
  *         +searchByCategoryAndOrganizationId(UUID, String, String, PageRequest) PageResult~Item~
+ *         +countByFacilityId(UUID, UUID) long
  *         +save(Item) Item
  *         +deleteByIdAndOrganizationId(UUID, UUID) void
  *     }
@@ -69,6 +70,10 @@ public interface ItemRepository {
     PageResult<Item> searchByCategoryAndOrganizationId(
             UUID organizationId, String query,
             String category, PageRequest pageReq);
+
+    /** Count items assigned to a specific facility. */
+    long countByFacilityId(
+            UUID organizationId, UUID facilityId);
 
     /** Persist a new or updated item. */
     Item save(Item item);

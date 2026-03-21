@@ -95,6 +95,14 @@ public class JpaItemRepositoryAdapter
 
     /** {@inheritDoc} */
     @Override
+    public long countByFacilityId(
+            UUID organizationId, UUID facilityId) {
+        return delegate.countByFacilityId(
+                organizationId, facilityId);
+    }
+
+    /** {@inheritDoc} */
+    @Override
     public List<String>
             findDistinctCategoriesByOrganizationId(
                     UUID organizationId) {

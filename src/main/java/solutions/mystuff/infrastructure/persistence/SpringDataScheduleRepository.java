@@ -86,4 +86,26 @@ interface SpringDataScheduleRepository
             @Param("orgId") UUID organizationId,
             @Param("fromDate") LocalDate from,
             @Param("toDate") LocalDate to);
+
+    @Query("SELECT COUNT(s) FROM ServiceSchedule s "
+            + "WHERE s.organizationId = :orgId "
+            + "AND s.active = true "
+            + "AND s.item.facilityId = :facId "
+            + "AND s.nextDueDate < :date")
+    long countActiveBeforeDateByFacility(
+            @Param("orgId") UUID organizationId,
+            @Param("facId") UUID facilityId,
+            @Param("date") LocalDate date);
+
+    @Query("SELECT COUNT(s) FROM ServiceSchedule s "
+            + "WHERE s.organizationId = :orgId "
+            + "AND s.active = true "
+            + "AND s.item.facilityId = :facId "
+            + "AND s.nextDueDate > :fromDate "
+            + "AND s.nextDueDate <= :toDate")
+    long countActiveBetweenDatesByFacility(
+            @Param("orgId") UUID organizationId,
+            @Param("facId") UUID facilityId,
+            @Param("fromDate") LocalDate from,
+            @Param("toDate") LocalDate to);
 }

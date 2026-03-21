@@ -107,6 +107,24 @@ public class JpaScheduleRepositoryAdapter
 
     /** {@inheritDoc} */
     @Override
+    public long countActiveBeforeDateByFacility(
+            UUID organizationId, UUID facilityId,
+            LocalDate date) {
+        return delegate.countActiveBeforeDateByFacility(
+                organizationId, facilityId, date);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public long countActiveBetweenDatesByFacility(
+            UUID organizationId, UUID facilityId,
+            LocalDate from, LocalDate to) {
+        return delegate.countActiveBetweenDatesByFacility(
+                organizationId, facilityId, from, to);
+    }
+
+    /** {@inheritDoc} */
+    @Override
     public ServiceSchedule save(
             ServiceSchedule schedule) {
         return delegate.save(schedule);

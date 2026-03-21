@@ -60,6 +60,13 @@ interface SpringDataItemRepository
 
     long countByOrganizationId(UUID organizationId);
 
+    @Query("SELECT COUNT(i) FROM Item i "
+            + "WHERE i.organizationId = :orgId "
+            + "AND i.facilityId = :facId")
+    long countByFacilityId(
+            @Param("orgId") UUID organizationId,
+            @Param("facId") UUID facilityId);
+
     @Query("SELECT DISTINCT i.category FROM Item i "
             + "WHERE i.organizationId = :orgId "
             + "AND i.category IS NOT NULL "
