@@ -18,7 +18,9 @@ import solutions.mystuff.domain.model.Validation;
 import solutions.mystuff.domain.model.ServiceCompletion;
 import solutions.mystuff.domain.model.ServiceSchedule;
 import solutions.mystuff.domain.model.Vendor;
+import solutions.mystuff.domain.port.in.FacilityQuery;
 import solutions.mystuff.domain.port.in.AuditLog;
+
 import solutions.mystuff.domain.port.in.ItemManagement;
 import solutions.mystuff.domain.port.in.ItemQuery;
 import solutions.mystuff.domain.port.in.RecordCreation;
@@ -72,6 +74,7 @@ public class ItemController {
     private final ItemManagement itemService;
     private final ItemQuery itemQuery;
     private final VendorQuery vendorQuery;
+    private final FacilityQuery facilityQuery;
     private final ScheduleLifecycle scheduleService;
     private final RecordCreation recordService;
     private final RecordManagement recordMgmt;
@@ -82,6 +85,7 @@ public class ItemController {
             ItemManagement itemService,
             ItemQuery itemQuery,
             VendorQuery vendorQuery,
+            FacilityQuery facilityQuery,
             ScheduleLifecycle scheduleService,
             RecordCreation recordService,
             RecordManagement recordMgmt,
@@ -90,6 +94,7 @@ public class ItemController {
         this.itemService = itemService;
         this.itemQuery = itemQuery;
         this.vendorQuery = vendorQuery;
+        this.facilityQuery = facilityQuery;
         this.scheduleService = scheduleService;
         this.recordService = recordService;
         this.recordMgmt = recordMgmt;
@@ -219,6 +224,8 @@ public class ItemController {
             @RequestParam(required = false)
                     String purchaseDate,
             @RequestParam(required = false) String notes,
+            @RequestParam(required = false)
+                    UUID facilityId,
             Principal principal,
             RedirectAttributes redirectAttrs) {
         AppUser user = helper.resolveUser(principal);
@@ -229,12 +236,13 @@ public class ItemController {
         ItemSpec spec = new ItemSpec(name, location,
                 manufacturer, modelName, serialNumber,
                 modelNumber, modelYear, category,
-                pd, notes);
+                pd, notes, facilityId);
         Item created = itemService.createItem(orgId, spec);
         auditLog.log(orgId, user.getUsername(),
                 "Item", created.getId(),
                 created.getName(),
                 AuditAction.CREATE, null);
+
         redirectAttrs.addFlashAttribute(
                 "success", "Item created");
         return "redirect:/items";
@@ -274,6 +282,8 @@ public class ItemController {
             @RequestParam(required = false)
                     String category,
             @RequestParam(required = false) String notes,
+            @RequestParam(required = false)
+                    UUID facilityId,
             Principal principal,
             RedirectAttributes redirectAttrs) {
         AppUser user = helper.resolveUser(principal);
@@ -284,13 +294,14 @@ public class ItemController {
         ItemSpec spec = new ItemSpec(name, location,
                 manufacturer, modelName, serialNumber,
                 modelNumber, modelYear, category,
-                pd, notes);
+                pd, notes, facilityId);
         Item updated = itemService.updateItem(
                 orgId, itemId, spec);
         auditLog.log(orgId, user.getUsername(),
                 "Item", updated.getId(),
                 updated.getName(),
                 AuditAction.UPDATE, null);
+
         redirectAttrs.addFlashAttribute(
                 "success", "Item updated");
         return "redirect:/items";
@@ -603,6 +614,8 @@ public class ItemController {
                 response, "/items", result, q, cat);
         model.addAttribute("vendors",
                 vendorQuery.findAllVendors(orgId));
+        model.addAttribute("facilities",
+                facilityQuery.findAllFacilities(orgId));
         model.addAttribute("frequencyUnits",
                 FrequencyUnit.values());
     }

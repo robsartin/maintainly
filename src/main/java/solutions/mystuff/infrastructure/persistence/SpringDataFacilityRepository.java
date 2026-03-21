@@ -28,4 +28,7 @@ interface SpringDataFacilityRepository
 
     Optional<Facility> findByIdAndOrganizationId(
             UUID id, UUID organizationId);
+
+    void deleteByIdAndOrganizationId(
+            UUID id, UUID organizationId);
 }

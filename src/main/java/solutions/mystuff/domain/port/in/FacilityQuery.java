@@ -1,6 +1,7 @@
 package solutions.mystuff.domain.port.in;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import solutions.mystuff.domain.model.Facility;
@@ -11,15 +12,20 @@ import solutions.mystuff.domain.model.Facility;
  * <div class="mermaid">
  * classDiagram
  *     class FacilityQuery {
- *         +findByOrganization(UUID) List~Facility~
+ *         +findAllFacilities(UUID) List~Facility~
+ *         +findFacility(UUID, UUID) Optional~Facility~
  *     }
- *     FacilityQueryService ..|> FacilityQuery
+ *     FacilityManagementService ..|&gt; FacilityQuery
  * </div>
  *
  * @see solutions.mystuff.domain.model.Facility
  */
 public interface FacilityQuery {
 
-    /** Find all facilities belonging to an organization. */
-    List<Facility> findByOrganization(UUID orgId);
+    /** Find all facilities for an organization. */
+    List<Facility> findAllFacilities(UUID orgId);
+
+    /** Find a single facility by ID within an organization. */
+    Optional<Facility> findFacility(
+            UUID facilityId, UUID orgId);
 }

@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
  * with appropriate HTTP status codes.
  *
  * @see ItemController
+ * @see FacilityController
  * @see ScheduleController
  */
 @ControllerAdvice
@@ -39,12 +40,17 @@ public class ControllerErrorAdvice {
                     "/settings/groups",
                     new ErrorViewConfig(
                             "redirect:/settings/groups",
+
                             null),
                     "/settings",
                     new ErrorViewConfig(
                             "redirect:/settings", null),
                     "/reports",
-                    new ErrorViewConfig("reports", null));
+                    new ErrorViewConfig("reports", null),
+                    "/facilities",
+                    new ErrorViewConfig(
+                            "redirect:/facilities",
+                            null));
 
     private static final ErrorViewConfig DEFAULT_VIEW =
             new ErrorViewConfig("items", "items");

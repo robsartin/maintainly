@@ -52,4 +52,18 @@ public class JpaFacilityRepositoryAdapter
         return delegate.findByIdAndOrganizationId(
                 id, organizationId);
     }
+
+    /** {@inheritDoc} */
+    @Override
+    public Facility save(Facility facility) {
+        return delegate.save(facility);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void deleteByIdAndOrganizationId(
+            UUID id, UUID organizationId) {
+        delegate.deleteByIdAndOrganizationId(
+                id, organizationId);
+    }
 }

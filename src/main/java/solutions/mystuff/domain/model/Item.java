@@ -37,8 +37,10 @@ import jakarta.persistence.Table;
  *     Item "*" --> "0..1" Facility
  *     Item "1" --> "*" ServiceSchedule
  *     Item "1" --> "*" ServiceRecord
+ *     Facility "0..1" --> "*" Item
  * </div>
  *
+ * @see Facility
  * @see ServiceSchedule
  * @see ServiceRecord
  * @see OrgOwnedEntity

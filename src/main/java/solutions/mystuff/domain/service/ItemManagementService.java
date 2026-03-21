@@ -164,6 +164,7 @@ public class ItemManagementService
         item.setModelYear(spec.modelYear());
         item.setPurchaseDate(spec.purchaseDate());
         item.setNotes(Validation.trimOrNull(spec.notes()));
+        item.setFacilityId(spec.facilityId());
     }
 
 }
