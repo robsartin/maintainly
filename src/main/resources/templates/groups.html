@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout :: head}"></head>
+<body>
+<header th:replace="~{layout :: header}"></header>
+<div th:replace="~{layout :: toasts}"></div>
+<main id="main-content">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li><a th:href="@{/}">Home</a></li>
+            <li><a th:href="@{/settings}">Settings</a></li>
+            <li>Groups</li>
+        </ol>
+    </nav>
+
+    <h2>User Groups</h2>
+
+    <section class="settings-section">
+        <h3>Create Group</h3>
+        <form th:action="@{/settings/groups}" method="post"
+              class="inline-form"
+              id="add-group-form" style="display:none">
+            <input type="hidden"
+                   th:name="${_csrf.parameterName}"
+                   th:value="${_csrf.token}"/>
+            <div class="form-row">
+                <label for="group-name">Name</label>
+                <input type="text" id="group-name" name="name"
+                       required maxlength="100"/>
+            </div>
+            <div class="form-row">
+                <label for="group-role">Role</label>
+                <select id="group-role" name="role" required>
+                    <option th:each="r : ${roles}"
+                            th:value="${r.name()}"
+                            th:text="${r.name()}"></option>
+                </select>
+            </div>
+            <div class="form-row">
+                <label for="group-desc">Description</label>
+                <input type="text" id="group-desc" name="description"
+                       maxlength="500"/>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Create</button>
+                <button type="button" class="btn btn-cancel"
+                        data-toggle-form="add-group-form">Cancel</button>
+            </div>
+        </form>
+        <button type="button" class="btn btn-primary"
+                data-toggle-form="add-group-form"
+                id="add-group-btn">New Group</button>
+    </section>
+
+    <section class="settings-section" th:each="group : ${groups}">
+        <h3 th:text="${group.name}">Group Name</h3>
+        <p>
+            <strong>Role:</strong>
+            <span th:text="${group.role}">ADMIN</span>
+        </p>
+        <p th:if="${group.description != null}">
+            <span th:text="${group.description}">Description</span>
+        </p>
+
+        <!-- Edit group form -->
+        <form th:action="@{/settings/groups/{id}(id=${group.id})}"
+              method="post" class="inline-form"
+              th:id="'edit-group-' + ${group.id}"
+              style="display:none">
+            <input type="hidden" name="_method" value="PUT"/>
+            <input type="hidden"
+                   th:name="${_csrf.parameterName}"
+                   th:value="${_csrf.token}"/>
+            <div class="form-row">
+                <label>Name</label>
+                <input type="text" name="name"
+                       th:value="${group.name}"
+                       required maxlength="100"/>
+            </div>
+            <div class="form-row">
+                <label>Role</label>
+                <select name="role" required>
+                    <option th:each="r : ${roles}"
+                            th:value="${r.name()}"
+                            th:text="${r.name()}"
+                            th:selected="${r == group.role}"></option>
+                </select>
+            </div>
+            <div class="form-row">
+                <label>Description</label>
+                <input type="text" name="description"
+                       th:value="${group.description}"
+                       maxlength="500"/>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Save</button>
+                <button type="button" class="btn btn-cancel"
+                        th:data-toggle-form="'edit-group-' + ${group.id}">Cancel</button>
+            </div>
+        </form>
+
+        <div class="form-actions">
+            <button type="button" class="btn"
+                    th:data-toggle-form="'edit-group-' + ${group.id}">Edit</button>
+            <form th:action="@{/settings/groups/{id}(id=${group.id})}"
+                  method="post" style="display:inline">
+                <input type="hidden" name="_method" value="DELETE"/>
+                <input type="hidden"
+                       th:name="${_csrf.parameterName}"
+                       th:value="${_csrf.token}"/>
+                <button type="submit" class="btn btn-danger">Delete</button>
+            </form>
+        </div>
+
+        <!-- Members -->
+        <h4>Members</h4>
+        <ul th:if="${memberMap.get(group.id) != null and !memberMap.get(group.id).isEmpty()}">
+            <li th:each="m : ${memberMap.get(group.id)}">
+                <span th:text="${m.userId}">user-id</span>
+                <form th:action="@{/settings/groups/{gid}/members/{uid}(gid=${group.id},uid=${m.userId})}"
+                      method="post" style="display:inline">
+                    <input type="hidden" name="_method" value="DELETE"/>
+                    <input type="hidden"
+                           th:name="${_csrf.parameterName}"
+                           th:value="${_csrf.token}"/>
+                    <button type="submit" class="btn btn-small">Remove</button>
+                </form>
+            </li>
+        </ul>
+        <p th:if="${memberMap.get(group.id) == null or memberMap.get(group.id).isEmpty()}">
+            No members yet.
+        </p>
+
+        <!-- Add member form -->
+        <form th:action="@{/settings/groups/{id}/members(id=${group.id})}"
+              method="post" class="inline-form">
+            <input type="hidden"
+                   th:name="${_csrf.parameterName}"
+                   th:value="${_csrf.token}"/>
+            <div class="form-row">
+                <label>Add member</label>
+                <select name="userId" required>
+                    <option value="">Select user...</option>
+                    <option th:each="u : ${orgUsers}"
+                            th:value="${u.id}"
+                            th:text="${u.username}"></option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-small">Add</button>
+        </form>
+    </section>
+
+    <p th:if="${#lists.isEmpty(groups)}">
+        No groups configured. Create one to assign roles to users.
+    </p>
+</main>
+</body>
+</html>

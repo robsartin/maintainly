@@ -77,4 +77,19 @@ class AppUserTest {
         user.setUsername("alice");
         assertEquals("alice", user.getUsername());
     }
+
+    @Test
+    @DisplayName("should have null role by default")
+    void shouldHaveNullRoleByDefault() {
+        AppUser user = new AppUser();
+        assertNull(user.getRole());
+    }
+
+    @Test
+    @DisplayName("should set and get role")
+    void shouldSetAndGetRole() {
+        AppUser user = new AppUser();
+        user.setRole(AppRole.TECHNICIAN);
+        assertEquals(AppRole.TECHNICIAN, user.getRole());
+    }
 }

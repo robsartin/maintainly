@@ -32,6 +32,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.security.access.prepost
+        .PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -197,6 +199,7 @@ public class ItemController {
                             description = "Validation"
                                     + " error")})
     @PostMapping("/items")
+    @PreAuthorize("@roleCheck.canWrite(#principal)")
     public String addItem(
             @RequestParam String name,
             @RequestParam(required = false)
@@ -250,6 +253,7 @@ public class ItemController {
                             description = "Item not"
                                     + " found")})
     @PutMapping("/items/{id}")
+    @PreAuthorize("@roleCheck.canWrite(#principal)")
     public String editItem(
             @PathVariable("id") UUID itemId,
             @RequestParam String name,
@@ -304,6 +308,7 @@ public class ItemController {
                             description = "Item not"
                                     + " found")})
     @DeleteMapping("/items/{id}")
+    @PreAuthorize("@roleCheck.canDelete(#principal)")
     public String deleteItem(
             @Parameter(description = "Item UUID")
             @PathVariable("id") UUID itemId,
@@ -386,6 +391,7 @@ public class ItemController {
                             description = "Item not"
                                     + " found")})
     @PostMapping("/items/{id}/service-records")
+    @PreAuthorize("@roleCheck.canWrite(#principal)")
     public String logItemService(
             @PathVariable("id") UUID itemId,
             @RequestParam String summary,
@@ -448,6 +454,7 @@ public class ItemController {
                             description = "Record not"
                                     + " found")})
     @PutMapping("/items/{itemId}/records/{recordId}")
+    @PreAuthorize("@roleCheck.canWrite(#principal)")
     public String editRecord(
             @PathVariable("itemId") UUID itemId,
             @PathVariable("recordId") UUID recordId,
@@ -486,6 +493,7 @@ public class ItemController {
                                     + " found")})
     @DeleteMapping(
             "/items/{itemId}/records/{recordId}")
+    @PreAuthorize("@roleCheck.canDelete(#principal)")
     public String deleteRecord(
             @PathVariable("itemId") UUID itemId,
             @PathVariable("recordId") UUID recordId,
@@ -513,6 +521,7 @@ public class ItemController {
                             description = "Validation"
                                     + " error")})
     @PostMapping("/items/{id}/schedules")
+    @PreAuthorize("@roleCheck.canWrite(#principal)")
     public String scheduleItemService(
             @PathVariable("id") UUID itemId,
             @RequestParam String serviceType,
