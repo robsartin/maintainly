@@ -5,6 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.config.annotation.method
+        .configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.User;
@@ -25,6 +27,7 @@ import org.springframework.security.web.header.writers
  *     A -->|!prod| C[Form-login SecurityFilterChain]
  *     A -->|!prod| D[InMemory UserDetailsService]
  *     A --> E[BCrypt PasswordEncoder]
+ *     A --> F[EnableMethodSecurity for PreAuthorize]
  * </div>
  *
  * @see SecurityFilterChain
@@ -32,6 +35,7 @@ import org.springframework.security.web.header.writers
  */
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfiguration {
 
     private static final Logger log =

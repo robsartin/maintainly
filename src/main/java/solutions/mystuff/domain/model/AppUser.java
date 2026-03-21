@@ -4,6 +4,8 @@ import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -18,11 +20,14 @@ import jakarta.persistence.Table;
  * classDiagram
  *     class AppUser {
  *         String username
+ *         AppRole role
  *         byte[] profileImage
  *         String profileImageType
  *         +hasOrganization() boolean
  *         +hasProfileImage() boolean
  *     }
+ *     class AppRole
+ *     AppUser --> "0..1" AppRole
  *     class Organization {
  *         String name
  *     }
@@ -37,6 +42,10 @@ import jakarta.persistence.Table;
 public class AppUser extends BaseEntity {
 
     private String username;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 30)
+    private AppRole role;
 
     @ManyToOne
     @JoinColumn(name = "organization_id")
@@ -56,6 +65,14 @@ public class AppUser extends BaseEntity {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public AppRole getRole() {
+        return role;
+    }
+
+    public void setRole(AppRole role) {
+        this.role = role;
     }
 
     public Organization getOrganization() {

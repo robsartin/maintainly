@@ -21,6 +21,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.security.access.prepost
+        .PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -125,6 +127,7 @@ public class ScheduleController {
                             description = "Schedule not"
                                     + " found")})
     @PostMapping("/schedules/{id}/completions")
+    @PreAuthorize("@roleCheck.canWrite(#principal)")
     public String logScheduleService(
             @Parameter(description = "Schedule UUID")
             @PathVariable("id") UUID scheduleId,
@@ -201,6 +204,7 @@ public class ScheduleController {
                             description = "Schedule not"
                                     + " found")})
     @PostMapping("/schedules/{id}/skip")
+    @PreAuthorize("@roleCheck.canWrite(#principal)")
     public String skipSchedule(
             @Parameter(description = "Schedule UUID")
             @PathVariable("id") UUID scheduleId,
@@ -230,6 +234,7 @@ public class ScheduleController {
                             description = "Schedule not"
                                     + " found")})
     @DeleteMapping("/schedules/{id}")
+    @PreAuthorize("@roleCheck.canDelete(#principal)")
     public String deleteSchedule(
             @Parameter(description = "Schedule UUID")
             @PathVariable("id") UUID scheduleId,
@@ -261,6 +266,7 @@ public class ScheduleController {
                             description = "Schedule not"
                                     + " found")})
     @PostMapping("/schedules/{id}")
+    @PreAuthorize("@roleCheck.canWrite(#principal)")
     public String editSchedule(
             @Parameter(description = "Schedule UUID")
             @PathVariable("id") UUID scheduleId,
