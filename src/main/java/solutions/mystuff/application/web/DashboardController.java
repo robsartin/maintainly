@@ -66,15 +66,12 @@ public class DashboardController {
     public DashboardController(
             ControllerHelper helper,
             DashboardQuery dashboardQuery,
-            FacilityQuery facilityQuery) {
-        this.helper = helper;
-        this.dashboardQuery = dashboardQuery;
-        this.facilityQuery = facilityQuery;
+            FacilityQuery facilityQuery,
             AuditLog auditLog) {
         this.helper = helper;
         this.dashboardQuery = dashboardQuery;
+        this.facilityQuery = facilityQuery;
         this.auditLog = auditLog;
-
     }
 
     /**
