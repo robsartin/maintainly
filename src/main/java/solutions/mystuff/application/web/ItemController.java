@@ -233,8 +233,6 @@ public class ItemController {
                 manufacturer, modelName, serialNumber,
                 modelNumber, modelYear, category,
                 pd, notes, facilityId);
-        itemService.createItem(orgId, spec);
-                pd, notes);
         Item created = itemService.createItem(orgId, spec);
         auditLog.log(orgId, user.getUsername(),
                 "Item", created.getId(),
@@ -292,8 +290,6 @@ public class ItemController {
                 manufacturer, modelName, serialNumber,
                 modelNumber, modelYear, category,
                 pd, notes, facilityId);
-        itemService.updateItem(orgId, itemId, spec);
-                pd, notes);
         Item updated = itemService.updateItem(
                 orgId, itemId, spec);
         auditLog.log(orgId, user.getUsername(),
