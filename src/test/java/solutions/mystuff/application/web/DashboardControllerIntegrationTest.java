@@ -54,6 +54,8 @@ class DashboardControllerIntegrationTest {
                 .andExpect(model().attributeExists(
                         "recentRecords"))
                 .andExpect(model().attributeExists(
+                        "auditEntries"))
+                .andExpect(model().attributeExists(
                         "username"))
                 .andExpect(model().attributeExists(
                         "organization"))

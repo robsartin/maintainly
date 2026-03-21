@@ -7,6 +7,8 @@ import java.util.UUID;
 
 import solutions.mystuff.domain.model.AppUser;
 import solutions.mystuff.domain.model.Facility;
+import solutions.mystuff.domain.port.in.AuditLog;
+
 import solutions.mystuff.domain.port.in.DashboardQuery;
 import solutions.mystuff.domain.port.in.FacilityQuery;
 import io.swagger.v3.oas.annotations.Operation;
@@ -57,6 +59,8 @@ public class DashboardController {
     private final ControllerHelper helper;
     private final DashboardQuery dashboardQuery;
     private final FacilityQuery facilityQuery;
+    private final AuditLog auditLog;
+
 
     /** Creates the controller with its dependencies. */
     public DashboardController(
@@ -66,6 +70,11 @@ public class DashboardController {
         this.helper = helper;
         this.dashboardQuery = dashboardQuery;
         this.facilityQuery = facilityQuery;
+            AuditLog auditLog) {
+        this.helper = helper;
+        this.dashboardQuery = dashboardQuery;
+        this.auditLog = auditLog;
+
     }
 
     /**
@@ -152,6 +161,9 @@ public class DashboardController {
                 dashboardQuery.countItems(orgId));
         model.addAttribute("recentRecords",
                 dashboardQuery.findRecentRecords(
+                        orgId, RECENT_LIMIT));
+        model.addAttribute("auditEntries",
+                auditLog.findRecentByOrganization(
                         orgId, RECENT_LIMIT));
     }
 
